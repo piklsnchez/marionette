@@ -7,14 +7,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.HttpCookie;
 import java.net.Socket;
 import java.time.Duration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.html.HTMLElement;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class MarionetteImpl implements Marionette {
@@ -64,290 +63,395 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getElementAttribute(HTMLElement element, String attribute) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"name\": %s}]", messageId++, Command.getElementAttribute.getCommand(), element.getId(), attribute);
+    public String getElementAttribute(String elementId, String attribute) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"name\": %s}]", messageId++, Command.getElementAttribute.getCommand(), elementId, attribute);
         out.format("%d:%s", command.length(), command);
         return read();
     }
 
     @Override
-    public void clickElement(HTMLElement element) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.clickElement.getCommand(), element.getId());
+    public void clickElement(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.clickElement.getCommand(), elementId);
         out.format("%d:%s", command.length(), command);
         read();
     }
 
     @Override
-    public void singleTap(HTMLElement element, Point point) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), element.getId(), point.x, point.y);
+    public void singleTap(String elementId, Point point) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, point.x, point.y);
         out.format("%d:%s", command.length(), command);
         read();
     }
 
     @Override
-    public void singleTap(HTMLElement element) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), element.getId(), 0, 0);
+    public void singleTap(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, 0, 0);
         out.format("%d:%s", command.length(), command);
         read();
     }
 
     @Override
-    public String getElementText(HTMLElement element) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementText.getCommand(), element.getId());
+    public String getElementText(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementText.getCommand(), elementId);
         out.format("%d:%s", command.length(), command);
         return read();
     }
 
     @Override
-    public void sendKeysToElement(HTMLElement element, String text) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"value\": %s}]", messageId++, Command.getElementText.getCommand(), element.getId(), text);
+    public void sendKeysToElement(String elementId, String text) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"value\": %s}]", messageId++, Command.sendKeysToElement.getCommand(), elementId, text);
         out.format("%d:%s", command.length(), command);
         read();
     }
 
     @Override
-    public void clearElement(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void clearElement(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.clearElement.getCommand(), elementId);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
-    public boolean isElementSelected(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean isElementSelected(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementSelected.getCommand(), elementId);
+        out.format("%d:%s", command.length(), command);
+        return Boolean.parseBoolean(read());
     }
 
     @Override
-    public boolean isElementEnabled(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean isElementEnabled(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementEnabled.getCommand(), elementId);
+        out.format("%d:%s", command.length(), command);
+        return Boolean.parseBoolean(read());
     }
 
     @Override
-    public boolean isElementDisplayed(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean isElementDisplayed(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementDisplayed.getCommand(), elementId);
+        out.format("%d:%s", command.length(), command);
+        return Boolean.parseBoolean(read());
     }
 
     @Override
-    public String getElementTagName(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String getElementTagName(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementTagName.getCommand(), elementId);
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public Rectangle getElementRect(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Rectangle getElementRectangle(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementRect.getCommand(), elementId);
+        out.format("%d:%s", command.length(), command);
+        String raw = read();
+        return new Rectangle();
     }
 
     @Override
-    public String getElementValueOfCssProperty(HTMLElement element, String property) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String getElementValueOfCssProperty(String elementId, String property) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"propertyName\": %s}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public void acceptDialog() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.acceptDialog.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void dismissDialog() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.dismissDialog.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public String getTextFromDialog() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTextFromDialog.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public void sendKeysToDialog(String text) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"value\": %s}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void quitApplication(List<String> flags) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]", messageId++, Command.quitApplication.getCommand(), flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public Object newSession(String sessionId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.sessionId = sessionId;
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": \"%s\"}]", messageId++, Command.newSession.getCommand(), sessionId);
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public Object newSession() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": null}]", messageId++, Command.newSession.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public void setTestName(String testName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.setTestName.getCommand(), testName);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void deleteSession() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.deleteSession.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void setScriptTimeout(Duration timeout) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId++, Command.setScriptTimeout.getCommand(), timeout.toMillis());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void setSearchTimeout(Duration timeout) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId++, Command.setSearchTimeout.getCommand(), timeout.toMillis());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public String getWindowHandle() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandle.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public String getCurrentChromeWindowHandle() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentChromeWindowHandle.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public Point getWindowPosition() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowPosition.getCommand());
+        out.format("%d:%s", command.length(), command);
+        String result = read();
+        return new Point();
     }
 
     @Override
     public void setWindowPosition(Point point) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"x\": %d, \"y\": %d}]", messageId++, Command.setWindowPosition.getCommand(), point.x, point.y);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public String getTitle() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTitle.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public List<String> getWindowHandles() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandles.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return Stream.of(read()).collect(Collectors.toList());
     }
 
     @Override
     public List<String> getChromeWindowHandles() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getChromeWindowHandles.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return Stream.of(read()).collect(Collectors.toList());
     }
 
     @Override
-    public Document getPageSource() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String getPageSource() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getPageSource.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public void close() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.close.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void closeChromeWindow() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.closeChromeWindow.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void setContext(Context context) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.setContext.getCommand(), context);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public Context getContext() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getContext.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return Context.valueOf(read());
     }
 
     @Override
     public void switchToWindow(String id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId++, Command.switchToWindow.getCommand(), id);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
-    public HTMLElement getActiveFrame() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String getActiveFrame() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveFrame.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
+        
     }
 
     @Override
     public void switchToParentFrame() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.switchToParentFrame.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
-    public void switchToFrame(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void switchToFrame(String id) {
+        String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": \"%s\"}]", messageId++, Command.switchToFrame.getCommand(), id);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
-    public Object switchToShadowRoot(HTMLElement element) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Object switchToShadowRoot(String id) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.switchToShadowRoot.getCommand(), id);
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public String getCurrentUrl() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentUrl.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public Object getWindowType() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowType.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public void get(String url) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"url\": \"%s\"}]", messageId++, Command.get.getCommand(), url);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void timeouts(Timeout timeout, Duration time) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"type\": \"%s\", \"ms\", %d}]", messageId++, Command.get.getCommand(), timeout, time.toMillis());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void goBack() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.goBack.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void goForward() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.goForward.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void refresh() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.refresh.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public Object executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
+        , messageId++, Command.executeJsScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public Object executeScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Object executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout) {
+        String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
+        , messageId++, Command.executeScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public Object executeAsyncScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, boolean debug) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Object executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
+        String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
+        , messageId++, Command.executeAsyncScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis(), debug);
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public HTMLElement findElement(SearchMethod method, String value) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String findElement(SearchMethod method, String value) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElement.getCommand(), method, value);
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public List<HTMLElement> findElements(SearchMethod method, String value) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<String> findElements(SearchMethod method, String value) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElements.getCommand(), method, value);
+        out.format("%d:%s", command.length(), command);
+        return Stream.of(read()).collect(Collectors.toList());
     }
 
     @Override
-    public HTMLElement getActiveElement() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String getActiveElement() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveElement.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public void log(LogLevel level, String message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"level\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.getActiveElement.getCommand(), level, message);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
@@ -366,7 +470,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public void addCookie(HttpCookie cookie) {
+    public void addCookie(String cookie) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -381,7 +485,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public List<HttpCookie> getCookies() {
+    public List<String> getCookies() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -391,7 +495,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String takeScreenshot(List<HTMLElement> elements) {
+    public String takeScreenshot(List<String> elements) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
