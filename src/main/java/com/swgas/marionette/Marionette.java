@@ -36,7 +36,7 @@ public interface Marionette {
     public boolean isElementEnabled(String element);
     public boolean isElementDisplayed(String element);
     public String getElementTagName(String element);
-    public Rectangle getElementRectangle(String element);
+    public String getElementRectangle(String element);
     public String getElementValueOfCssProperty(String element, String property);
     default public Object actionChain(List<Object> actionChain, String id){return null;}
     default public void multiAction(List<Object> multiActions){}
@@ -45,8 +45,8 @@ public interface Marionette {
     public String getTextFromDialog();
     public void sendKeysToDialog(String text);
     public void quitApplication(List<String> flags);
-    public Object newSession(String sessionId);
-    public Object newSession();
+    public String newSession(String sessionId);
+    public String newSession();
     public void setTestName(String testName);
     public void deleteSession();
     public void setScriptTimeout(Duration timeout);
@@ -67,23 +67,23 @@ public interface Marionette {
     public String getActiveFrame();
     public void switchToParentFrame();
     public void switchToFrame(String element);
-    public Object switchToShadowRoot(String element);
+    public String switchToShadowRoot(String element);
     public String getCurrentUrl();
-    public Object getWindowType();
+    public String getWindowType();
     public void get(String url);
     public void timeouts(Timeout timeout, Duration time);
     public void goBack();
     public void goForward();
     public void refresh();
-    public Object executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
-    public Object executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout);
-    public Object executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug);
+    public String executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
+    public String executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout);
+    public String executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug);
     public String findElement(SearchMethod method, String value);
     public List<String> findElements(SearchMethod method, String value);
     public String getActiveElement();
     public void log(LogLevel level, String message);
     public List<String> getLogs();
-    public void importScript(String file);
+    public void importScript(String script);
     public void clearImportedScripts();
     public void addCookie(String cookie);
     public void deleteAllCookies();
@@ -93,7 +93,7 @@ public interface Marionette {
     public String takeScreenshot(List<String> elements);
     public Orientation getScreenOrientation();
     public void setScreenOrientation(Orientation orientation);
-    public Rectangle getWindowSize();
-    public Object setWindowSize(Rectangle size);
-    public Object maximizeWindow();
+    public String getWindowSize();
+    public String setWindowSize(String size);
+    public String maximizeWindow();
 }

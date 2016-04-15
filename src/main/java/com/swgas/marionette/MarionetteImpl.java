@@ -22,7 +22,6 @@ public class MarionetteImpl implements Marionette {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    private String sessionId;
     private int messageId = 0;
     
     public MarionetteImpl(){
@@ -140,11 +139,10 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Rectangle getElementRectangle(String elementId) {
+    public String getElementRectangle(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementRect.getCommand(), elementId);
         out.format("%d:%s", command.length(), command);
-        String raw = read();
-        return new Rectangle();
+        return read();
     }
 
     @Override
@@ -190,15 +188,14 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Object newSession(String sessionId) {
-        this.sessionId = sessionId;
+    public String newSession(String sessionId) {
         String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": \"%s\"}]", messageId++, Command.newSession.getCommand(), sessionId);
         out.format("%d:%s", command.length(), command);
         return read();
     }
 
     @Override
-    public Object newSession() {
+    public String newSession() {
         String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": null}]", messageId++, Command.newSession.getCommand());
         out.format("%d:%s", command.length(), command);
         return read();
@@ -347,7 +344,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Object switchToShadowRoot(String id) {
+    public String switchToShadowRoot(String id) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.switchToShadowRoot.getCommand(), id);
         out.format("%d:%s", command.length(), command);
         return read();
@@ -361,7 +358,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Object getWindowType() {
+    public String getWindowType() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowType.getCommand());
         out.format("%d:%s", command.length(), command);
         return read();
@@ -403,7 +400,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Object executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
+    public String executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
         , messageId++, Command.executeJsScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
         out.format("%d:%s", command.length(), command);
@@ -411,7 +408,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Object executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout) {
+    public String executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
         , messageId++, Command.executeScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis());
         out.format("%d:%s", command.length(), command);
@@ -419,7 +416,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Object executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
+    public String executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
         String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
         , messageId++, Command.executeAsyncScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis(), debug);
         out.format("%d:%s", command.length(), command);
@@ -449,79 +446,110 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public void log(LogLevel level, String message) {
-        String command = String.format("[0, %d, \"%s\", {\"level\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.getActiveElement.getCommand(), level, message);
+        String command = String.format("[0, %d, \"%s\", {\"level\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.log.getCommand(), level, message);
         out.format("%d:%s", command.length(), command);
         read();
     }
 
     @Override
     public List<String> getLogs() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getLogs.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return Stream.of(read()).collect(Collectors.toList());
     }
 
     @Override
-    public void importScript(String file) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void importScript(String script) {
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\"}]", messageId++, Command.importScript.getCommand(), script);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void clearImportedScripts() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.clearImportedScripts.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void addCookie(String cookie) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"cookie\": \"%s\"}]", messageId++, Command.addCookie.getCommand(), cookie);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void deleteAllCookies() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.deleteAllCookies.getCommand());
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public void deleteCookie(String name) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId++, Command.deleteCookie.getCommand(), name);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
     public List<String> getCookies() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCookies.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return Stream.of(read()).collect(Collectors.toList());
     }
 
     @Override
     public String takeScreenshot() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": null, \"full\": true}]", messageId++, Command.takeScreenshot.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public String takeScreenshot(List<String> elements) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String takeScreenshot(List<String> elementIds) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": %s, \"full\": true}]"
+        , messageId++, Command.takeScreenshot.getCommand(), elementIds.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
     public Orientation getScreenOrientation() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getScreenOrientation.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return Orientation.valueOf(read());
     }
 
     @Override
     public void setScreenOrientation(Orientation orientation) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String command = String.format("[0, %d, \"%s\", {\"orientation\": \"%s\"}]", messageId++, Command.setScreenOrientation.getCommand(), orientation);
+        out.format("%d:%s", command.length(), command);
+        read();
     }
 
     @Override
-    public Rectangle getWindowSize() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String getWindowSize() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowSize.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public Object setWindowSize(Rectangle size) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String setWindowSize(String size) {
+        int width = 0;
+        int height = 0;
+        String command = String.format("[0, %d, \"%s\", {\"width\": %d, \"height\": %d}]", messageId++, Command.setWindowSize.getCommand(), width, height);
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
 
     @Override
-    public Object maximizeWindow() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String maximizeWindow() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.maximizeWindow.getCommand());
+        out.format("%d:%s", command.length(), command);
+        return read();
     }
     
 }
