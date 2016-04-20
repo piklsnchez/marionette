@@ -3,7 +3,11 @@ package com.swgas.marionette;
 import java.awt.Point;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.Assert;
@@ -20,6 +24,7 @@ public class MarionetteImplTest {
     private static final Logger LOG = Logger.getLogger(CLASS);
     
     public Process browser;
+    private Marionette client;
     
     public MarionetteImplTest() {
     }
@@ -38,24 +43,27 @@ public class MarionetteImplTest {
     @After
     public void after(){
         if(browser != null){
-            browser.destroy();
+            client.quitApplication(Collections.singletonList("eForceQuit"));
+            //browser.destroy();
         }
     }
 
     @Test
     public void testNewSession() {
         LOG.entering(CLASS, "testNewSession");        
-        Marionette client = new MarionetteImpl();
+        client = new MarionetteImpl();
         String url = "https://myaccountdev.swgas.com/";
-        String thing = client.newSession();
+        client.newSession();
         client.get(url);
         String result = "";
+        Instant stopTime = Instant.now().plus(2, ChronoUnit.SECONDS);
         while(!(result = client.getCurrentUrl()).contains(url)){
-            
+            if(Instant.now().isAfter(stopTime)){
+                break;
+            }
         }
-        client.close();
+        LOG.info(String.format("%s: %s", url, result));
         Assert.assertTrue(result.contains(url));
-        Assert.fail("Didn't end up on the correct url.");
         LOG.exiting(CLASS, "testNewSession", result);
     }
 

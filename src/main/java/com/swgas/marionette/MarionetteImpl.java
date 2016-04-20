@@ -7,11 +7,8 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.NotYetConnectedException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -31,12 +28,11 @@ public class MarionetteImpl implements Marionette {
         this("localhost", 2828);
     }
     public MarionetteImpl(String host, int port){
-        Duration waitTime = Duration.ofSeconds(5);
-        Instant startTime = Instant.now();
+        Instant stopTime = Instant.now().plusSeconds(5);
         try{
             boolean connected = false;
             while(!connected){
-                if(Duration.between(startTime, Instant.now()).compareTo(waitTime) > 0){
+                if(Instant.now().isAfter(stopTime)){
                     throw new MarionetteException(new Throwable("Timeout trying to connect"));
                 }
                 try{
@@ -442,6 +438,11 @@ public class MarionetteImpl implements Marionette {
             LOG.log(Level.SEVERE, e.getMessage(), e);
         }
         read();
+        try{
+            channel.close();
+        } catch(IOException e){
+            LOG.warning(e.toString());
+        }
     }
 
     @Override
