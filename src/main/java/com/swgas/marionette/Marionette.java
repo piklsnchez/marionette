@@ -1,7 +1,5 @@
 package com.swgas.marionette;
 
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.time.Duration;
 import java.util.List;
 
@@ -27,7 +25,7 @@ public interface Marionette {
     }
     public String getElementAttribute(String element, String name);
     public void clickElement(String element);
-    public void singleTap(String element, Point point);
+    public void singleTap(String element, String point);
     public void singleTap(String element);
     public String getElementText(String element);
     public void sendKeysToElement(String element, String text);
@@ -53,8 +51,8 @@ public interface Marionette {
     public void setSearchTimeout(Duration timeout);
     public String getWindowHandle();
     public String getCurrentChromeWindowHandle();
-    public Point getWindowPosition();
-    public void setWindowPosition(Point point);
+    public String getWindowPosition();
+    public void setWindowPosition(String point);
     public String getTitle();
     public List<String> getWindowHandles();
     public List<String> getChromeWindowHandles();

@@ -1,7 +1,6 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
-import java.awt.Point;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -99,8 +98,8 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public void singleTap(String elementId, Point point) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, point.x, point.y);
+    public void singleTap(String elementId, String point) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, /*point.x*/0, /*point.y*/0);
         try{
             channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length(), command).getBytes()));
         }catch(IOException e){
@@ -363,20 +362,19 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Point getWindowPosition() {
+    public String getWindowPosition() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowPosition.getCommand());
         try{
             channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length(), command).getBytes()));
         }catch(IOException e){
             LOG.log(Level.SEVERE, e.getMessage(), e);
         }
-        String result = read();
-        return new Point();
+        return read();
     }
 
     @Override
-    public void setWindowPosition(Point point) {
-        String command = String.format("[0, %d, \"%s\", {\"x\": %d, \"y\": %d}]", messageId++, Command.setWindowPosition.getCommand(), point.x, point.y);
+    public void setWindowPosition(String point) {
+        String command = String.format("[0, %d, \"%s\", {\"x\": %d, \"y\": %d}]", messageId++, Command.setWindowPosition.getCommand(), /*point.x*/0, /*point.y*/0);
         try{
             channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length(), command).getBytes()));
         }catch(IOException e){
