@@ -35,7 +35,7 @@ public class MarionetteImpl implements Marionette {
     public MarionetteImpl(String host, int port){
         toParser = Objects::toString;
         fromParser = FromStringParser.DEFAULT;
-        Instant stopTime = Instant.now().plusSeconds(5);
+        Instant stopTime = Instant.now().plusSeconds(30);
         try{
             boolean connected = false;
             while(!connected){
@@ -74,7 +74,8 @@ public class MarionetteImpl implements Marionette {
         LOG.entering(CLASS, "read");
         StringBuilder result = new StringBuilder();
         ByteBuffer buf = ByteBuffer.allocate(20);
-        while(result.length() == 0){
+        Instant stopTime = Instant.now().plusSeconds(5);
+        while(result.length() == 0 && Instant.now().isBefore(stopTime)){
             try{
                 while(channel.read(buf) > 0){
                     buf.flip();
