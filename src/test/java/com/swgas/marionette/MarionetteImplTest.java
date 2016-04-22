@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.Assert;
@@ -94,7 +93,7 @@ public class MarionetteImplTest {
         String elementId = "";
         Point point = null;
         MarionetteImpl instance = new MarionetteImpl();
-        instance.singleTap(elementId, point);
+        instance.singleTap(elementId, point.toString());
         Assert.fail("The test case is a prototype.");
     }
 
@@ -329,7 +328,7 @@ public class MarionetteImplTest {
         System.out.println("setWindowPosition");
         Point point = null;
         MarionetteImpl instance = new MarionetteImpl();
-        instance.setWindowPosition(point);
+        //instance.setWindowPosition(point);
         Assert.fail("The test case is a prototype.");
     }
 
