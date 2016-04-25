@@ -15,7 +15,11 @@ public interface Marionette {
         SEARCH, SCRIPT, PAGE
     }
     public enum SearchMethod{
-        ID, NAME, CLASS_NAME, TAG_NAME, CSS, LINK, PARTIAL_LINK, XPATH, ANON, ANON_ATTRIBUTE
+        ID, NAME, CLASS_NAME, TAG_NAME, CSS, LINK, PARTIAL_LINK, XPATH, ANON, ANON_ATTRIBUTE;
+        @Override
+        public String toString(){
+            return name().toLowerCase().replace("_", " ");
+        }
     }
     public enum LogLevel{
         ERROR, INFO, DEBUG
@@ -23,6 +27,8 @@ public interface Marionette {
     public enum Orientation{
         PORTRAIT_PRIMARY, LANDSCAPE_PRIMARY, PORTRAIT_SECONDARY, LANDSCAPE_SECONDARY
     }
+    public static final String WEBELEMENT_KEY = "ELEMENT";
+    public static final String W3C_WEBELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf";
     public <T> T getElementAttribute(String element, String name);
     public <T> T clickElement(String element);
     public <T> T singleTap(String element, String point);

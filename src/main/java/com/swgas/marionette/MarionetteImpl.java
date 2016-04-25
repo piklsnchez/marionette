@@ -73,20 +73,28 @@ public class MarionetteImpl implements Marionette {
     private <T> T read(){
         LOG.entering(CLASS, "read");
         StringBuilder result = new StringBuilder();
-        ByteBuffer buf = ByteBuffer.allocate(20);
+        byte[] byteBuf = new byte[6];
+        ByteBuffer buf = ByteBuffer.wrap(byteBuf);
         Instant stopTime = Instant.now().plusSeconds(5);
-        while(result.length() == 0 && Instant.now().isBefore(stopTime)){
-            try{
-                while(channel.read(buf) > 0){
+        try{                
+            while(Instant.now().isBefore(stopTime) && (channel.read(buf) <= 0)){}
+            for(int i = 0; i < byteBuf.length; i++){
+                if(byteBuf[i] == ':'){
+                    String sLength = new String(byteBuf, 0, i);
+                    int length = Integer.parseInt(sLength, 10);
+                    int skip = byteBuf.length - 1 - i;
+                    result.append(new String(byteBuf, i + 1, skip));
+                    buf = ByteBuffer.allocate(length - skip);
+                    channel.read(buf);
                     buf.flip();
-                    result.append(Charset.defaultCharset().decode(buf));
-                    buf.clear();
+                    result.append(Charset.forName("utf-8").decode(buf));
+                    break;
                 }
-            } catch(NotYetConnectedException e){
-                throw new MarionetteException(e);
-            } catch(Exception e){
-                LOG.log(Level.SEVERE, e.getMessage(), e);
             }
+        } catch(NotYetConnectedException e){
+            throw new MarionetteException(e);
+        } catch(IOException e){
+            LOG.log(Level.SEVERE, e.getMessage(), e);
         }
         LOG.exiting(CLASS, "read", result);
         return fromParser.parseFrom(result.toString());
@@ -473,14 +481,14 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public <T> T findElement(SearchMethod method, String value) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElement.getCommand(), method, value);
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElement.getCommand(), value, method);
         write(command);
         return read();
     }
 
     @Override
     public <T> T findElements(SearchMethod method, String value) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElements.getCommand(), method, value);
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElements.getCommand(), value, method);
         write(command);
         return read();
     }
