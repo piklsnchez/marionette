@@ -111,7 +111,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getElementAttribute(String elementId, String attribute) {
+    public <T> T getElementAttribute(String elementId, String attribute) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"name\": %s}]", messageId++, Command.getElementAttribute.getCommand(), elementId, attribute);
         write(command);
         return read();
@@ -139,7 +139,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getElementText(String elementId) {
+    public <T> T getElementText(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementText.getCommand(), elementId);
         write(command);
         return read();
@@ -160,42 +160,42 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public boolean isElementSelected(String elementId) {
+    public <T> T isElementSelected(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementSelected.getCommand(), elementId);
         write(command);
-        return Boolean.parseBoolean(read());
+        return read();
     }
 
     @Override
-    public boolean isElementEnabled(String elementId) {
+    public <T> T isElementEnabled(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementEnabled.getCommand(), elementId);
         write(command);
-        return Boolean.parseBoolean(read());
+        return read();
     }
 
     @Override
-    public boolean isElementDisplayed(String elementId) {
+    public <T> T isElementDisplayed(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementDisplayed.getCommand(), elementId);
         write(command);
-        return Boolean.parseBoolean(read());
+        return read();
     }
 
     @Override
-    public String getElementTagName(String elementId) {
+    public <T> T getElementTagName(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementTagName.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
-    public String getElementRectangle(String elementId) {
+    public <T> T getElementRectangle(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementRect.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
-    public String getElementValueOfCssProperty(String elementId, String property) {
+    public <T> T getElementValueOfCssProperty(String elementId, String property) {
         String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"propertyName\": %s}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
         write(command);
         return read();
@@ -216,7 +216,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getTextFromDialog() {
+    public <T> T getTextFromDialog() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTextFromDialog.getCommand());
         write(command);
         return read();
@@ -245,14 +245,14 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String newSession(String sessionId) {
+    public <T> T newSession(String sessionId) {
         String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": \"%s\"}]", messageId++, Command.newSession.getCommand(), sessionId);
         write(command);
         return read();
     }
 
     @Override
-    public String newSession() {
+    public <T> T newSession() {
         String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": null}]", messageId++, Command.newSession.getCommand());
         write(command);
         return read();
@@ -287,14 +287,14 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getWindowHandle() {
+    public <T> T getWindowHandle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandle.getCommand());
         write(command);
         return read();
     }
 
     @Override
-    public String getCurrentChromeWindowHandle() {
+    public <T> T getCurrentChromeWindowHandle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentChromeWindowHandle.getCommand());
         write(command);
         return read();
@@ -315,24 +315,24 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getTitle() {
+    public <T> T getTitle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTitle.getCommand());
         write(command);
         return read();
     }
 
     @Override
-    public List<String> getWindowHandles() {
+    public <T> T getWindowHandles() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandles.getCommand());
         write(command);
-        return Stream.of((String)read()).collect(Collectors.toList());
+        return read();
     }
 
     @Override
-    public List<String> getChromeWindowHandles() {
+    public <T> T getChromeWindowHandles() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getChromeWindowHandles.getCommand());
         write(command);
-        return Stream.of((String)read()).collect(Collectors.toList());
+        return read();
     }
 
     @Override
@@ -364,10 +364,10 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public Context getContext() {
+    public <T> T getContext() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getContext.getCommand());
         write(command);
-        return Context.valueOf(read());
+        return read();
     }
 
     @Override
@@ -400,21 +400,21 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String switchToShadowRoot(String id) {
+    public <T> T switchToShadowRoot(String id) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.switchToShadowRoot.getCommand(), id);
         write(command);
         return read();
     }
 
     @Override
-    public String getCurrentUrl() {
+    public <T> T getCurrentUrl() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentUrl.getCommand());
         write(command);
         return read();
     }
 
     @Override
-    public String getWindowType() {
+    public <T> T getWindowType() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowType.getCommand());
         write(command);
         return read();
@@ -586,14 +586,14 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getWindowSize() {
+    public <T> T getWindowSize() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowSize.getCommand());
         write(command);
         return read();
     }
 
     @Override
-    public String setWindowSize(String size) {
+    public <T> T setWindowSize(String size) {
         int width = 0;
         int height = 0;
         String command = String.format("[0, %d, \"%s\", {\"width\": %d, \"height\": %d}]", messageId++, Command.setWindowSize.getCommand(), width, height);
@@ -602,7 +602,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String maximizeWindow() {
+    public <T> T maximizeWindow() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.maximizeWindow.getCommand());
         write(command);
         return read();

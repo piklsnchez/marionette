@@ -36,14 +36,14 @@ public interface Marionette {
     public <T> T getElementText(String element);
     public <T> T sendKeysToElement(String element, String text);
     public <T> T clearElement(String element);
-    public boolean isElementSelected(String element);
-    public boolean isElementEnabled(String element);
-    public boolean isElementDisplayed(String element);
+    public <T> T isElementSelected(String element);
+    public <T> T isElementEnabled(String element);
+    public <T> T isElementDisplayed(String element);
     public <T> T getElementTagName(String element);
     public <T> T getElementRectangle(String element);
     public <T> T getElementValueOfCssProperty(String element, String property);
-    default public Object actionChain(List<Object> actionChain, String id){return null;}
-    default public void multiAction(List<Object> multiActions){}
+    default <T> T actionChain(List<Object> actionChain, String id){return (T)null;}
+    default <T> T multiAction(List<Object> multiActions){return (T)null;}
     public <T> T acceptDialog();
     public <T> T dismissDialog();
     public <T> T getTextFromDialog();
@@ -66,7 +66,7 @@ public interface Marionette {
     public <T> T close();
     public <T> T closeChromeWindow();
     public <T> T setContext(Context context);
-    public Context getContext();
+    public <T> T getContext();
     public <T> T switchToWindow(String id);
     public <T> T getActiveFrame();
     public <T> T switchToParentFrame();
@@ -95,7 +95,7 @@ public interface Marionette {
     public <T> T getCookies();
     public <T> T takeScreenshot();
     public <T> T takeScreenshot(List<String> elements);
-    public Orientation getScreenOrientation();
+    public <T> T getScreenOrientation();
     public <T> T setScreenOrientation(Orientation orientation);
     public <T> T getWindowSize();
     public <T> T setWindowSize(String size);
