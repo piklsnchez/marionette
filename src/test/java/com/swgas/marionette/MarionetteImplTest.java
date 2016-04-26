@@ -521,7 +521,7 @@ public class MarionetteImplTest {
     public void testExecuteJsScript() {
         System.out.println("executeJsScript");
         String script = "";
-        List<String> args = null;
+        String args = null;
         boolean async = false;
         boolean newSandbox = false;
         Duration scriptTimeout = null;
@@ -537,7 +537,7 @@ public class MarionetteImplTest {
     public void testExecuteScript() {
         System.out.println("executeScript");
         String script = "";
-        List<String> args = null;
+        String args = null;
         boolean newSandbox = false;
         Duration scriptTimeout = null;
         MarionetteImpl instance = new MarionetteImpl();
@@ -551,7 +551,7 @@ public class MarionetteImplTest {
     public void testExecuteAsyncScript() {
         System.out.println("executeAsyncScript");
         String script = "";
-        List<String> args = null;
+        String args = null;
         boolean newSandbox = false;
         Duration scriptTimeout = null;
         boolean debug = false;

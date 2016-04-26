@@ -15,7 +15,15 @@ public interface Marionette {
         SEARCH, SCRIPT, PAGE
     }
     public enum SearchMethod{
-        ID, NAME, CLASS_NAME, TAG_NAME, CSS, LINK, PARTIAL_LINK, XPATH, ANON, ANON_ATTRIBUTE;
+        ID(""), NAME("name="), CLASS_NAME("class="), TAG_NAME("tag="), CSS_SELECTOR("css="), LINK("link="), PARTIAL_LINK("link~="), XPATH(""), ANON("anon="), ANON_ATTRIBUTE("anonAttr=");
+
+        private String prefix;
+        private SearchMethod(String prefix) {
+            this.prefix = prefix;
+        }
+        public int len(){
+            return prefix.length();
+        }        
         @Override
         public String toString(){
             return name().toLowerCase().replace("_", " ");
@@ -79,9 +87,9 @@ public interface Marionette {
     public <T> T goBack();
     public <T> T goForward();
     public <T> T refresh();
-    public <T> T executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
-    public <T> T executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout);
-    public <T> T executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug);
+    public <T> T executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
+    public <T> T executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout);
+    public <T> T executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug);
     public <T> T findElement(SearchMethod method, String value);
     public <T> T findElements(SearchMethod method, String value);
     public <T> T getActiveElement();

@@ -308,9 +308,15 @@ public class MarionetteImpl implements Marionette {
         return read();
     }
 
+    /**
+     * 
+     * @param <T>
+     * @param pointArg ex. {x:0, y:0}
+     * @return 
+     */
     @Override
-    public <T> T setWindowPosition(String point) {
-        String command = String.format("[0, %d, \"%s\", {\"x\": %d, \"y\": %d}]", messageId++, Command.setWindowPosition.getCommand(), /*point.x*/0, /*point.y*/0);
+    public <T> T setWindowPosition(String pointArg) {
+        String command = String.format("[0, %d, \"%s\", %s]", messageId++, Command.setWindowPosition.getCommand(), pointArg);
         write(command);
         return read();
     }
@@ -457,25 +463,25 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
+    public <T> T executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeJsScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
+        , messageId++, Command.executeJsScript.getCommand(), script, args, async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
         write(command);
         return read();
     }
 
     @Override
-    public <T> T executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout) {
+    public <T> T executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis());
+        , messageId++, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis());
         write(command);
         return read();
     }
 
     @Override
-    public <T> T executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
+    public <T> T executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
-        , messageId++, Command.executeAsyncScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis(), debug);
+        , messageId++, Command.executeAsyncScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis(), debug);
         write(command);
         return read();
     }
