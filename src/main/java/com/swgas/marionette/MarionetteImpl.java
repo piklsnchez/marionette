@@ -75,7 +75,7 @@ public class MarionetteImpl implements Marionette {
         StringBuilder result = new StringBuilder();
         byte[] byteBuf = new byte[6];
         ByteBuffer buf = ByteBuffer.wrap(byteBuf);
-        Instant stopTime = Instant.now().plusSeconds(5);
+        Instant stopTime = Instant.now().plusSeconds(30);
         try{                
             while(Instant.now().isBefore(stopTime) && (channel.read(buf) <= 0)){}
             for(int i = 0; i < byteBuf.length; i++){
@@ -112,91 +112,91 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public <T> T getElementAttribute(String elementId, String attribute) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"name\": %s}]", messageId++, Command.getElementAttribute.getCommand(), elementId, attribute);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"name\": \"%s\"}]", messageId++, Command.getElementAttribute.getCommand(), elementId, attribute);
         write(command);
         return read();
     }
 
     @Override
     public <T> T clickElement(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.clickElement.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clickElement.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T singleTap(String elementId, String point) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, /*point.x*/0, /*point.y*/0);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, /*point.x*/0, /*point.y*/0);
         write(command);
         return read();
     }
 
     @Override
     public <T> T singleTap(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, 0, 0);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, 0, 0);
         write(command);
         return read();
     }
 
     @Override
     public <T> T getElementText(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementText.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementText.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T sendKeysToElement(String elementId, String text) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"value\": %s}]", messageId++, Command.sendKeysToElement.getCommand(), elementId, text);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.sendKeysToElement.getCommand(), elementId, text);
         write(command);
         return read();
     }
 
     @Override
     public <T> T clearElement(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.clearElement.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clearElement.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T isElementSelected(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementSelected.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementSelected.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T isElementEnabled(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementEnabled.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementEnabled.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T isElementDisplayed(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.isElementDisplayed.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementDisplayed.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T getElementTagName(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementTagName.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementTagName.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T getElementRectangle(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s}]", messageId++, Command.getElementRect.getCommand(), elementId);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementRect.getCommand(), elementId);
         write(command);
         return read();
     }
 
     @Override
     public <T> T getElementValueOfCssProperty(String elementId, String property) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": %s, \"propertyName\": %s}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"propertyName\": \"%s\"}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
         write(command);
         return read();
     }
@@ -224,7 +224,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public <T> T sendKeysToDialog(String text) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": %s}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
         write(command);
         return read();
     }
@@ -232,7 +232,8 @@ public class MarionetteImpl implements Marionette {
     @Override
     public <T> T quitApplication(List<String> flags) {
         try{
-            String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]", messageId++, Command.quitApplication.getCommand(), flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+            String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]"
+            , messageId++, Command.quitApplication.getCommand(), flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
             write(command);
             return read();
         } finally {
@@ -457,7 +458,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public <T> T executeJsScript(String script, List<String> args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
         , messageId++, Command.executeJsScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
         write(command);
         return read();
@@ -465,7 +466,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public <T> T executeScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
         , messageId++, Command.executeScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis());
         write(command);
         return read();
@@ -473,7 +474,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public <T> T executeAsyncScript(String script, List<String> args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": %s, \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
         , messageId++, Command.executeAsyncScript.getCommand(), script, args.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")), newSandbox, scriptTimeout.toMillis(), debug);
         write(command);
         return read();
