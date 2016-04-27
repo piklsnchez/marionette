@@ -147,7 +147,8 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public <T> T sendKeysToElement(String elementId, String text) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.sendKeysToElement.getCommand(), elementId, text);
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": %s}]"
+        , messageId++, Command.sendKeysToElement.getCommand(), elementId, text.chars().mapToObj(c -> Objects.toString((char)c)).collect(Collectors.joining("\", \"", "[\"", "\"]")));
         write(command);
         return read();
     }
