@@ -6,5 +6,6 @@ package com.swgas.exception;
  */
 public class MarionetteException extends RuntimeException{
     public MarionetteException(){super();}
-    public MarionetteException(Throwable e){super(e);}    
+    public MarionetteException(Throwable e){super(e);}
+    public MarionetteException(String message){super(message);}
 }

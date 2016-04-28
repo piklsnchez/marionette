@@ -73,11 +73,13 @@ public class MarionetteImpl implements Marionette {
     private <T> T read(){
         LOG.entering(CLASS, "read");
         StringBuilder result = new StringBuilder();
-        byte[] byteBuf = new byte[6];
+        byte[] byteBuf = new byte[8];
         ByteBuffer buf = ByteBuffer.wrap(byteBuf);
         Instant stopTime = Instant.now().plusSeconds(30);
-        try{                
-            while(Instant.now().isBefore(stopTime) && (channel.read(buf) <= 0)){}
+        try{
+            int r = 0;
+            while(Instant.now().isBefore(stopTime) && ((r = channel.read(buf)) == 0)){}
+            LOG.info(String.format("read: \"%s\"(%d) from socket", new String(byteBuf), r));
             for(int i = 0; i < byteBuf.length; i++){
                 if(byteBuf[i] == ':'){
                     String sLength = new String(byteBuf, 0, i);
@@ -85,9 +87,11 @@ public class MarionetteImpl implements Marionette {
                     int skip = byteBuf.length - 1 - i;
                     result.append(new String(byteBuf, i + 1, skip));
                     buf = ByteBuffer.allocate(length - skip);
-                    channel.read(buf);
-                    buf.flip();
-                    result.append(Charset.forName("utf-8").decode(buf));
+                    while(channel.read(buf) > 0){
+                        buf.flip();
+                        result.append(Charset.forName("utf-8").decode(buf));
+                        buf.clear();
+                    }
                     break;
                 }
             }
@@ -96,7 +100,9 @@ public class MarionetteImpl implements Marionette {
         } catch(IOException e){
             LOG.log(Level.SEVERE, e.getMessage(), e);
         }
-        LOG.exiting(CLASS, "read", result);
+        int len = result.length();
+        LOG.info(String.format("result.length: %d", len));
+        LOG.exiting(CLASS, "read", (len > 55) ? String.format("%s...%s", result.substring(0, 55), result.substring(len -3)) : result);
         return fromParser.parseFrom(result.toString());
     }
     
@@ -344,7 +350,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getPageSource() {
+    public <T> T getPageSource() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getPageSource.getCommand());
         write(command);
         return read();
@@ -386,7 +392,7 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public String getActiveFrame() {
+    public <T> T getActiveFrame() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveFrame.getCommand());
         write(command);
         return read();

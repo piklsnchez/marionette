@@ -669,14 +669,17 @@ public class MarionetteImplTest {
         Assert.fail("The test case is a prototype.");
     }
 
-    @Test    @Ignore
+    @Test
     public void testTakeScreenshot_0args() {
-        System.out.println("takeScreenshot");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        String result = instance.takeScreenshot();
-        Assert.assertEquals(expResult, result);
-        Assert.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testTakeScreenshot_0args");
+        client = new MarionetteImpl();
+        String url = "https://myaccountdev.swgas.com/";
+        client.newSession();
+        client.get(url);
+        String result = client.takeScreenshot();
+        
+        Assert.assertNotNull(result);
+        LOG.exiting(CLASS, "testTakeScreenshot_0args", result.length());
     }
 
     @Test    @Ignore
