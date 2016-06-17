@@ -30,7 +30,7 @@ public class MarionetteImplTest {
     
     @Before
     public void before() {
-        ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox");
+        ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "-marionette");
         _proc.inheritIO();
         try{
             browser = _proc.start();

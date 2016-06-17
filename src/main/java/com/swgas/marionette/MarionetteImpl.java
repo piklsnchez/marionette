@@ -7,13 +7,17 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.NotYetConnectedException;
-import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,7 +27,7 @@ import java.util.stream.Stream;
 public class MarionetteImpl implements Marionette {
     private static final String CLASS = MarionetteImpl.class.getName();
     private static final Logger LOG = Logger.getLogger(CLASS);
-    private SocketChannel channel;
+    private AsynchronousSocketChannel channel;
     private int messageId = 0;
     private ToStringParser toParser;
     private FromStringParser fromParser;
@@ -40,15 +44,20 @@ public class MarionetteImpl implements Marionette {
             boolean connected = false;
             while(!connected){
                 if(Instant.now().isAfter(stopTime)){
-                    throw new MarionetteException(new Throwable("Timeout trying to connect"));
+                    throw new MarionetteException(new Exception("Timeout trying to connect"));
                 }
-                try{
-                    channel = SocketChannel.open();
-                    channel.configureBlocking(false);
-                    channel.connect(new InetSocketAddress(host, port));
-                    while(!channel.finishConnect()){}
+                try{                    
+                    channel = AsynchronousSocketChannel.open();
+                    Future<Void> connecting = channel.connect(new InetSocketAddress(host, port));
+                    connecting.get(30, TimeUnit.SECONDS);
                     connected = true;
-                } catch(ConnectException e){}
+                } catch(ExecutionException e){
+                    if(!(e.getCause() instanceof ConnectException)){
+                        throw new MarionetteException(e.getCause());
+                    }
+                } catch(TimeoutException | InterruptedException e){
+                    throw new MarionetteException(e);
+                }
             }
             LOG.info((String)read());
         } catch(IOException e){
@@ -75,33 +84,34 @@ public class MarionetteImpl implements Marionette {
         StringBuilder result = new StringBuilder();
         byte[] byteBuf = new byte[8];
         ByteBuffer buf = ByteBuffer.wrap(byteBuf);
-        Instant stopTime = Instant.now().plusSeconds(30);
         try{
-            int r = 0;
-            while(Instant.now().isBefore(stopTime) && ((r = channel.read(buf)) == 0)){}
-            LOG.info(String.format("read: \"%s\"(%d) from socket", new String(byteBuf), r));
+            Integer r = channel.read(buf).get(30, TimeUnit.SECONDS);//block
+            //LOG.info(String.format("read: \"%s\"(%d) from socket", new String(byteBuf), r));
             for(int i = 0; i < byteBuf.length; i++){
                 if(byteBuf[i] == ':'){
                     String sLength = new String(byteBuf, 0, i);
+                    if(!sLength.chars().allMatch(Character::isDigit)){
+                        throw new MarionetteException(String.format("\"%s\" is not numeric", sLength));
+                    }
                     int length = Integer.parseInt(sLength, 10);
                     int skip = byteBuf.length - 1 - i;
                     result.append(new String(byteBuf, i + 1, skip));
                     buf = ByteBuffer.allocate(length - skip);
-                    while(channel.read(buf) > 0){
-                        buf.flip();
-                        result.append(Charset.forName("utf-8").decode(buf));
-                        buf.clear();
-                    }
+                    r = channel.read(buf).get(30, TimeUnit.SECONDS);//block
+                    //LOG.info(String.format("read %d more bytes from socket", r));
+                    buf.flip();
+                    result.append(Charset.forName("utf-8").decode(buf));
+                    buf.clear();
                     break;
                 }
             }
         } catch(NotYetConnectedException e){
             throw new MarionetteException(e);
-        } catch(IOException e){
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
             LOG.log(Level.SEVERE, e.getMessage(), e);
         }
         int len = result.length();
-        LOG.info(String.format("result.length: %d", len));
+        LOG.info(String.format("read %d bytes", len));
         LOG.exiting(CLASS, "read", (len > 55) ? String.format("%s...%s", result.substring(0, 55), result.substring(len -3)) : result);
         return fromParser.parseFrom(result.toString());
     }
@@ -109,8 +119,9 @@ public class MarionetteImpl implements Marionette {
     private void write(String command){
         LOG.entering(CLASS, "write", command);
         try{
-            channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length(), command).getBytes()));
-        }catch(IOException e){
+            Integer w = channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length(), command).getBytes())).get(30, TimeUnit.SECONDS);
+            LOG.info(String.format("wrote %d bytes", w));
+        }catch(InterruptedException | ExecutionException | TimeoutException e){
             LOG.log(Level.SEVERE, e.getMessage(), e);
         }
         LOG.exiting(CLASS, "write");
