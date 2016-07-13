@@ -8,12 +8,14 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
 import java.nio.channels.NotYetConnectedException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +67,33 @@ public class MarionetteImpl implements Marionette {
         }
     }
     
+    private MarionetteImpl(AsynchronousSocketChannel channel){
+        toParser = Objects::toString;
+        fromParser = FromStringParser.DEFAULT;
+        this.channel = channel;
+    }
+    
+    public static CompletableFuture<Marionette> getAsync(String host, int port){
+        CompletableFuture<Marionette> ret = new CompletableFuture<>();
+        try{
+            AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
+            channel.connect(new InetSocketAddress(host, port), ret, new CompletionHandler<Void, CompletableFuture>(){
+                @Override
+                public void completed(Void result, CompletableFuture future) {
+                    MarionetteImpl marionette = new MarionetteImpl(channel);
+                    marionette.readAsync(-1).thenAccept(s-> future.complete(marionette));
+                }
+                @Override
+                public void failed(Throwable e, CompletableFuture future) {
+                    future.completeExceptionally(new MarionetteException((e.getCause() instanceof ConnectException) ? e.getCause() : e));
+                }            
+            });
+        } catch(IOException e){
+            throw new MarionetteException(e);
+        }
+        return ret;
+    }
+    
     public void setToParser(ToStringParser to){
         toParser = to;
     }
@@ -77,6 +106,50 @@ public class MarionetteImpl implements Marionette {
     protected void finalize() throws Throwable{        
         super.finalize();
         channel.close();
+    }
+    
+    private CompletableFuture<String> readAsync(int id){
+        CompletableFuture<String> ret = new CompletableFuture<>();
+        byte[] byteBuf = new byte[8];
+        ByteBuffer buf = ByteBuffer.wrap(byteBuf);
+        channel.read(buf, ret, new CompletionHandler<Integer, CompletableFuture>() {
+            @Override
+            public void completed(Integer len, CompletableFuture future) {
+                StringBuilder builder = new StringBuilder();
+                int pos;
+                for(pos = 0; byteBuf[pos] != ':'; pos++){}
+                String _size = new String(byteBuf, 0, pos);
+                if(!_size.chars().allMatch(Character::isDigit)){
+                    future.completeExceptionally(new MarionetteException(String.format("\"%s\" is not numeric", _size)));
+                    return;
+                }
+                int size = Integer.parseInt(_size, 10);
+                builder.append(new String(byteBuf, pos + 1, len - pos - 1));
+                ByteBuffer bigBuf = ByteBuffer.allocate(size);
+                channel.read(bigBuf, future, new CompletionHandler<Integer, CompletableFuture>() {
+                    @Override
+                    public void completed(Integer len, CompletableFuture future) {
+                        bigBuf.flip();
+                        byte[] b = new byte[len];
+                        bigBuf.get(b);
+                        String result = builder.append(new String(b)).toString();
+                        LOG.info(String.format("readAsync: messageId: %d: %s", id, result));
+                        future.complete(result);
+                    }
+
+                    @Override
+                    public void failed(Throwable e, CompletableFuture future) {
+                        future.completeExceptionally(e);
+                    }
+                });
+            }
+
+            @Override
+            public void failed(Throwable e, CompletableFuture future) {
+                future.completeExceptionally(e);
+            }
+        });
+        return ret;
     }
     
     private <T> T read(){
@@ -100,7 +173,7 @@ public class MarionetteImpl implements Marionette {
                     r = channel.read(buf).get(30, TimeUnit.SECONDS);//block
                     //LOG.info(String.format("read %d more bytes from socket", r));
                     buf.flip();
-                    result.append(Charset.forName("utf-8").decode(buf));
+                    result.append(StandardCharsets.UTF_8.decode(buf));
                     buf.clear();
                     break;
                 }
@@ -114,6 +187,23 @@ public class MarionetteImpl implements Marionette {
         LOG.info(String.format("read %d bytes", len));
         LOG.exiting(CLASS, "read", (len > 55) ? String.format("%s...%s", result.substring(0, 55), result.substring(len -3)) : result);
         return fromParser.parseFrom(result.toString());
+    }
+    
+    private CompletableFuture<Integer> writeAsync(String command){
+        LOG.entering(CLASS, "writeAsync", command);
+        CompletableFuture<Integer> ret = new CompletableFuture<>();
+        channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length(), command).getBytes()), ret, new CompletionHandler<Integer, CompletableFuture>() {
+            @Override
+            public void completed(Integer result, CompletableFuture future) {
+                future.complete(result);
+            }
+
+            @Override
+            public void failed(Throwable e, CompletableFuture future) {
+                future.completeExceptionally(e);
+            }
+        });
+        return ret;
     }
     
     private void write(String command){
@@ -264,17 +354,15 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T newSession(String sessionId) {
-        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": \"%s\"}]", messageId++, Command.newSession.getCommand(), sessionId);
-        write(command);
-        return read();
+    public CompletableFuture<String> newSession(String sessionId) {
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": \"%s\"}]", messageId, Command.newSession.getCommand(), sessionId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T newSession() {
-        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": null}]", messageId++, Command.newSession.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> newSession() {
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": null}]", messageId, Command.newSession.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
@@ -432,10 +520,9 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T getCurrentUrl() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentUrl.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getCurrentUrl() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getCurrentUrl.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
@@ -446,10 +533,9 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T get(String url) {
-        String command = String.format("[0, %d, \"%s\", {\"url\": \"%s\"}]", messageId++, Command.get.getCommand(), url);
-        write(command);
-        return read();
+    public CompletableFuture<String> get(String url) {
+        String command = String.format("[0, %d, \"%s\", {\"url\": \"%s\"}]", messageId, Command.get.getCommand(), url);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override

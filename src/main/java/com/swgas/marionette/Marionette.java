@@ -2,6 +2,7 @@ package com.swgas.marionette;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  *
@@ -57,8 +58,8 @@ public interface Marionette {
     public <T> T getTextFromDialog();
     public <T> T sendKeysToDialog(String text);
     public <T> T quitApplication(List<String> flags);
-    public <T> T newSession(String sessionId);
-    public <T> T newSession();
+    public CompletableFuture<String> newSession(String sessionId);
+    public CompletableFuture<String> newSession();
     public <T> T setTestName(String testName);
     public <T> T deleteSession();
     public <T> T setScriptTimeout(Duration timeout);
@@ -80,9 +81,9 @@ public interface Marionette {
     public <T> T switchToParentFrame();
     public <T> T switchToFrame(String element);
     public <T> T switchToShadowRoot(String element);
-    public <T> T getCurrentUrl();
+    public CompletableFuture<String> getCurrentUrl();
     public <T> T getWindowType();
-    public <T> T get(String url);
+    public CompletableFuture<String> get(String url);
     public <T> T timeouts(Timeout timeout, Duration time);
     public <T> T goBack();
     public <T> T goForward();

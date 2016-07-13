@@ -1,12 +1,15 @@
 package com.swgas.marionette;
 
 import java.awt.Point;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.Assert;
@@ -31,9 +34,11 @@ public class MarionetteImplTest {
     @Before
     public void before() {
         ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "-marionette");
-        _proc.inheritIO();
+        //_proc.inheritIO();
         try{
-            browser = _proc.start();
+            browser = _proc.start();            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(browser.getInputStream()));
+            while(reader.lines().map(line -> {LOG.info(line);return line;}).noneMatch(line -> line.contains("Listening"))){}
         } catch(IOException e){
             throw new RuntimeException(e);
         }
@@ -48,22 +53,18 @@ public class MarionetteImplTest {
     }
 
     @Test
-    public void testNewSession() {
-        LOG.entering(CLASS, "testNewSession");        
-        client = new MarionetteImpl();
-        String url = "https://myaccountdev.swgas.com/";
-        client.newSession();
-        client.get(url);
-        String result = "";
-        Instant stopTime = Instant.now().plus(2, ChronoUnit.SECONDS);
-        while(!(result = client.getCurrentUrl()).contains(url)){
-            if(Instant.now().isAfter(stopTime)){
-                break;
-            }
-        }
-        LOG.info(String.format("%s: %s", url, result));
-        Assert.assertTrue(result.contains(url));
-        LOG.exiting(CLASS, "testNewSession", result);
+    public void testNewSession() throws Exception{
+        LOG.entering(CLASS, "testNewSession");
+        String url = "https://myaccountdev.swgas.com/";        
+        Assert.assertTrue(
+            MarionetteImpl.getAsync("localhost", 2828)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(url))
+            .thenCompose(s -> client.getCurrentUrl())
+            .get(2,TimeUnit.SECONDS)
+            .contains(url)
+        );
+        LOG.exiting(CLASS, "testNewSession");
     }
 
     @Test    @Ignore
@@ -253,7 +254,7 @@ public class MarionetteImplTest {
         String sessionId = "";
         MarionetteImpl instance = new MarionetteImpl();
         String expResult = "";
-        String result = instance.newSession(sessionId);
+        String result = instance.newSession(sessionId).join();
         Assert.assertEquals(expResult, result);
         Assert.fail("The test case is a prototype.");
     }
@@ -459,7 +460,7 @@ public class MarionetteImplTest {
         System.out.println("getCurrentUrl");
         MarionetteImpl instance = new MarionetteImpl();
         String expResult = "";
-        String result = instance.getCurrentUrl();
+        String result = instance.getCurrentUrl().join();
         Assert.assertEquals(expResult, result);
         Assert.fail("The test case is a prototype.");
     }
@@ -669,7 +670,7 @@ public class MarionetteImplTest {
         Assert.fail("The test case is a prototype.");
     }
 
-    @Test
+    @Test @Ignore
     public void testTakeScreenshot_0args() {
         LOG.entering(CLASS, "testTakeScreenshot_0args");
         client = new MarionetteImpl();
