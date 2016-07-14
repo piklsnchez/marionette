@@ -1,5 +1,6 @@
 package com.swgas.marionette;
 
+import com.swgas.parser.FromStringParser;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,9 +9,13 @@ import java.io.StringReader;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonValue;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -81,8 +86,8 @@ public class MarionetteImplTest {
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
-            .thenApply(this::fromRawString)
-            .thenCompose(e -> client.getElementAttribute(e, attribute))
+            .thenApply(FromStringParser.ELEMENT::parseFrom)
+            .thenCompose(e -> client.getElementAttribute((String) e, attribute))
             .get(TIMEOUT,TimeUnit.SECONDS)
             .contains(expResult));
         LOG.exiting(CLASS, "testGetElementAttribute");
@@ -96,8 +101,8 @@ public class MarionetteImplTest {
         .thenCompose(c -> {client = c; return client.newSession();})
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(this::fromRawString)
-        .thenCompose(e -> client.clickElement(e))
+        .thenApply(FromStringParser.ELEMENT::parseFrom)
+        .thenCompose(e -> client.clickElement((String)e))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testClickElement");
     }
@@ -111,8 +116,9 @@ public class MarionetteImplTest {
         .thenCompose(c -> {client = c; return client.newSession();})
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(this::fromRawString)
-        .thenCompose(s -> client.singleTap(css, (int)point.getX(), (int)point.getY()))
+        .thenApply(FromStringParser.ELEMENT::parseFrom)
+        .thenCompose(e -> client.singleTap((String)e, (int)point.getX(), (int)point.getY()))
+        .thenApply(FromStringParser.JSON::parseFrom)
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSingleTap_String_Point");
     }
@@ -762,9 +768,5 @@ public class MarionetteImplTest {
         String result = instance.maximizeWindow();
         Assert.assertEquals(expResult, result);
         Assert.fail("The test case is a prototype.");
-    }
-    
-    private String fromRawString(String s){
-        return Json.createReader(new StringReader(s)).readArray().getJsonObject(3).getJsonObject("value").getJsonString(Marionette.WEBELEMENT_KEY).getString();
     }
 }

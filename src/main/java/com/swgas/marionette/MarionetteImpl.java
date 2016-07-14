@@ -174,9 +174,8 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<String> singleTap(String elementId, int x, int y) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, x, y);
-        write(command);
-        return read();
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId, Command.singleTap.getCommand(), elementId, x, y);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
