@@ -4,13 +4,13 @@ import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import javax.json.Json;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,6 +24,10 @@ import org.junit.Ignore;
 public class MarionetteImplTest {
     private static final String CLASS = MarionetteImplTest.class.getName();
     private static final Logger LOG = Logger.getLogger(CLASS);
+    private static final String HOST = "localhost";
+    private static final int    PORT = 2828;
+    private static final int    TIMEOUT = 2;
+    private static final String URL = "https://myaccountdev.swgas.com/";
     
     public Process browser;
     private Marionette client;
@@ -45,9 +49,9 @@ public class MarionetteImplTest {
     }
     
     @After
-    public void after(){
+    public void after() throws Exception {
         if(browser != null){
-            client.quitApplication(Collections.singletonList("eForceQuit"));
+            client.quitApplication(Collections.singletonList("eForceQuit")).get(TIMEOUT, TimeUnit.SECONDS);
             //browser.destroy();
         }
     }
@@ -55,47 +59,62 @@ public class MarionetteImplTest {
     @Test
     public void testNewSession() throws Exception{
         LOG.entering(CLASS, "testNewSession");
-        String url = "https://myaccountdev.swgas.com/";        
         Assert.assertTrue(
-            MarionetteImpl.getAsync("localhost", 2828)
+            MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
-            .thenCompose(s -> client.get(url))
+            .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.getCurrentUrl())
-            .get(2,TimeUnit.SECONDS)
-            .contains(url)
+            .get(TIMEOUT,TimeUnit.SECONDS)
+            .contains(URL)
         );
         LOG.exiting(CLASS, "testNewSession");
     }
 
-    @Test    @Ignore
-    public void testGetElementAttribute() {
-        System.out.println("getElementAttribute");
-        String elementId = "";
-        String attribute = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        String result = instance.getElementAttribute(elementId, attribute);
-        Assert.assertEquals(expResult, result);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testGetElementAttribute() throws Exception{
+        LOG.entering(CLASS, "testGetElementAttribute");
+        String id = "menu_myaccount";
+        String attribute = "title";
+        String expResult = "Home";
+        Assert.assertTrue(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
+            .thenApply(this::fromRawString)
+            .thenCompose(e -> client.getElementAttribute(e, attribute))
+            .get(TIMEOUT,TimeUnit.SECONDS)
+            .contains(expResult));
+        LOG.exiting(CLASS, "testGetElementAttribute");
     }
 
-    @Test    @Ignore
-    public void testClickElement() {
-        System.out.println("clickElement");
-        String elementId = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.clickElement(elementId);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testClickElement() throws Exception {
+        LOG.entering(CLASS, "testClickElement");
+        String css = "input[name='username']";
+        MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
+        .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
+        .thenApply(this::fromRawString)
+        .thenCompose(e -> client.clickElement(e))
+        .get(TIMEOUT, TimeUnit.SECONDS);
+        LOG.exiting(CLASS, "testClickElement");
     }
 
-    @Test    @Ignore
-    public void testSingleTap_String_Point() {
-        System.out.println("singleTap");
-        String elementId = "";
-        Point point = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.singleTap(elementId, point.toString());
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testSingleTap_String_Point() throws Exception {
+        LOG.entering(CLASS, "testSingleTap_String_Point");
+        String css = "body";
+        Point point = new Point(1, 1);
+        MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
+        .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
+        .thenApply(this::fromRawString)
+        .thenCompose(s -> client.singleTap(css, (int)point.getX(), (int)point.getY()))
+        .get(TIMEOUT, TimeUnit.SECONDS);
+        LOG.exiting(CLASS, "testSingleTap_String_Point");
     }
 
     @Test    @Ignore
@@ -240,11 +259,12 @@ public class MarionetteImplTest {
     }
 
     @Test    @Ignore
-    public void testQuitApplication() {
+    public void testQuitApplication() throws Exception{
         System.out.println("quitApplication");
         List<String> flags = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.quitApplication(flags);
+        MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c;return client.quitApplication(flags);})
+        .get(TIMEOUT, TimeUnit.SECONDS);
         Assert.fail("The test case is a prototype.");
     }
 
@@ -563,16 +583,16 @@ public class MarionetteImplTest {
         Assert.fail("The test case is a prototype.");
     }
 
-    @Test    @Ignore
-    public void testFindElement() {
+    @Test @Ignore
+    public void testFindElement() throws Exception {
         System.out.println("findElement");
         Marionette.SearchMethod method = null;
         String value = "";
-        MarionetteImpl instance = new MarionetteImpl();
         String expResult = "";
-        String result = instance.findElement(method, value);
+        String result = MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c; return client.findElement(method, value);})
+        .get(TIMEOUT, TimeUnit.SECONDS);
         Assert.assertEquals(expResult, result);
-        Assert.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -744,4 +764,7 @@ public class MarionetteImplTest {
         Assert.fail("The test case is a prototype.");
     }
     
+    private String fromRawString(String s){
+        return Json.createReader(new StringReader(s)).readArray().getJsonObject(3).getJsonObject("value").getJsonString(Marionette.WEBELEMENT_KEY).getString();
+    }
 }

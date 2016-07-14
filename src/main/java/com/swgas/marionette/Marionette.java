@@ -38,9 +38,9 @@ public interface Marionette {
     }
     public static final String WEBELEMENT_KEY = "ELEMENT";
     public static final String W3C_WEBELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf";
-    public <T> T getElementAttribute(String element, String name);
-    public <T> T clickElement(String element);
-    public <T> T singleTap(String element, String point);
+    public CompletableFuture<String> getElementAttribute(String element, String name);
+    public CompletableFuture<String> clickElement(String element);
+    public CompletableFuture<String> singleTap(String element, int x, int y);
     public <T> T singleTap(String element);
     public <T> T getElementText(String element);
     public <T> T sendKeysToElement(String element, String text);
@@ -57,7 +57,7 @@ public interface Marionette {
     public <T> T dismissDialog();
     public <T> T getTextFromDialog();
     public <T> T sendKeysToDialog(String text);
-    public <T> T quitApplication(List<String> flags);
+    public CompletableFuture<String> quitApplication(List<String> flags);
     public CompletableFuture<String> newSession(String sessionId);
     public CompletableFuture<String> newSession();
     public <T> T setTestName(String testName);
@@ -91,7 +91,7 @@ public interface Marionette {
     public <T> T executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
     public <T> T executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout);
     public <T> T executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug);
-    public <T> T findElement(SearchMethod method, String value);
+    public CompletableFuture<String> findElement(SearchMethod method, String value);
     public <T> T findElements(SearchMethod method, String value);
     public <T> T getActiveElement();
     public <T> T log(LogLevel level, String message);

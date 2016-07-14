@@ -31,75 +31,18 @@ public class MarionetteImpl implements Marionette {
     private static final Logger LOG = Logger.getLogger(CLASS);
     private AsynchronousSocketChannel channel;
     private int messageId = 0;
-    private ToStringParser toParser;
-    private FromStringParser fromParser;
     
     public MarionetteImpl(){
         this("localhost", 2828);
     }
     
     public MarionetteImpl(String host, int port){
-        toParser = Objects::toString;
-        fromParser = FromStringParser.DEFAULT;
-        Instant stopTime = Instant.now().plusSeconds(30);
-        try{
-            boolean connected = false;
-            while(!connected){
-                if(Instant.now().isAfter(stopTime)){
-                    throw new MarionetteException(new Exception("Timeout trying to connect"));
-                }
-                try{                    
-                    channel = AsynchronousSocketChannel.open();
-                    Future<Void> connecting = channel.connect(new InetSocketAddress(host, port));
-                    connecting.get(30, TimeUnit.SECONDS);
-                    connected = true;
-                } catch(ExecutionException e){
-                    if(!(e.getCause() instanceof ConnectException)){
-                        throw new MarionetteException(e.getCause());
-                    }
-                } catch(TimeoutException | InterruptedException e){
-                    throw new MarionetteException(e);
-                }
-            }
-            LOG.info((String)read());
-        } catch(IOException e){
-            throw new MarionetteException(e);
-        }
+        throw new MarionetteException(new NoSuchMethodException("Use Factory"));
     }
     
-    private MarionetteImpl(AsynchronousSocketChannel channel){
-        toParser = Objects::toString;
-        fromParser = FromStringParser.DEFAULT;
+    protected MarionetteImpl(AsynchronousSocketChannel channel){
         this.channel = channel;
-    }
-    
-    public static CompletableFuture<Marionette> getAsync(String host, int port){
-        CompletableFuture<Marionette> ret = new CompletableFuture<>();
-        try{
-            AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
-            channel.connect(new InetSocketAddress(host, port), ret, new CompletionHandler<Void, CompletableFuture>(){
-                @Override
-                public void completed(Void result, CompletableFuture future) {
-                    MarionetteImpl marionette = new MarionetteImpl(channel);
-                    marionette.readAsync(-1).thenAccept(s-> future.complete(marionette));
-                }
-                @Override
-                public void failed(Throwable e, CompletableFuture future) {
-                    future.completeExceptionally(new MarionetteException((e.getCause() instanceof ConnectException) ? e.getCause() : e));
-                }            
-            });
-        } catch(IOException e){
-            throw new MarionetteException(e);
-        }
-        return ret;
-    }
-    
-    public void setToParser(ToStringParser to){
-        toParser = to;
-    }
-    
-    public void setFromParser(FromStringParser from){
-        fromParser = from;
+        readAsync(-1).join();
     }
     
     @Override
@@ -186,7 +129,7 @@ public class MarionetteImpl implements Marionette {
         int len = result.length();
         LOG.info(String.format("read %d bytes", len));
         LOG.exiting(CLASS, "read", (len > 55) ? String.format("%s...%s", result.substring(0, 55), result.substring(len -3)) : result);
-        return fromParser.parseFrom(result.toString());
+        return null;
     }
     
     private CompletableFuture<Integer> writeAsync(String command){
@@ -218,22 +161,20 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T getElementAttribute(String elementId, String attribute) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"name\": \"%s\"}]", messageId++, Command.getElementAttribute.getCommand(), elementId, attribute);
-        write(command);
-        return read();
+    public CompletableFuture<String> getElementAttribute(String elementId, String attribute) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"name\": \"%s\"}]", messageId, Command.getElementAttribute.getCommand(), elementId, attribute);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T clickElement(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clickElement.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> clickElement(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.clickElement.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T singleTap(String elementId, String point) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, /*point.x*/0, /*point.y*/0);
+    public CompletableFuture<String> singleTap(String elementId, int x, int y) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, x, y);
         write(command);
         return read();
     }
@@ -338,19 +279,20 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T quitApplication(List<String> flags) {
-        try{
-            String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]"
-            , messageId++, Command.quitApplication.getCommand(), flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
-            write(command);
-            return read();
-        } finally {
+    public CompletableFuture<String> quitApplication(List<String> flags) {
+        CompletableFuture<String> ret = new CompletableFuture<>();
+        String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]"
+        , messageId, Command.quitApplication.getCommand(), flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId)).thenCompose(s -> {
             try{
                 channel.close();
+                ret.complete(s);
             } catch(IOException e){
                 LOG.warning(e.toString());
+                ret.completeExceptionally(e);
             }
-        }
+            return ret;
+        });
     }
 
     @Override
@@ -591,10 +533,9 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T findElement(SearchMethod method, String value) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElement.getCommand(), value, method);
-        write(command);
-        return read();
+    public CompletableFuture<String> findElement(SearchMethod method, String value) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId, Command.findElement.getCommand(), value, method);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
