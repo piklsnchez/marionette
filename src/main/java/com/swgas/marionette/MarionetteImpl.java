@@ -1,29 +1,22 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
-import com.swgas.parser.ToStringParser;
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.channels.NotYetConnectedException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import com.swgas.parser.MarionetteParser;
 
 
 public class MarionetteImpl implements Marionette {
@@ -95,7 +88,7 @@ public class MarionetteImpl implements Marionette {
         return ret;
     }
     
-    private <T> T read(){
+    private CompletableFuture<String> read(){
         LOG.entering(CLASS, "read");
         StringBuilder result = new StringBuilder();
         byte[] byteBuf = new byte[8];
@@ -210,73 +203,64 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T isElementEnabled(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementEnabled.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> isElementEnabled(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.isElementEnabled.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T isElementDisplayed(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementDisplayed.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> isElementDisplayed(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.isElementDisplayed.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getElementTagName(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementTagName.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> getElementTagName(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.getElementTagName.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getElementRectangle(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementRect.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> getElementRectangle(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.getElementRect.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getElementValueOfCssProperty(String elementId, String property) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"propertyName\": \"%s\"}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
-        write(command);
-        return read();
+    public CompletableFuture<String> getElementValueOfCssProperty(String elementId, String property) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"propertyName\": \"%s\"}]", messageId, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T acceptDialog() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.acceptDialog.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> acceptDialog() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.acceptDialog.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T dismissDialog() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.dismissDialog.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> dismissDialog() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.dismissDialog.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getTextFromDialog() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTextFromDialog.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getTextFromDialog() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getTextFromDialog.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T sendKeysToDialog(String text) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
-        write(command);
-        return read();
+    public CompletableFuture<String> sendKeysToDialog(String text) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId, Command.sendKeysToDialog.getCommand(), text);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
     public CompletableFuture<String> quitApplication(List<String> flags) {
         CompletableFuture<String> ret = new CompletableFuture<>();
         String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]"
-        , messageId, Command.quitApplication.getCommand(), flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        , messageId, Command.quitApplication.getCommand(), (null == flags) ? "[]" : flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
         return writeAsync(command).thenCompose(i -> readAsync(messageId)).thenCompose(s -> {
             try{
                 channel.close();
@@ -302,52 +286,45 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T setTestName(String testName) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.setTestName.getCommand(), testName);
-        write(command);
-        return read();
+    public CompletableFuture<String> setTestName(String testName) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId, Command.setTestName.getCommand(), testName);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T deleteSession() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.deleteSession.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> deleteSession() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.deleteSession.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T setScriptTimeout(Duration timeout) {
-        String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId++, Command.setScriptTimeout.getCommand(), timeout.toMillis());
-        write(command);
-        return read();
+    public CompletableFuture<String> setScriptTimeout(Duration timeout) {
+        String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId, Command.setScriptTimeout.getCommand(), timeout.toMillis());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T setSearchTimeout(Duration timeout) {
-        String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId++, Command.setSearchTimeout.getCommand(), timeout.toMillis());
-        write(command);
-        return read();
+    public CompletableFuture<String> setSearchTimeout(Duration timeout) {
+        String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId, Command.setSearchTimeout.getCommand(), timeout.toMillis());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getWindowHandle() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandle.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getWindowHandle() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowHandle.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getCurrentChromeWindowHandle() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentChromeWindowHandle.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getCurrentChromeWindowHandle() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getCurrentChromeWindowHandle.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getWindowPosition() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowPosition.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getWindowPosition() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowPosition.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     /**
@@ -357,102 +334,88 @@ public class MarionetteImpl implements Marionette {
      * @return 
      */
     @Override
-    public <T> T setWindowPosition(String pointArg) {
-        String command = String.format("[0, %d, \"%s\", %s]", messageId++, Command.setWindowPosition.getCommand(), pointArg);
-        write(command);
-        return read();
+    public CompletableFuture<String> setWindowPosition(String pointArg) {
+        String command = String.format("[0, %d, \"%s\", %s]", messageId, Command.setWindowPosition.getCommand(), pointArg);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getTitle() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTitle.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getTitle() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getTitle.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getWindowHandles() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandles.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getWindowHandles() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowHandles.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getChromeWindowHandles() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getChromeWindowHandles.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getChromeWindowHandles() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getChromeWindowHandles.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getPageSource() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getPageSource.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getPageSource() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getPageSource.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T close() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.close.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> close() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.close.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T closeChromeWindow() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.closeChromeWindow.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> closeChromeWindow() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.closeChromeWindow.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T setContext(Context context) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.setContext.getCommand(), context);
-        write(command);
-        return read();
+    public CompletableFuture<String> setContext(Context context) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId, Command.setContext.getCommand(), context);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getContext() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getContext.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getContext() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getContext.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T switchToWindow(String id) {
-        String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId++, Command.switchToWindow.getCommand(), id);
-        write(command);
-        return read();
+    public CompletableFuture<String> switchToWindow(String id) {
+        String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId, Command.switchToWindow.getCommand(), id);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getActiveFrame() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveFrame.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getActiveFrame() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getActiveFrame.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
         
     }
 
     @Override
-    public <T> T switchToParentFrame() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.switchToParentFrame.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> switchToParentFrame() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.switchToParentFrame.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T switchToFrame(String id) {
-        String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": \"%s\"}]", messageId++, Command.switchToFrame.getCommand(), id);
-        write(command);
-        return read();
+    public CompletableFuture<String> switchToFrame(String id) {
+        String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": \"%s\"}]", messageId, Command.switchToFrame.getCommand(), id);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T switchToShadowRoot(String id) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.switchToShadowRoot.getCommand(), id);
-        write(command);
-        return read();
+    public CompletableFuture<String> switchToShadowRoot(String id) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.switchToShadowRoot.getCommand(), id);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
@@ -462,10 +425,9 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T getWindowType() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowType.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getWindowType() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowType.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
@@ -475,55 +437,48 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T timeouts(Timeout timeout, Duration time) {
-        String command = String.format("[0, %d, \"%s\", {\"type\": \"%s\", \"ms\", %d}]", messageId++, Command.get.getCommand(), timeout, time.toMillis());
-        write(command);
-        return read();
+    public CompletableFuture<String> timeouts(Timeout timeout, Duration time) {
+        String command = String.format("[0, %d, \"%s\", {\"type\": \"%s\", \"ms\", %d}]", messageId, Command.get.getCommand(), timeout, time.toMillis());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T goBack() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.goBack.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> goBack() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.goBack.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T goForward() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.goForward.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> goForward() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.goForward.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T refresh() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.refresh.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> refresh() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.refresh.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
+    public CompletableFuture<String> executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeJsScript.getCommand(), script, args, async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
-        write(command);
-        return read();
+        , messageId, Command.executeJsScript.getCommand(), script, args, async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout) {
+    public CompletableFuture<String> executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis());
-        write(command);
-        return read();
+        , messageId, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
+    public CompletableFuture<String> executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
-        , messageId++, Command.executeAsyncScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis(), debug);
-        write(command);
-        return read();
+        , messageId, Command.executeAsyncScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis(), debug);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
@@ -533,124 +488,107 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T findElements(SearchMethod method, String value) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElements.getCommand(), value, method);
-        write(command);
-        return read();
+    public CompletableFuture<String> findElements(SearchMethod method, String value) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId, Command.findElements.getCommand(), value, method);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getActiveElement() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveElement.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getActiveElement() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getActiveElement.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T log(LogLevel level, String message) {
-        String command = String.format("[0, %d, \"%s\", {\"level\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.log.getCommand(), level, message);
-        write(command);
-        return read();
+    public CompletableFuture<String> log(LogLevel level, String message) {
+        String command = String.format("[0, %d, \"%s\", {\"level\": \"%s\", \"value\": \"%s\"}]", messageId, Command.log.getCommand(), level, message);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public List<String> getLogs() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getLogs.getCommand());
-        write(command);
-        return Stream.of((String)read()).collect(Collectors.toList());
+    public CompletableFuture<String> getLogs() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getLogs.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T importScript(String script) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\"}]", messageId++, Command.importScript.getCommand(), script);
-        write(command);
-        return read();
+    public CompletableFuture<String> importScript(String script) {
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\"}]", messageId, Command.importScript.getCommand(), script);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T clearImportedScripts() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.clearImportedScripts.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> clearImportedScripts() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.clearImportedScripts.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T addCookie(String cookie) {
-        String command = String.format("[0, %d, \"%s\", {\"cookie\": \"%s\"}]", messageId++, Command.addCookie.getCommand(), cookie);
-        write(command);
-        return read();
+    public CompletableFuture<String> addCookie(String cookie) {
+        String command = String.format("[0, %d, \"%s\", {\"cookie\": \"%s\"}]", messageId, Command.addCookie.getCommand(), cookie);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T deleteAllCookies() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.deleteAllCookies.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> deleteAllCookies() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.deleteAllCookies.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T deleteCookie(String name) {
-        String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId++, Command.deleteCookie.getCommand(), name);
-        write(command);
-        return read();
+    public CompletableFuture<String> deleteCookie(String name) {
+        String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId, Command.deleteCookie.getCommand(), name);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getCookies() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCookies.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getCookies() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getCookies.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T takeScreenshot() {
-        String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": null, \"full\": true}]", messageId++, Command.takeScreenshot.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> takeScreenshot() {
+        String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": null, \"full\": true}]", messageId, Command.takeScreenshot.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T takeScreenshot(List<String> elementIds) {
+    public CompletableFuture<String> takeScreenshot(List<String> elementIds) {
         String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": %s, \"full\": true}]"
-        , messageId++, Command.takeScreenshot.getCommand(), elementIds.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
-        write(command);
-        return read();
+        , messageId, Command.takeScreenshot.getCommand(), elementIds.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public Orientation getScreenOrientation() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getScreenOrientation.getCommand());
-        write(command);
-        return Orientation.valueOf(read());
+    public CompletableFuture<String> getScreenOrientation() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getScreenOrientation.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T setScreenOrientation(Orientation orientation) {
-        String command = String.format("[0, %d, \"%s\", {\"orientation\": \"%s\"}]", messageId++, Command.setScreenOrientation.getCommand(), orientation);
-        write(command);
-        return read();
+    public CompletableFuture<String> setScreenOrientation(Orientation orientation) {
+        String command = String.format("[0, %d, \"%s\", {\"orientation\": \"%s\"}]", messageId, Command.setScreenOrientation.getCommand(), orientation);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getWindowSize() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowSize.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> getWindowSize() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowSize.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T setWindowSize(String size) {
+    public CompletableFuture<String> setWindowSize(String size) {
         int width = 0;
         int height = 0;
-        String command = String.format("[0, %d, \"%s\", {\"width\": %d, \"height\": %d}]", messageId++, Command.setWindowSize.getCommand(), width, height);
-        write(command);
-        return read();
+        String command = String.format("[0, %d, \"%s\", {\"width\": %d, \"height\": %d}]", messageId, Command.setWindowSize.getCommand(), width, height);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T maximizeWindow() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.maximizeWindow.getCommand());
-        write(command);
-        return read();
+    public CompletableFuture<String> maximizeWindow() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.maximizeWindow.getCommand());
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }    
 }

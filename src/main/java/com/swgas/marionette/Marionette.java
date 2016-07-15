@@ -4,10 +4,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/**
- *
- * @author ocstest
- */
 public interface Marionette {
     public enum Context{
         CONTEXT_CHROME, CONTEXT_CONTENT
@@ -46,67 +42,67 @@ public interface Marionette {
     public CompletableFuture<String> sendKeysToElement(String element, String text);
     public CompletableFuture<String> clearElement(String element);
     public CompletableFuture<String> isElementSelected(String element);
-    public <T> T isElementEnabled(String element);
-    public <T> T isElementDisplayed(String element);
-    public <T> T getElementTagName(String element);
-    public <T> T getElementRectangle(String element);
-    public <T> T getElementValueOfCssProperty(String element, String property);
-    default <T> T actionChain(List<Object> actionChain, String id){return (T)null;}
-    default <T> T multiAction(List<Object> multiActions){return (T)null;}
-    public <T> T acceptDialog();
-    public <T> T dismissDialog();
-    public <T> T getTextFromDialog();
-    public <T> T sendKeysToDialog(String text);
+    public CompletableFuture<String> isElementEnabled(String element);
+    public CompletableFuture<String> isElementDisplayed(String element);
+    public CompletableFuture<String> getElementTagName(String element);
+    public CompletableFuture<String> getElementRectangle(String element);
+    public CompletableFuture<String> getElementValueOfCssProperty(String element, String property);
+    default CompletableFuture<String> actionChain(List<Object> actionChain, String id){return null;}
+    default CompletableFuture<String> multiAction(List<Object> multiActions){return null;}
+    public CompletableFuture<String> acceptDialog();
+    public CompletableFuture<String> dismissDialog();
+    public CompletableFuture<String> getTextFromDialog();
+    public CompletableFuture<String> sendKeysToDialog(String text);
     public CompletableFuture<String> quitApplication(List<String> flags);
     public CompletableFuture<String> newSession(String sessionId);
     public CompletableFuture<String> newSession();
-    public <T> T setTestName(String testName);
-    public <T> T deleteSession();
-    public <T> T setScriptTimeout(Duration timeout);
-    public <T> T setSearchTimeout(Duration timeout);
-    public <T> T getWindowHandle();
-    public <T> T getCurrentChromeWindowHandle();
-    public <T> T getWindowPosition();
-    public <T> T setWindowPosition(String point);
-    public <T> T getTitle();
-    public <T> T getWindowHandles();
-    public <T> T getChromeWindowHandles();
-    public <T> T getPageSource();
-    public <T> T close();
-    public <T> T closeChromeWindow();
-    public <T> T setContext(Context context);
-    public <T> T getContext();
-    public <T> T switchToWindow(String id);
-    public <T> T getActiveFrame();
-    public <T> T switchToParentFrame();
-    public <T> T switchToFrame(String element);
-    public <T> T switchToShadowRoot(String element);
+    public CompletableFuture<String> setTestName(String testName);
+    public CompletableFuture<String> deleteSession();
+    public CompletableFuture<String> setScriptTimeout(Duration timeout);
+    public CompletableFuture<String> setSearchTimeout(Duration timeout);
+    public CompletableFuture<String> getWindowHandle();
+    public CompletableFuture<String> getCurrentChromeWindowHandle();
+    public CompletableFuture<String> getWindowPosition();
+    public CompletableFuture<String> setWindowPosition(String point);
+    public CompletableFuture<String> getTitle();
+    public CompletableFuture<String> getWindowHandles();
+    public CompletableFuture<String> getChromeWindowHandles();
+    public CompletableFuture<String> getPageSource();
+    public CompletableFuture<String> close();
+    public CompletableFuture<String> closeChromeWindow();
+    public CompletableFuture<String> setContext(Context context);
+    public CompletableFuture<String> getContext();
+    public CompletableFuture<String> switchToWindow(String id);
+    public CompletableFuture<String> getActiveFrame();
+    public CompletableFuture<String> switchToParentFrame();
+    public CompletableFuture<String> switchToFrame(String element);
+    public CompletableFuture<String> switchToShadowRoot(String element);
     public CompletableFuture<String> getCurrentUrl();
-    public <T> T getWindowType();
+    public CompletableFuture<String> getWindowType();
     public CompletableFuture<String> get(String url);
-    public <T> T timeouts(Timeout timeout, Duration time);
-    public <T> T goBack();
-    public <T> T goForward();
-    public <T> T refresh();
-    public <T> T executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
-    public <T> T executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout);
-    public <T> T executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug);
+    public CompletableFuture<String> timeouts(Timeout timeout, Duration time);
+    public CompletableFuture<String> goBack();
+    public CompletableFuture<String> goForward();
+    public CompletableFuture<String> refresh();
+    public CompletableFuture<String> executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
+    public CompletableFuture<String> executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout);
+    public CompletableFuture<String> executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug);
     public CompletableFuture<String> findElement(SearchMethod method, String value);
-    public <T> T findElements(SearchMethod method, String value);
-    public <T> T getActiveElement();
-    public <T> T log(LogLevel level, String message);
-    public <T> T getLogs();
-    public <T> T importScript(String script);
-    public <T> T clearImportedScripts();
-    public <T> T addCookie(String cookie);
-    public <T> T deleteAllCookies();
-    public <T> T deleteCookie(String name);
-    public <T> T getCookies();
-    public <T> T takeScreenshot();
-    public <T> T takeScreenshot(List<String> elements);
-    public <T> T getScreenOrientation();
-    public <T> T setScreenOrientation(Orientation orientation);
-    public <T> T getWindowSize();
-    public <T> T setWindowSize(String size);
-    public <T> T maximizeWindow();
+    public CompletableFuture<String> findElements(SearchMethod method, String value);
+    public CompletableFuture<String> getActiveElement();
+    public CompletableFuture<String> log(LogLevel level, String message);
+    public CompletableFuture<String> getLogs();
+    public CompletableFuture<String> importScript(String script);
+    public CompletableFuture<String> clearImportedScripts();
+    public CompletableFuture<String> addCookie(String cookie);
+    public CompletableFuture<String> deleteAllCookies();
+    public CompletableFuture<String> deleteCookie(String name);
+    public CompletableFuture<String> getCookies();
+    public CompletableFuture<String> takeScreenshot();
+    public CompletableFuture<String> takeScreenshot(List<String> elements);
+    public CompletableFuture<String> getScreenOrientation();
+    public CompletableFuture<String> setScreenOrientation(Orientation orientation);
+    public CompletableFuture<String> getWindowSize();
+    public CompletableFuture<String> setWindowSize(String size);
+    public CompletableFuture<String> maximizeWindow();
 }
