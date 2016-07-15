@@ -1,31 +1,21 @@
 package com.swgas.marionette;
 
-import com.swgas.parser.FromStringParser;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.Ignore;
+import com.swgas.parser.MarionetteParser;
 
-/**
- *
- * @author ocstest
- */
 public class MarionetteImplTest {
     private static final String CLASS = MarionetteImplTest.class.getName();
     private static final Logger LOG = Logger.getLogger(CLASS);
@@ -81,13 +71,12 @@ public class MarionetteImplTest {
         String id = "menu_myaccount";
         String attribute = "title";
         String expResult = "Home";
-        Assert.assertTrue(
-            MarionetteFactory.getAsync(HOST, PORT)
+        Assert.assertTrue(MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
-            .thenApply(FromStringParser.ELEMENT::parseFrom)
-            .thenCompose(e -> client.getElementAttribute((String) e, attribute))
+            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenCompose(e -> client.getElementAttribute((String)e, attribute))
             .get(TIMEOUT,TimeUnit.SECONDS)
             .contains(expResult));
         LOG.exiting(CLASS, "testGetElementAttribute");
@@ -101,7 +90,7 @@ public class MarionetteImplTest {
         .thenCompose(c -> {client = c; return client.newSession();})
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(FromStringParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteParser.ELEMENT::parseFrom)
         .thenCompose(e -> client.clickElement((String)e))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testClickElement");
@@ -116,61 +105,93 @@ public class MarionetteImplTest {
         .thenCompose(c -> {client = c; return client.newSession();})
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(FromStringParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteParser.ELEMENT::parseFrom)
         .thenCompose(e -> client.singleTap((String)e, (int)point.getX(), (int)point.getY()))
-        .thenApply(FromStringParser.JSON::parseFrom)
+        .thenApply(MarionetteParser.JSON::parseFrom)
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSingleTap_String_Point");
     }
 
-    @Test    @Ignore
-    public void testSingleTap_String() {
-        System.out.println("singleTap");
-        String elementId = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.singleTap(elementId);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testSingleTap_String() throws Exception {
+        LOG.entering(CLASS, "testSingleTap_String");
+        String css = "body";
+        MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
+        .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
+        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenCompose(e -> client.singleTap((String)e))
+        .thenApply(MarionetteParser.JSON::parseFrom)
+        .get(TIMEOUT, TimeUnit.SECONDS);
+        LOG.exiting(CLASS, "testSingleTap_String");
     }
 
-    @Test    @Ignore
-    public void testGetElementText() {
-        System.out.println("getElementText");
-        String elementId = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        String result = instance.getElementText(elementId);
-        Assert.assertEquals(expResult, result);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testGetElementText() throws Exception {
+        LOG.entering(CLASS, "testGetElementText");
+        String id = "menu_myaccount";
+        Assert.assertTrue(MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
+            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenCompose(e -> client.getElementText((String)e))
+            .get(TIMEOUT, TimeUnit.SECONDS)
+            .contains("Home")
+        );
+        LOG.exiting(CLASS, "testGetElementText");
     }
 
-    @Test    @Ignore
-    public void testSendKeysToElement() {
-        System.out.println("sendKeysToElement");
-        String elementId = "";
-        String text = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.sendKeysToElement(elementId, text);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testSendKeysToElement() throws Exception {
+        LOG.entering(CLASS, "testSendKeysToElement");
+        String css = "input[name='username']";
+        String text = "user";
+        MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
+        .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
+        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenCompose(e -> client.sendKeysToElement((String)e, text))
+        .thenApply(MarionetteParser.JSON::parseFrom)
+        .get(TIMEOUT, TimeUnit.SECONDS);
+        LOG.exiting(CLASS, "testSendKeysToElement");
     }
 
-    @Test    @Ignore
-    public void testClearElement() {
-        System.out.println("clearElement");
-        String elementId = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.clearElement(elementId);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testClearElement() throws Exception {
+       LOG.entering(CLASS, "testClearElement");
+        String css = "input[name='username']";
+        String text = "user";
+        MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
+        .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
+        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenCompose(e -> client.sendKeysToElement((String)e, text))
+        .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
+        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenCompose(e -> client.clearElement((String)e))
+        .get(TIMEOUT, TimeUnit.SECONDS);
+        LOG.exiting(CLASS, "testClearElement");
     }
 
-    @Test    @Ignore
-    public void testIsElementSelected() {
-        System.out.println("isElementSelected");
-        String elementId = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        boolean expResult = false;
-        boolean result = instance.isElementSelected(elementId);
-        Assert.assertEquals(expResult, result);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testIsElementSelected() throws Exception {
+        LOG.entering(CLASS, "testIsElementSelected");
+        String url = URL.concat("startenergyshare");
+        String css = "input[name='donation_timing'][value='otd']";
+        Assert.assertFalse((boolean)MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(url))
+            .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
+            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenCompose(e -> client.isElementSelected((String)e))
+            .thenApply(MarionetteParser.BOOLEAN::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testIsElementSelected");
     }
 
     @Test    @Ignore

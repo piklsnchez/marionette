@@ -1,7 +1,6 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
-import com.swgas.parser.FromStringParser;
 import com.swgas.parser.ToStringParser;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -24,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.swgas.parser.MarionetteParser;
 
 
 public class MarionetteImpl implements Marionette {
@@ -179,39 +179,34 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public <T> T singleTap(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, 0, 0);
-        write(command);
-        return read();
+    public CompletableFuture<String> singleTap(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId, Command.singleTap.getCommand(), elementId, 0, 0);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T getElementText(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementText.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> getElementText(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.getElementText.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T sendKeysToElement(String elementId, String text) {
+    public CompletableFuture<String> sendKeysToElement(String elementId, String text) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": %s}]"
-        , messageId++, Command.sendKeysToElement.getCommand(), elementId, text.chars().mapToObj(c -> Objects.toString((char)c)).collect(Collectors.joining("\", \"", "[\"", "\"]")));
-        write(command);
-        return read();
+        , messageId, Command.sendKeysToElement.getCommand(), elementId, text.chars().mapToObj(c -> Objects.toString((char)c)).collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T clearElement(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clearElement.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> clearElement(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.clearElement.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
-    public <T> T isElementSelected(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementSelected.getCommand(), elementId);
-        write(command);
-        return read();
+    public CompletableFuture<String> isElementSelected(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.isElementSelected.getCommand(), elementId);
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
