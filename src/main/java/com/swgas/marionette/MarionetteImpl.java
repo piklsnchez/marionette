@@ -258,7 +258,11 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<String> quitApplication(List<String> flags) {
-        CompletableFuture<String> ret = new CompletableFuture<>();
+        CompletableFuture<String> ret = new CompletableFuture<>();        
+        if(!channel.isOpen()){
+            ret.complete("[1,0,null,{}]");
+            return ret;
+        }
         String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]"
         , messageId, Command.quitApplication.getCommand(), (null == flags) ? "[]" : flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
         return writeAsync(command).thenCompose(i -> readAsync(messageId)).thenCompose(s -> {
