@@ -2,6 +2,7 @@ package com.swgas.parser;
 
 import com.swgas.marionette.Marionette;
 import java.io.StringReader;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -13,17 +14,18 @@ import javax.json.JsonValue;
 
 @FunctionalInterface
 public interface MarionetteParser<T> {
+    public static final String NO_SUCH_ELEMENT_EXCEPTION = "no such element";
     public T parseFrom(String s);
     public static final MarionetteParser DEFAULT = s -> s;
     public static final MarionetteParser OBJECT = s -> {
         JsonArray jArray   = Json.createReader(new StringReader(s)).readArray();
         JsonValue error    = jArray.get(2);
-        JsonObject success = jArray.getJsonObject(3);
+        JsonValue success  = jArray.get(3);
         if(error.getValueType() != JsonValue.ValueType.NULL){
             throw new RuntimeException(String.format("%s: %s", ((JsonObject)error).getJsonString("error").getString(), ((JsonObject)error).getJsonString("message").getString()));
         }
-        JsonValue v = success.get("value");
-        if(null == v){
+        JsonValue v;
+        if(success.getValueType() == JsonValue.ValueType.NULL || null == (v = ((JsonObject)success).get("value"))){
             return null;
         }
         switch(v.getValueType()){
@@ -40,19 +42,18 @@ public interface MarionetteParser<T> {
     public static final MarionetteParser ELEMENT = s -> {
         JsonArray jArray   = Json.createReader(new StringReader(s)).readArray();
         JsonValue error    = jArray.get(2);
-        JsonObject success = jArray.getJsonObject(3);
+        JsonValue success  = jArray.get(3);
         if(error.getValueType() != JsonValue.ValueType.NULL){
-            throw new RuntimeException(String.format("%s: %s", ((JsonObject)error).getJsonString("error").getString(), ((JsonObject)error).getJsonString("message").getString()));
+            String e = ((JsonObject)error).getJsonString("error").getString();
+            String m = ((JsonObject)error).getJsonString("message").getString();
+            if(NO_SUCH_ELEMENT_EXCEPTION.equals(e)){
+                throw new NoSuchElementException(m);
+            }
+            throw new RuntimeException(String.format("%s: %s", e, m));
         }
-        return success.getJsonObject("value").getJsonString(Marionette.WEBELEMENT_KEY).getString();
-    };
-    public static final MarionetteParser BOOLEAN = s -> {
-        JsonArray jArray   = Json.createReader(new StringReader(s)).readArray();
-        JsonValue error    = jArray.get(2);
-        JsonObject success = jArray.getJsonObject(3);
-        if(error.getValueType() != JsonValue.ValueType.NULL){
-            throw new RuntimeException(String.format("%s: %s", ((JsonObject)error).getJsonString("error").getString(), ((JsonObject)error).getJsonString("message").getString()));
+        if(success.getValueType() == JsonValue.ValueType.NULL){
+            return null;
         }
-        return success.getBoolean("value");
+        return ((JsonObject)success).getJsonObject("value").getJsonString(Marionette.WEBELEMENT_KEY).getString();
     };
 }

@@ -15,7 +15,10 @@ import org.junit.Test;
 import org.junit.Before;
 import org.junit.Ignore;
 import com.swgas.parser.MarionetteParser;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class MarionetteImplTest {
     private static final String CLASS = MarionetteImplTest.class.getName();
@@ -139,6 +142,7 @@ public class MarionetteImplTest {
                 .thenCompose(s -> client.get(URL))
                 .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
                 .thenApply(MarionetteParser.ELEMENT::parseFrom)
+                .exceptionally(t -> client.findElement(Marionette.SearchMethod.ID, id).thenApply(MarionetteParser.ELEMENT::parseFrom).join())
                 .thenCompose(e -> client.getElementText((String)e))
                 .thenApply(MarionetteParser.OBJECT::parseFrom)
                 .get(TIMEOUT, TimeUnit.SECONDS)
@@ -193,7 +197,7 @@ public class MarionetteImplTest {
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
             .thenCompose(e -> client.isElementSelected((String)e))
-            .thenApply(MarionetteParser.BOOLEAN::parseFrom)
+            .thenApply(MarionetteParser.OBJECT::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testIsElementSelected");
@@ -210,13 +214,13 @@ public class MarionetteImplTest {
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
             .thenCompose(e -> client.isElementEnabled((String)e))
-            .thenApply(MarionetteParser.BOOLEAN::parseFrom)
+            .thenApply(MarionetteParser.OBJECT::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testIsElementEnabled");
     }
 
-    @Test @Ignore
+    @Test
     public void testIsElementDisplayed() throws Exception {
         LOG.entering(CLASS, "testIsElementDisplayed");
         String css = ".LoginForm button";
@@ -227,7 +231,7 @@ public class MarionetteImplTest {
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
             .thenCompose(e -> client.isElementDisplayed((String)e))
-            .thenApply(MarionetteParser.BOOLEAN::parseFrom)
+            .thenApply(MarionetteParser.OBJECT::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testIsElementDisplayed");
@@ -266,7 +270,7 @@ public class MarionetteImplTest {
         LOG.exiting(CLASS, "testGetElementRectangle");
     }
 
-    @Test @Ignore
+    @Test
     public void testGetElementValueOfCssProperty() throws Exception {
         LOG.entering(CLASS, "testGetElementValueOfCssProperty");
         String css = ".LoginForm button";
@@ -364,6 +368,7 @@ public class MarionetteImplTest {
         String testName = "tester";
         MarionetteFactory.getAsync(HOST, PORT)
         .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.setTestName(testName))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSetTestName");
@@ -380,43 +385,55 @@ public class MarionetteImplTest {
     }
 
     @Test
-    public void testSetScriptTimeout() throws Exception{
+    public void testSetScriptTimeout() throws Exception {
         LOG.entering(CLASS, "testSetScriptTimeout");
         Duration timeout = Duration.ofSeconds(2);
         MarionetteFactory.getAsync(HOST, PORT)
         .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.setScriptTimeout(timeout))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSetScriptTimeout");
     }
 
-    @Test    @Ignore
-    public void testSetSearchTimeout() {
-        System.out.println("setSearchTimeout");
-        Duration timeout = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.setSearchTimeout(timeout);
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testSetSearchTimeout() throws Exception {
+        LOG.entering(CLASS, "testSetSearchTimeout");
+        Duration timeout = Duration.ofSeconds(2);
+        MarionetteFactory.getAsync(HOST, PORT)
+        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(s -> client.get(URL))
+        .thenCompose(s -> client.setSearchTimeout(timeout))
+        .get(TIMEOUT, TimeUnit.SECONDS);
+        LOG.exiting(CLASS, "testSetSearchTimeout");
     }
 
-    @Test    @Ignore
-    public void testGetWindowHandle() {
-        System.out.println("getWindowHandle");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getWindowHandle();
-        
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testGetWindowHandle() throws Exception {
+        LOG.entering(CLASS, "testGetWindowHandle");
+        LOG.info(
+            (String)MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s ->client.getWindowHandle())
+            .thenApply(MarionetteParser.OBJECT::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetWindowHandle");
     }
 
-    @Test    @Ignore
-    public void testGetCurrentChromeWindowHandle() {
-        System.out.println("getCurrentChromeWindowHandle");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getCurrentChromeWindowHandle();
-        
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testGetCurrentChromeWindowHandle() throws Exception {
+        LOG.entering(CLASS, "testGetCurrentChromeWindowHandle");
+        LOG.info(
+            (String)MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s ->client.getCurrentChromeWindowHandle())
+            .thenApply(MarionetteParser.OBJECT::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetCurrentChromeWindowHandle");
     }
 
     @Test    @Ignore
