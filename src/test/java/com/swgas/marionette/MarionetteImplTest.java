@@ -15,10 +15,6 @@ import org.junit.Test;
 import org.junit.Before;
 import org.junit.Ignore;
 import com.swgas.parser.MarionetteParser;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public class MarionetteImplTest {
     private static final String CLASS = MarionetteImplTest.class.getName();
@@ -50,7 +46,8 @@ public class MarionetteImplTest {
     @After
     public void after() throws Exception {
         if(browser != null){
-            client.quitApplication(Collections.singletonList("eForceQuit")).get(TIMEOUT, TimeUnit.SECONDS);
+            client.quitApplication(Collections.singletonList("eForceQuit"))
+            .get(TIMEOUT, TimeUnit.SECONDS);
             //browser.destroy();
         }
     }
@@ -75,16 +72,15 @@ public class MarionetteImplTest {
         String id = "menu_myaccount";
         String attribute = "title";
         Assert.assertTrue(
-            Objects.toString(
-                MarionetteFactory.getAsync(HOST, PORT)
-                .thenCompose(c -> {client = c; return client.newSession();})
-                .thenCompose(s -> client.get(URL))
-                .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
-                .thenApply(MarionetteParser.ELEMENT::parseFrom)
-                .thenCompose(e -> client.getElementAttribute((String)e, attribute))
-                .thenApply(MarionetteParser.OBJECT::parseFrom)
-                .get(TIMEOUT,TimeUnit.SECONDS)
-            ,"").contains("Home"));
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
+            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenCompose(e -> client.getElementAttribute(e, attribute))
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT,TimeUnit.SECONDS)
+            .contains("Home"));
         LOG.exiting(CLASS, "testGetElementAttribute");
     }
 
@@ -97,7 +93,7 @@ public class MarionetteImplTest {
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.clickElement((String)e))
+        .thenCompose(e -> client.clickElement(e))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testClickElement");
     }
@@ -112,7 +108,7 @@ public class MarionetteImplTest {
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.singleTap((String)e, (int)point.getX(), (int)point.getY()))
+        .thenCompose(e -> client.singleTap(e, (int)point.getX(), (int)point.getY()))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSingleTap_String_Point");
     }
@@ -125,8 +121,8 @@ public class MarionetteImplTest {
         .thenCompose(c -> {client = c; return client.newSession();})
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.singleTap((String)e))
+        .thenApply(e -> MarionetteParser.ELEMENT.parseFrom(e))
+        .thenCompose(e -> client.singleTap(e, 0, 0))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSingleTap_String");
     }
@@ -136,17 +132,15 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetElementText");
         String id = "menu_myaccount";
         Assert.assertTrue(
-            Objects.toString(
-                MarionetteFactory.getAsync(HOST, PORT)
-                .thenCompose(c -> {client = c; return client.newSession();})
-                .thenCompose(s -> client.get(URL))
-                .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
-                .thenApply(MarionetteParser.ELEMENT::parseFrom)
-                .exceptionally(t -> client.findElement(Marionette.SearchMethod.ID, id).thenApply(MarionetteParser.ELEMENT::parseFrom).join())
-                .thenCompose(e -> client.getElementText((String)e))
-                .thenApply(MarionetteParser.OBJECT::parseFrom)
-                .get(TIMEOUT, TimeUnit.SECONDS)
-            ,"").contains("Home")
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
+            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenCompose(e -> client.getElementText(e))
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+            .contains("Home")
         );
         LOG.exiting(CLASS, "testGetElementText");
     }
@@ -161,7 +155,7 @@ public class MarionetteImplTest {
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.sendKeysToElement((String)e, text))
+        .thenCompose(e -> client.sendKeysToElement(e, text))
         .thenApply(MarionetteParser.OBJECT::parseFrom)
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSendKeysToElement");
@@ -177,10 +171,10 @@ public class MarionetteImplTest {
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.sendKeysToElement((String)e, text))
+        .thenCompose(e -> client.sendKeysToElement(e, text))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.clearElement((String)e))
+        .thenCompose(e -> client.clearElement(e))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testClearElement");
     }
@@ -191,12 +185,12 @@ public class MarionetteImplTest {
         String url = URL.concat("startenergyshare");
         String css = "input[name='donation_timing'][value='otd']";
         Assert.assertFalse(
-            (boolean)MarionetteFactory.getAsync(HOST, PORT)
+            (Boolean)MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(url))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
-            .thenCompose(e -> client.isElementSelected((String)e))
+            .thenCompose(e -> client.isElementSelected(e))
             .thenApply(MarionetteParser.OBJECT::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
@@ -208,12 +202,12 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testIsElementEnabled");
         String css = ".LoginForm button";
         Assert.assertTrue(
-            (boolean)MarionetteFactory.getAsync(HOST, PORT)
+            (Boolean)MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
-            .thenCompose(e -> client.isElementEnabled((String)e))
+            .thenCompose(e -> client.isElementEnabled(e))
             .thenApply(MarionetteParser.OBJECT::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
@@ -225,12 +219,12 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testIsElementDisplayed");
         String css = ".LoginForm button";
         Assert.assertTrue(
-            (boolean)MarionetteFactory.getAsync(HOST, PORT)
+            (Boolean)MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
-            .thenCompose(e -> client.isElementDisplayed((String)e))
+            .thenCompose(e -> client.isElementDisplayed(e))
             .thenApply(MarionetteParser.OBJECT::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
@@ -248,8 +242,8 @@ public class MarionetteImplTest {
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
-            .thenCompose(e -> client.getElementTagName((String)e))
-            .thenApply(MarionetteParser.OBJECT::parseFrom)
+            .thenCompose(e -> client.getElementTagName(e))
+            .thenApply(MarionetteParser.STRING::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetElementTagName");
@@ -264,7 +258,7 @@ public class MarionetteImplTest {
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply  (MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.getElementRectangle((String)e))
+        .thenCompose(e -> client.getElementRectangle(e))
         .thenApply  (MarionetteParser.OBJECT::parseFrom)
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testGetElementRectangle");
@@ -279,7 +273,7 @@ public class MarionetteImplTest {
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply  (MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.getElementValueOfCssProperty((String)e, "width"))
+        .thenCompose(e -> client.getElementValueOfCssProperty(e, "width"))
         .thenApply(MarionetteParser.OBJECT::parseFrom)
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testGetElementValueOfCssProperty");
@@ -322,7 +316,7 @@ public class MarionetteImplTest {
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.executeScript(script, "[]", false, Duration.ofSeconds(TIMEOUT)))
             .thenCompose(s -> client.getTextFromDialog())
-            .thenApply(MarionetteParser.OBJECT::parseFrom)
+            .thenApply(MarionetteParser.STRING::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetTextFromDialog");
@@ -412,11 +406,11 @@ public class MarionetteImplTest {
     public void testGetWindowHandle() throws Exception {
         LOG.entering(CLASS, "testGetWindowHandle");
         LOG.info(
-            (String)MarionetteFactory.getAsync(HOST, PORT)
+            MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
             .thenCompose(s ->client.getWindowHandle())
-            .thenApply(MarionetteParser.OBJECT::parseFrom)
+            .thenApply(MarionetteParser.STRING::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetWindowHandle");
@@ -426,24 +420,28 @@ public class MarionetteImplTest {
     public void testGetCurrentChromeWindowHandle() throws Exception {
         LOG.entering(CLASS, "testGetCurrentChromeWindowHandle");
         LOG.info(
-            (String)MarionetteFactory.getAsync(HOST, PORT)
+            MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
-            .thenCompose(s ->client.getCurrentChromeWindowHandle())
-            .thenApply(MarionetteParser.OBJECT::parseFrom)
+            .thenCompose(s -> client.getCurrentChromeWindowHandle())
+            .thenApply(MarionetteParser.STRING::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetCurrentChromeWindowHandle");
     }
 
-    @Test    @Ignore
-    public void testGetWindowPosition() {
-        System.out.println("getWindowPosition");
-        MarionetteImpl instance = new MarionetteImpl();
-        Point expResult = null;
-        //Point result = instance.getWindowPosition();
-        
-        Assert.fail("The test case is a prototype.");
+    @Test
+    public void testGetWindowPosition() throws Exception {
+        LOG.entering(CLASS, "testGetWindowPosition");
+        LOG.info(""+
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.getWindowPosition())
+            .thenApply(MarionetteParser.POINT::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetWindowPosition");
     }
 
     @Test    @Ignore

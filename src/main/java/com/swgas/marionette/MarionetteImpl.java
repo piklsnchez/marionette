@@ -172,12 +172,6 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> singleTap(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId, Command.singleTap.getCommand(), elementId, 0, 0);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
-    }
-
-    @Override
     public CompletableFuture<String> getElementText(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.getElementText.getCommand(), elementId);
         return writeAsync(command).thenCompose(i -> readAsync(messageId++));
