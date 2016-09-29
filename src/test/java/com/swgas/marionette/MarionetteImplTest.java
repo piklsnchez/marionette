@@ -32,7 +32,7 @@ public class MarionetteImplTest {
     
     @Before
     public void before() {
-        ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "-marionette");
+        ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "-marionette", "-new-instance");
         //_proc.inheritIO();
         try{
             browser = _proc.start();            
@@ -444,7 +444,7 @@ public class MarionetteImplTest {
         LOG.exiting(CLASS, "testGetWindowPosition");
     }
 
-    @Test    @Ignore
+    /*@Test    @Ignore
     public void testSetWindowPosition() {
         System.out.println("setWindowPosition");
         Point point = null;
@@ -862,5 +862,5 @@ public class MarionetteImplTest {
         //String result = instance.maximizeWindow();
         
         Assert.fail("The test case is a prototype.");
-    }
+    }*/
 }

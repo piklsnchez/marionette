@@ -5,16 +5,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.nio.channels.NotYetConnectedException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -22,16 +16,8 @@ import java.util.stream.Collectors;
 public class MarionetteImpl implements Marionette {
     private static final String CLASS = MarionetteImpl.class.getName();
     private static final Logger LOG = Logger.getLogger(CLASS);
-    private AsynchronousSocketChannel channel;
+    private final AsynchronousSocketChannel channel;
     private int messageId = 0;
-    
-    public MarionetteImpl(){
-        this("localhost", 2828);
-    }
-    
-    public MarionetteImpl(String host, int port){
-        throw new MarionetteException(new NoSuchMethodException("Use Factory"));
-    }
     
     protected MarionetteImpl(AsynchronousSocketChannel channel){
         this.channel = channel;
@@ -88,43 +74,6 @@ public class MarionetteImpl implements Marionette {
         return ret;
     }
     
-    private CompletableFuture<String> read(){
-        LOG.entering(CLASS, "read");
-        StringBuilder result = new StringBuilder();
-        byte[] byteBuf = new byte[8];
-        ByteBuffer buf = ByteBuffer.wrap(byteBuf);
-        try{
-            Integer r = channel.read(buf).get(30, TimeUnit.SECONDS);//block
-            //LOG.info(String.format("read: \"%s\"(%d) from socket", new String(byteBuf), r));
-            for(int i = 0; i < byteBuf.length; i++){
-                if(byteBuf[i] == ':'){
-                    String sLength = new String(byteBuf, 0, i);
-                    if(!sLength.chars().allMatch(Character::isDigit)){
-                        throw new MarionetteException(String.format("\"%s\" is not numeric", sLength));
-                    }
-                    int length = Integer.parseInt(sLength, 10);
-                    int skip = byteBuf.length - 1 - i;
-                    result.append(new String(byteBuf, i + 1, skip));
-                    buf = ByteBuffer.allocate(length - skip);
-                    r = channel.read(buf).get(30, TimeUnit.SECONDS);//block
-                    //LOG.info(String.format("read %d more bytes from socket", r));
-                    buf.flip();
-                    result.append(StandardCharsets.UTF_8.decode(buf));
-                    buf.clear();
-                    break;
-                }
-            }
-        } catch(NotYetConnectedException e){
-            throw new MarionetteException(e);
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
-            LOG.log(Level.SEVERE, e.getMessage(), e);
-        }
-        int len = result.length();
-        LOG.info(String.format("read %d bytes", len));
-        LOG.exiting(CLASS, "read", (len > 55) ? String.format("%s...%s", result.substring(0, 55), result.substring(len -3)) : result);
-        return null;
-    }
-    
     private CompletableFuture<Integer> writeAsync(String command){
         LOG.entering(CLASS, "writeAsync", command);
         CompletableFuture<Integer> ret = new CompletableFuture<>();
@@ -140,17 +89,6 @@ public class MarionetteImpl implements Marionette {
             }
         });
         return ret;
-    }
-    
-    private void write(String command){
-        LOG.entering(CLASS, "write", command);
-        try{
-            Integer w = channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length(), command).getBytes())).get(30, TimeUnit.SECONDS);
-            LOG.info(String.format("wrote %d bytes", w));
-        }catch(InterruptedException | ExecutionException | TimeoutException e){
-            LOG.log(Level.SEVERE, e.getMessage(), e);
-        }
-        LOG.exiting(CLASS, "write");
     }
 
     @Override
