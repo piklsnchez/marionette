@@ -28,6 +28,5 @@ public class ObjectParser<T> implements MarionetteParser<T>{
             case TRUE:   return (T)Boolean.TRUE;
             default:     return null;
         }
-    }
-    
+    }    
 }

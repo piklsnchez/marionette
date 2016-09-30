@@ -26,7 +26,7 @@ public interface MarionetteParser<T> {
     }
     public static final MarionetteParser<String>  DEFAULT = s -> s;
     public static final MarionetteParser<Object>  OBJECT  = new ObjectParser<>();
-    public static final MarionetteParser<String>  STRING  = new ObjectParser<>();
+    public static final MarionetteParser<String>  STRING  = new StringParser();
     public static final MarionetteParser<String>  ELEMENT = new ElementParser();
     public static final MarionetteParser<Point2D> POINT   = new PointParser();
 }
