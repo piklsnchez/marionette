@@ -17,12 +17,12 @@ import org.junit.Ignore;
 import com.swgas.parser.MarionetteParser;
 
 public class MarionetteImplTest {
-    private static final String CLASS = MarionetteImplTest.class.getName();
-    private static final Logger LOG = Logger.getLogger(CLASS);
-    private static final String HOST = "localhost";
-    private static final int    PORT = 2828;
+    private static final String CLASS   = MarionetteImplTest.class.getName();
+    private static final Logger LOG     = Logger.getLogger(CLASS);
+    private static final String HOST    = "localhost";
+    private static final int    PORT    = 4444;
     private static final int    TIMEOUT = 20;
-    private static final String URL = "https://myaccountdev.swgas.com/";
+    private static final String URL     = "https://myaccountdev.swgas.com/";
     
     public Process browser;
     private Marionette client;
@@ -30,7 +30,7 @@ public class MarionetteImplTest {
     public MarionetteImplTest() {
     }
     
-    @Before
+    //@Before
     public void before() {
         ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "-marionette", "-new-instance");
         //_proc.inheritIO();
@@ -45,7 +45,7 @@ public class MarionetteImplTest {
     
     @After
     public void after() throws Exception {
-        if(browser != null){
+        if(true || browser != null){
             client.quitApplication(Collections.singletonList("eForceQuit"))
             .get(TIMEOUT, TimeUnit.SECONDS);
             //browser.destroy();

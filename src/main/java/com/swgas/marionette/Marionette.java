@@ -12,7 +12,16 @@ public interface Marionette {
         SEARCH, SCRIPT, PAGE
     }
     public enum SearchMethod{
-        ID(""), NAME("name="), CLASS_NAME("class="), TAG_NAME("tag="), CSS_SELECTOR("css="), LINK("link="), PARTIAL_LINK("link~="), XPATH(""), ANON("anon="), ANON_ATTRIBUTE("anonAttr=");
+          ID            ("")
+        , NAME          ("name=")
+        , CLASS_NAME    ("class=")
+        , TAG_NAME      ("tag=")
+        , CSS_SELECTOR  ("css=")
+        , LINK          ("link=")
+        , PARTIAL_LINK  ("link~=")
+        , XPATH         ("")
+        , ANON          ("anon=")
+        , ANON_ATTRIBUTE("anonAttr=");
 
         private String prefix;
         private SearchMethod(String prefix) {
