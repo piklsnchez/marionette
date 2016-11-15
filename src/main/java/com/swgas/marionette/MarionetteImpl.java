@@ -32,7 +32,7 @@ public class MarionetteImpl implements Marionette {
     
     private CompletableFuture<String> readAsync(int id){
         CompletableFuture<String> ret = new CompletableFuture<>();
-        byte[] byteBuf = new byte[10];
+        byte[] byteBuf = new byte[8];
         ByteBuffer buf = ByteBuffer.wrap(byteBuf);
         channel.read(buf, ret, new CompletionHandler<Integer, CompletableFuture>() {
             @Override
@@ -42,6 +42,7 @@ public class MarionetteImpl implements Marionette {
                 for(pos = 0; pos < byteBuf.length && byteBuf[pos] != ':'; pos++){
                 }
                 String _size = new String(byteBuf, 0, pos);
+                LOG.info(String.format("size: %s", _size));
                 if(!_size.chars().allMatch(Character::isDigit)){
                     future.completeExceptionally(new MarionetteException(String.format("\"%s\" is not numeric", _size)));
                     return;
@@ -55,9 +56,15 @@ public class MarionetteImpl implements Marionette {
                         bigBuf.flip();
                         byte[] b = new byte[len];
                         bigBuf.get(b);
-                        String result = builder.append(new String(b)).toString();
-                        LOG.info(String.format("readAsync: messageId: %d: %s", id, result));
-                        future.complete(result);
+                        builder.append(new String(b));
+                        if(builder.length() == size){
+                            String result = builder.toString();
+                            LOG.info(String.format("readAsync: messageId: %d: %s%s", id, result.substring(0, result.length() > 55 ? 55 : result.length()), (result.length() > 55 ? "..." : "")));
+                            future.complete(result);
+                        } else {
+                            LOG.info(String.format("builder.length: (%d); size: (%d)", builder.length(), size));
+                            channel.read(bigBuf, future, this);
+                        }
                     }
 
                     @Override

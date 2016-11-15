@@ -9,12 +9,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.Ignore;
 import com.swgas.parser.MarionetteParser;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class MarionetteImplTest {
     private static final String CLASS   = MarionetteImplTest.class.getName();
@@ -30,8 +30,8 @@ public class MarionetteImplTest {
     public MarionetteImplTest() {
     }
     
-    @Before
-    public void before() {
+    @BeforeEach
+    public void beforeEach() {
         ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "--marionette", "--new-instance");
         //_proc.inheritIO();
         try{
@@ -43,8 +43,8 @@ public class MarionetteImplTest {
         }
     }
     
-    @After
-    public void after() throws Exception {
+    @AfterEach
+    public void afterEach() throws Exception {
         if(true || browser != null){
             client.quitApplication(Collections.singletonList("eForceQuit"))
             .get(TIMEOUT, TimeUnit.SECONDS);
@@ -55,7 +55,7 @@ public class MarionetteImplTest {
     @Test
     public void testNewSession() throws Exception{
         LOG.entering(CLASS, "testNewSession");
-        Assert.assertTrue(
+        Assertions.assertTrue(
             MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
@@ -71,7 +71,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetElementAttribute");
         String id = "menu_myaccount";
         String attribute = "title";
-        Assert.assertTrue(
+        Assertions.assertTrue(
             MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
@@ -131,7 +131,7 @@ public class MarionetteImplTest {
     public void testGetElementText() throws Exception {
         LOG.entering(CLASS, "testGetElementText");
         String id = "menu_myaccount";
-        Assert.assertTrue(
+        Assertions.assertTrue(
             MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
@@ -184,7 +184,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testIsElementSelected");
         String url = URL.concat("startenergyshare");
         String css = "input[name='donation_timing'][value='otd']";
-        Assert.assertFalse(
+        Assertions.assertFalse(
             (Boolean)MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(url))
@@ -201,7 +201,7 @@ public class MarionetteImplTest {
     public void testIsElementEnabled() throws Exception {
         LOG.entering(CLASS, "testIsElementEnabled");
         String css = ".LoginForm button";
-        Assert.assertTrue(
+        Assertions.assertTrue(
             (Boolean)MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
@@ -218,7 +218,7 @@ public class MarionetteImplTest {
     public void testIsElementDisplayed() throws Exception {
         LOG.entering(CLASS, "testIsElementDisplayed");
         String css = ".LoginForm button";
-        Assert.assertTrue(
+        Assertions.assertTrue(
             (Boolean)MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
             .thenCompose(s -> client.get(URL))
@@ -235,7 +235,7 @@ public class MarionetteImplTest {
     public void testGetElementTagName() throws Exception {
         LOG.entering(CLASS, "testGetElementTagName");
         String css = ".LoginForm button";
-        Assert.assertEquals(
+        Assertions.assertEquals(
             "button"
             , MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
@@ -309,7 +309,7 @@ public class MarionetteImplTest {
     public void testGetTextFromDialog() throws Exception {
         LOG.entering(CLASS, "testGetTextFromDialog");
         String script = "window.confirm('house');";
-        Assert.assertEquals(
+        Assertions.assertEquals(
             "house"
             , MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
@@ -443,6 +443,20 @@ public class MarionetteImplTest {
         );
         LOG.exiting(CLASS, "testGetWindowPosition");
     }
+    
+    @Test
+    public void testTakeScreenshot_0args() throws Exception {
+        LOG.entering(CLASS, "testTakeScreenshot_0args");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.takeScreenshot())
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testTakeScreenshot_0args");
+    }
 
     /*@Test    @Ignore
     public void testSetWindowPosition() {
@@ -450,7 +464,7 @@ public class MarionetteImplTest {
         Point point = null;
         MarionetteImpl instance = new MarionetteImpl();
         //instance.setWindowPosition(point);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -460,7 +474,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.getTitle();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -470,7 +484,7 @@ public class MarionetteImplTest {
         List<String> expResult = null;
         //List<String> result = instance.getWindowHandles();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -480,7 +494,7 @@ public class MarionetteImplTest {
         List<String> expResult = null;
        // List<String> result = instance.getChromeWindowHandles();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -490,7 +504,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.getPageSource();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -498,7 +512,7 @@ public class MarionetteImplTest {
         System.out.println("close");
         MarionetteImpl instance = new MarionetteImpl();
         instance.close();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -506,7 +520,7 @@ public class MarionetteImplTest {
         System.out.println("closeChromeWindow");
         MarionetteImpl instance = new MarionetteImpl();
         instance.closeChromeWindow();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -515,7 +529,7 @@ public class MarionetteImplTest {
         Marionette.Context context = null;
         MarionetteImpl instance = new MarionetteImpl();
         instance.setContext(context);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -525,7 +539,7 @@ public class MarionetteImplTest {
         Marionette.Context expResult = null;
         //Marionette.Context result = instance.getContext();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -534,7 +548,7 @@ public class MarionetteImplTest {
         String id = "";
         MarionetteImpl instance = new MarionetteImpl();
         instance.switchToWindow(id);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -544,7 +558,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.getActiveFrame();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -552,7 +566,7 @@ public class MarionetteImplTest {
         System.out.println("switchToParentFrame");
         MarionetteImpl instance = new MarionetteImpl();
         instance.switchToParentFrame();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -561,7 +575,7 @@ public class MarionetteImplTest {
         String id = "";
         MarionetteImpl instance = new MarionetteImpl();
         instance.switchToFrame(id);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -572,7 +586,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.switchToShadowRoot(id);
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -582,7 +596,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.getCurrentUrl().join();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -592,7 +606,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.getWindowType();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -601,7 +615,7 @@ public class MarionetteImplTest {
         String url = "";
         MarionetteImpl instance = new MarionetteImpl();
         instance.get(url);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -611,7 +625,7 @@ public class MarionetteImplTest {
         Duration time = null;
         MarionetteImpl instance = new MarionetteImpl();
         instance.timeouts(timeout, time);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -619,7 +633,7 @@ public class MarionetteImplTest {
         System.out.println("goBack");
         MarionetteImpl instance = new MarionetteImpl();
         instance.goBack();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -627,7 +641,7 @@ public class MarionetteImplTest {
         System.out.println("goForward");
         MarionetteImpl instance = new MarionetteImpl();
         instance.goForward();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -635,7 +649,7 @@ public class MarionetteImplTest {
         System.out.println("refresh");
         MarionetteImpl instance = new MarionetteImpl();
         instance.refresh();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -651,7 +665,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.executeJsScript(script, args, async, newSandbox, scriptTimeout, inactivityTimeout);
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -665,7 +679,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.executeScript(script, args, newSandbox, scriptTimeout);
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -680,7 +694,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.executeAsyncScript(script, args, newSandbox, scriptTimeout, debug);
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test @Ignore
@@ -704,7 +718,7 @@ public class MarionetteImplTest {
         List<String> expResult = null;
         //List<String> result = instance.findElements(method, value);
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -714,7 +728,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.getActiveElement();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -724,7 +738,7 @@ public class MarionetteImplTest {
         String message = "";
         MarionetteImpl instance = new MarionetteImpl();
         instance.log(level, message);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -734,7 +748,7 @@ public class MarionetteImplTest {
         List<String> expResult = null;
        // List<String> result = instance.getLogs();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -743,7 +757,7 @@ public class MarionetteImplTest {
         String script = "";
         MarionetteImpl instance = new MarionetteImpl();
         instance.importScript(script);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -751,7 +765,7 @@ public class MarionetteImplTest {
         System.out.println("clearImportedScripts");
         MarionetteImpl instance = new MarionetteImpl();
         instance.clearImportedScripts();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -760,7 +774,7 @@ public class MarionetteImplTest {
         String cookie = "";
         MarionetteImpl instance = new MarionetteImpl();
         instance.addCookie(cookie);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -768,7 +782,7 @@ public class MarionetteImplTest {
         System.out.println("deleteAllCookies");
         MarionetteImpl instance = new MarionetteImpl();
         instance.deleteAllCookies();
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -777,7 +791,7 @@ public class MarionetteImplTest {
         String name = "";
         MarionetteImpl instance = new MarionetteImpl();
         instance.deleteCookie(name);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -787,20 +801,7 @@ public class MarionetteImplTest {
         List<String> expResult = null;
        // List<String> result = instance.getCookies();
         
-        Assert.fail("The test case is a prototype.");
-    }
-
-    @Test @Ignore
-    public void testTakeScreenshot_0args() {
-        LOG.entering(CLASS, "testTakeScreenshot_0args");
-        client = new MarionetteImpl();
-        String url = "https://myaccountdev.swgas.com/";
-        client.newSession();
-        client.get(url);
-        //String result = client.takeScreenshot();
-        
-        //Assert.assertNotNull(result);
-        LOG.exiting(CLASS, "testTakeScreenshot_0args");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -811,7 +812,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.takeScreenshot(elementIds);
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -821,7 +822,7 @@ public class MarionetteImplTest {
         Marionette.Orientation expResult = null;
         //Marionette.Orientation result = instance.getScreenOrientation();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -830,7 +831,7 @@ public class MarionetteImplTest {
         Marionette.Orientation orientation = null;
         MarionetteImpl instance = new MarionetteImpl();
         instance.setScreenOrientation(orientation);
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -840,7 +841,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.getWindowSize();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -851,7 +852,7 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.setWindowSize(size);
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
@@ -861,6 +862,6 @@ public class MarionetteImplTest {
         String expResult = "";
         //String result = instance.maximizeWindow();
         
-        Assert.fail("The test case is a prototype.");
+        Assertions.fail("The test case is a prototype.");
     }*/
 }
