@@ -32,7 +32,7 @@ public class MarionetteImpl implements Marionette {
     
     private CompletableFuture<String> readAsync(int id){
         CompletableFuture<String> ret = new CompletableFuture<>();
-        byte[] byteBuf = new byte[8];
+        byte[] byteBuf = new byte[10];
         ByteBuffer buf = ByteBuffer.wrap(byteBuf);
         channel.read(buf, ret, new CompletionHandler<Integer, CompletableFuture>() {
             @Override
