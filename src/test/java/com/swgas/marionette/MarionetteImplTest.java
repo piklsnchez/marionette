@@ -20,7 +20,7 @@ public class MarionetteImplTest {
     private static final String CLASS   = MarionetteImplTest.class.getName();
     private static final Logger LOG     = Logger.getLogger(CLASS);
     private static final String HOST    = "localhost";
-    private static final int    PORT    = 4444;
+    private static final int    PORT    = 2828;
     private static final int    TIMEOUT = 20;
     private static final String URL     = "https://myaccountdev.swgas.com/";
     
@@ -30,9 +30,9 @@ public class MarionetteImplTest {
     public MarionetteImplTest() {
     }
     
-    //@Before
+    @Before
     public void before() {
-        ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "-marionette", "-new-instance");
+        ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "--marionette", "--new-instance");
         //_proc.inheritIO();
         try{
             browser = _proc.start();            

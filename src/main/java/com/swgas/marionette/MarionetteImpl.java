@@ -39,7 +39,8 @@ public class MarionetteImpl implements Marionette {
             public void completed(Integer len, CompletableFuture future) {
                 StringBuilder builder = new StringBuilder();
                 int pos;
-                for(pos = 0; byteBuf[pos] != ':'; pos++){}
+                for(pos = 0; pos < byteBuf.length && byteBuf[pos] != ':'; pos++){
+                }
                 String _size = new String(byteBuf, 0, pos);
                 if(!_size.chars().allMatch(Character::isDigit)){
                     future.completeExceptionally(new MarionetteException(String.format("\"%s\" is not numeric", _size)));
