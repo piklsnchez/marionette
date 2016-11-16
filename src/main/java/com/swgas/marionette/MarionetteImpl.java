@@ -3,8 +3,13 @@ package com.swgas.marionette;
 import com.swgas.exception.MarionetteException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +21,7 @@ import java.util.stream.Collectors;
 public class MarionetteImpl implements Marionette {
     private static final String CLASS = MarionetteImpl.class.getName();
     private static final Logger LOG = Logger.getLogger(CLASS);
+    private static final CharsetDecoder charsetDecoder = Charset.defaultCharset().newDecoder();
     private final AsynchronousSocketChannel channel;
     private int messageId = 0;
     
@@ -32,37 +38,42 @@ public class MarionetteImpl implements Marionette {
     
     private CompletableFuture<String> readAsync(int id){
         CompletableFuture<String> ret = new CompletableFuture<>();
-        byte[] byteBuf = new byte[8];
-        ByteBuffer buf = ByteBuffer.wrap(byteBuf);
+        ByteBuffer buf = ByteBuffer.allocateDirect(8);
         channel.read(buf, ret, new CompletionHandler<Integer, CompletableFuture>() {
             @Override
             public void completed(Integer len, CompletableFuture future) {
-                StringBuilder builder = new StringBuilder();
-                int pos;
-                for(pos = 0; pos < byteBuf.length && byteBuf[pos] != ':'; pos++){
+                buf.flip();
+                String _size;
+                try{
+                    _size = charsetDecoder.decode(buf).toString();
+                } catch(CharacterCodingException e){
+                    throw new MarionetteException(e);
                 }
-                String _size = new String(byteBuf, 0, pos);
+                int pos = _size.indexOf(':');
+                _size = _size.substring(0, pos);
                 LOG.info(String.format("size: %s", _size));
                 if(!_size.chars().allMatch(Character::isDigit)){
                     future.completeExceptionally(new MarionetteException(String.format("\"%s\" is not numeric", _size)));
                     return;
                 }
                 int size = Integer.parseInt(_size, 10);
-                builder.append(new String(byteBuf, pos + 1, len - pos - 1));
                 ByteBuffer bigBuf = ByteBuffer.allocate(size);
+                buf.position(pos + 1);
+                bigBuf.put(buf);
                 channel.read(bigBuf, future, new CompletionHandler<Integer, CompletableFuture>() {
                     @Override
                     public void completed(Integer len, CompletableFuture future) {
-                        bigBuf.flip();
-                        byte[] b = new byte[len];
-                        bigBuf.get(b);
-                        builder.append(new String(b));
-                        if(builder.length() == size){
-                            String result = builder.toString();
-                            LOG.info(String.format("readAsync: messageId: %d: %s%s", id, result.substring(0, result.length() > 55 ? 55 : result.length()), (result.length() > 55 ? "..." : "")));
+                        if(!bigBuf.hasRemaining()){
+                            bigBuf.flip();
+                            String result;
+                            try{
+                                result = charsetDecoder.decode(bigBuf).toString();
+                            } catch(CharacterCodingException e){
+                                throw new MarionetteException(e);
+                            }
+                            LOG.info(String.format("readAsync: messageId: %d: %s", id, result));
                             future.complete(result);
                         } else {
-                            LOG.info(String.format("builder.length: (%d); size: (%d)", builder.length(), size));
                             channel.read(bigBuf, future, this);
                         }
                     }

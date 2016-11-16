@@ -458,6 +458,20 @@ public class MarionetteImplTest {
         LOG.exiting(CLASS, "testTakeScreenshot_0args");
     }
 
+    @Test
+    public void testGetPageSource() throws Exception {
+        LOG.entering(CLASS, "testGetPageSource");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.getPageSource())
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetPageSource");
+    }
+    
     /*@Test    @Ignore
     public void testSetWindowPosition() {
         System.out.println("setWindowPosition");
@@ -493,16 +507,6 @@ public class MarionetteImplTest {
         MarionetteImpl instance = new MarionetteImpl();
         List<String> expResult = null;
        // List<String> result = instance.getChromeWindowHandles();
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testGetPageSource() {
-        System.out.println("getPageSource");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getPageSource();
         
         Assertions.fail("The test case is a prototype.");
     }
