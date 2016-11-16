@@ -50,6 +50,10 @@ public class MarionetteImpl implements Marionette {
                     throw new MarionetteException(e);
                 }
                 int pos = _size.indexOf(':');
+                if(0 > pos){
+                    future.completeExceptionally(new MarionetteException(String.format("%s dosen't contain a ':'", _size)));
+                    return;
+                }
                 _size = _size.substring(0, pos);
                 LOG.info(String.format("size: %s", _size));
                 if(!_size.chars().allMatch(Character::isDigit)){
