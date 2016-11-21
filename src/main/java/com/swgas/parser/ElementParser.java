@@ -2,8 +2,12 @@ package com.swgas.parser;
 
 import com.swgas.marionette.Marionette;
 import static com.swgas.parser.MarionetteParser.NO_SUCH_ELEMENT_EXCEPTION;
+import java.io.StringReader;
 import java.util.NoSuchElementException;
+import javax.json.Json;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
 
 public class ElementParser implements MarionetteParser<String> {
@@ -23,5 +27,9 @@ public class ElementParser implements MarionetteParser<String> {
             return null;
         }
         return ((JsonObject) tuple[1]).getJsonObject("value").getJsonString(Marionette.WEBELEMENT_KEY).getString();
+    }
+    
+    public static String toElement(String ele){
+        return Json.createReader(new StringReader(ele)).readObject().getJsonString(Marionette.WEBELEMENT_KEY).getString();
     }
 }
