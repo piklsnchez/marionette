@@ -67,6 +67,23 @@ public class MarionetteImplTest {
     }
 
     @Test
+    public void testFindElements() throws Exception{
+        LOG.entering(CLASS, "testFindElements");
+        String body = "body";
+        Assertions.assertTrue(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.findElements(Marionette.SearchMethod.CSS_SELECTOR, body))
+            .thenApply(MarionetteParser.ARRAY::parseFrom)
+            .get(TIMEOUT,TimeUnit.SECONDS)
+            .size() == 1);
+        //List<String> result = instance.findElements(method, value);
+        
+        LOG.exiting(CLASS, "testFindElements");
+    }
+
+    @Test
     public void testGetElementAttribute() throws Exception{
         LOG.entering(CLASS, "testGetElementAttribute");
         String id = "menu_myaccount";
@@ -711,18 +728,6 @@ public class MarionetteImplTest {
         .thenCompose(c -> {client = c; return client.findElement(method, value);})
         .get(TIMEOUT, TimeUnit.SECONDS);
         
-    }
-
-    @Test    @Ignore
-    public void testFindElements() {
-        System.out.println("findElements");
-        Marionette.SearchMethod method = null;
-        String value = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        List<String> expResult = null;
-        //List<String> result = instance.findElements(method, value);
-        
-        Assertions.fail("The test case is a prototype.");
     }
 
     @Test    @Ignore
