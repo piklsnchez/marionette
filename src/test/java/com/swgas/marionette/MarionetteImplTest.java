@@ -127,6 +127,7 @@ public class MarionetteImplTest {
     }
 
     @Test
+    @Disabled
     public void testSingleTap_String_Point() throws Exception {
         LOG.entering(CLASS, "testSingleTap_String_Point");
         String css = "body";
@@ -142,6 +143,7 @@ public class MarionetteImplTest {
     }
 
     @Test
+    @Disabled
     public void testSingleTap_String() throws Exception {
         LOG.entering(CLASS, "testSingleTap_String");
         String css = "body";
@@ -190,6 +192,7 @@ public class MarionetteImplTest {
     }
 
     @Test
+    @Disabled
     public void testClearElement() throws Exception {
        LOG.entering(CLASS, "testClearElement");
         String css = "input[name='username']";
@@ -208,6 +211,7 @@ public class MarionetteImplTest {
     }
 
     @Test
+    @Disabled
     public void testIsElementSelected() throws Exception {
         LOG.entering(CLASS, "testIsElementSelected");
         String url = URL.concat("startenergyshare");
