@@ -192,7 +192,6 @@ public class MarionetteImplTest {
     }
 
     @Test
-    @Disabled
     public void testClearElement() throws Exception {
        LOG.entering(CLASS, "testClearElement");
         String css = "input[name='username']";
@@ -211,15 +210,13 @@ public class MarionetteImplTest {
     }
 
     @Test
-    @Disabled
     public void testIsElementSelected() throws Exception {
         LOG.entering(CLASS, "testIsElementSelected");
-        String url = URL.concat("startenergyshare");
-        String css = "input[name='donation_timing'][value='otd']";
+        String css = "body";
         Assertions.assertFalse(
             (Boolean)MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
-            .thenCompose(s -> client.get(url))
+            .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
             .thenCompose(e -> client.isElementSelected(e))
