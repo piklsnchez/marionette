@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import com.swgas.parser.MarionetteParser;
+import com.swgas.util.Copy;
+import java.io.File;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,8 @@ public class MarionetteImplTest {
     private static final int    PORT    = 2828;
     private static final int    TIMEOUT = 20;
     private static final String URL     = "https://myaccountdev.swgas.com/";
+    private static final String PROFILE_DRIECTORY        = System.getProperty("user.home").concat("/.mozilla/firefox/marionette").replace('/', File.separatorChar);
+    private static final String BACKUP_PROFILE_DIRECTORY = System.getProperty("java.io.tmpdir").concat("/ffProf");
     
     public Process browser;
     private Marionette client;
@@ -32,6 +36,10 @@ public class MarionetteImplTest {
     
     @BeforeEach
     public void beforeEach() {
+        boolean copied = Copy.copyDirectory(PROFILE_DRIECTORY, BACKUP_PROFILE_DIRECTORY);
+        if(!copied){
+            LOG.warning("wasn't able to copy profile directory");
+        }
         ProcessBuilder _proc = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
         //_proc.inheritIO();
         try{
@@ -45,6 +53,7 @@ public class MarionetteImplTest {
     
     @AfterEach
     public void afterEach() throws Exception {
+        Copy.copyDirectory(BACKUP_PROFILE_DIRECTORY, PROFILE_DRIECTORY);
         if(true || browser != null){
             client.quitApplication(Collections.singletonList("eForceQuit"))
             .get(TIMEOUT, TimeUnit.SECONDS);
@@ -483,7 +492,7 @@ public class MarionetteImplTest {
         LOG.info(
             MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {client = c; return client.newSession();})
-            .thenCompose(s -> client.get(URL))
+            .thenCompose(s -> client.get("http://infonet.swgas.com"))
             .thenCompose(s -> client.getPageSource())
             .thenApply(MarionetteParser.STRING::parseFrom)
             .get(TIMEOUT, TimeUnit.SECONDS)
