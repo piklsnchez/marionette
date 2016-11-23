@@ -32,7 +32,7 @@ public class MarionetteImplTest {
     
     @BeforeEach
     public void beforeEach() {
-        ProcessBuilder _proc = new ProcessBuilder("/usr/bin/firefox", "--marionette", "--new-instance");
+        ProcessBuilder _proc = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
         //_proc.inheritIO();
         try{
             browser = _proc.start();            
@@ -48,7 +48,9 @@ public class MarionetteImplTest {
         if(true || browser != null){
             client.quitApplication(Collections.singletonList("eForceQuit"))
             .get(TIMEOUT, TimeUnit.SECONDS);
-            //browser.destroy();
+            try{
+                browser.destroy();
+            } catch(Exception e){}
         }
     }
 
