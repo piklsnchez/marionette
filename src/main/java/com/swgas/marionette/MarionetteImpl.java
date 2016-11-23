@@ -3,13 +3,11 @@ package com.swgas.marionette;
 import com.swgas.exception.MarionetteException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CoderResult;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -234,13 +232,13 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<String> newSession(String sessionId) {
-        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": \"%s\"}]", messageId, Command.newSession.getCommand(), sessionId);
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": {\"acceptSslCerts\":true}, \"sessionId\": \"%s\"}]", messageId, Command.newSession.getCommand(), sessionId);
         return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
     @Override
     public CompletableFuture<String> newSession() {
-        String command = String.format("[0, %d, \"%s\", {\"capabilities\": null, \"sessionId\": null}]", messageId, Command.newSession.getCommand());
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": {\"acceptSslCerts\":true}, \"sessionId\": null}]", messageId, Command.newSession.getCommand());
         return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
