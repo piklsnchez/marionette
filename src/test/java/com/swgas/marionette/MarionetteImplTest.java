@@ -10,12 +10,15 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import com.swgas.parser.MarionetteParser;
-import com.swgas.util.Copy;
+import com.swgas.ocs.util.Copy;
+import com.swgas.ocs.util.Remove;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -36,14 +39,15 @@ public class MarionetteImplTest {
     public MarionetteImplTest() {
     }
     
+    @BeforeAll
+    private static void beforeAll(){
+        Remove.removeDirectory(BACKUP_PROFILE_DIRECTORY);
+        Copy.copyDirectory(PROFILE_DRIECTORY, BACKUP_PROFILE_DIRECTORY);
+    }
+    
     @BeforeEach
-    public void beforeEach() {
-        try{
-            Files.deleteIfExists(Paths.get(BACKUP_PROFILE_DIRECTORY));
-        } catch(IOException e){
-            LOG.throwing(CLASS, "beforeEach", e);
-        }
-        boolean copied = Copy.copyDirectory(PROFILE_DRIECTORY, BACKUP_PROFILE_DIRECTORY);
+    private void beforeEach() {
+        boolean copied = Copy.copyDirectory(BACKUP_PROFILE_DIRECTORY, PROFILE_DRIECTORY);
         if(!copied){
             LOG.warning("wasn't able to copy profile directory");
         }
@@ -59,8 +63,7 @@ public class MarionetteImplTest {
     }
     
     @AfterEach
-    public void afterEach() throws Exception {
-        Copy.copyDirectory(BACKUP_PROFILE_DIRECTORY, PROFILE_DRIECTORY);
+    private void afterEach() throws Exception {
         if(true || browser != null){
             client.quitApplication(Collections.singletonList("eForceQuit"))
             .get(TIMEOUT, TimeUnit.SECONDS);
@@ -69,6 +72,11 @@ public class MarionetteImplTest {
             } catch(Exception e){}
         }
     }
+    
+    @AfterAll
+    private static void afterAll(){
+        Copy.copyDirectory(BACKUP_PROFILE_DIRECTORY, PROFILE_DRIECTORY);
+    }    
 
     @Test
     public void testNewSession() throws Exception{
