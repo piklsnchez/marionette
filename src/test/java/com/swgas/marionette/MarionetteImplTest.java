@@ -12,6 +12,8 @@ import java.util.logging.Logger;
 import com.swgas.parser.MarionetteParser;
 import com.swgas.util.Copy;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +38,11 @@ public class MarionetteImplTest {
     
     @BeforeEach
     public void beforeEach() {
+        try{
+            Files.deleteIfExists(Paths.get(BACKUP_PROFILE_DIRECTORY));
+        } catch(IOException e){
+            LOG.throwing(CLASS, "beforeEach", e);
+        }
         boolean copied = Copy.copyDirectory(PROFILE_DRIECTORY, BACKUP_PROFILE_DIRECTORY);
         if(!copied){
             LOG.warning("wasn't able to copy profile directory");
