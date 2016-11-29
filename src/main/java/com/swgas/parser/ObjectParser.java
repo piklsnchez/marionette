@@ -2,6 +2,7 @@ package com.swgas.parser;
 
 import com.swgas.parser.MarionetteParser;
 import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -10,17 +11,20 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 
 public class ObjectParser<T> implements MarionetteParser<T>{
+    private static final Logger LOG = Logger.getLogger(ObjectParser.class.getName());
     
     @Override
     public T parseFrom(String s) {
         JsonObject success = get(s);
+        JsonValue.ValueType successType = success.getValueType();
         JsonValue v;
-        if(success.getValueType() == JsonValue.ValueType.NULL){
+        if(successType == JsonValue.ValueType.NULL){
             return null;
         }
         v = success.get("value");
         if(null != v){
-            switch(v.getValueType()){
+            JsonValue.ValueType valueType = v.getValueType();
+            switch(valueType){
                 case NULL:   return null;
                 case NUMBER: return (T)Double.valueOf(((JsonNumber)v).doubleValue());
                 case STRING: return (T)((JsonString)v).getString();
@@ -28,7 +32,7 @@ public class ObjectParser<T> implements MarionetteParser<T>{
                 case ARRAY:  return (T)((JsonArray)v).stream().map(Objects::toString).collect(Collectors.<String>toList());
                 case FALSE:  return (T)Boolean.FALSE;
                 case TRUE:   return (T)Boolean.TRUE;
-                default:     return null;
+                default:     LOG.info(String.format("valueType: %s", valueType)); return null;
             }
         } else {
             switch(success.getValueType()){
@@ -39,7 +43,7 @@ public class ObjectParser<T> implements MarionetteParser<T>{
                 case ARRAY:  return (T)((JsonArray)success).stream().map(Objects::toString).collect(Collectors.<String>toList());
                 case FALSE:  return (T)Boolean.FALSE;
                 case TRUE:   return (T)Boolean.TRUE;
-                default:     return null;
+                default:     LOG.info(String.format("successType: %s", successType)); return null;
             }
         }
     }
