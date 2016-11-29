@@ -426,7 +426,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<String> executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": \"default\", \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
         , messageId, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis());
         return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
