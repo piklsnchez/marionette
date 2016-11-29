@@ -8,6 +8,7 @@ import javax.json.Json;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 public class ElementParser implements MarionetteParser<String> {
@@ -30,6 +31,8 @@ public class ElementParser implements MarionetteParser<String> {
     }
     
     public static String toElement(String ele){
-        return Json.createReader(new StringReader(ele)).readObject().getJsonString(Marionette.WEBELEMENT_KEY).getString();
+        try(JsonReader reader = Json.createReader(new StringReader(ele))){
+            return reader.readObject().getString(Marionette.WEBELEMENT_KEY);
+        }
     }
 }

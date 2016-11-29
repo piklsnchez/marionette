@@ -6,6 +6,7 @@ import java.util.List;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 @FunctionalInterface
@@ -13,10 +14,12 @@ public interface MarionetteParser<T> {
     public static final String NO_SUCH_ELEMENT_EXCEPTION = "no such element";
     public T parseFrom(String s);
     default JsonValue[] getTuple(String s){
-        JsonArray jArray   = Json.createReader(new StringReader(s)).readArray();
-        JsonValue error    = jArray.get(2);
-        JsonValue success  = jArray.get(3);
-        return new JsonValue[]{error, success};
+        try(JsonReader reader = Json.createReader(new StringReader(s))){
+            JsonArray jArray   = reader.readArray();
+            JsonValue error    = jArray.get(2);
+            JsonValue success  = jArray.get(3);
+            return new JsonValue[]{error, success};        
+        }
     }
     default JsonObject get(String s){
         JsonValue[] tuple = getTuple(s);        
