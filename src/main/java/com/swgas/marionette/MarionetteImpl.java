@@ -73,7 +73,7 @@ public class MarionetteImpl implements Marionette {
                             } catch(CharacterCodingException e){
                                 throw new MarionetteException(e);
                             }
-                            LOG.info(String.format("readAsync: messageId: %d: %s", id, result));
+                            LOG.info(String.format("readAsync: messageId: %d: %s", id, result.length() > 55 ? result.substring(0, 55).concat("...") : result));
                             future.complete(result);
                         } else {
                             channel.read(bigBuf, future, this);
