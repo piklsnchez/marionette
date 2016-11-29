@@ -27,7 +27,7 @@ public class ElementParser implements MarionetteParser<String> {
         if (tuple[1].getValueType() == JsonValue.ValueType.NULL) {
             return null;
         }
-        return ((JsonObject) tuple[1]).getJsonObject("value").getJsonString(Marionette.WEBELEMENT_KEY).getString();
+        return ((JsonObject) tuple[1]).getJsonObject("value").getString(Marionette.WEBELEMENT_KEY);
     }
     
     public static String toElement(String ele){

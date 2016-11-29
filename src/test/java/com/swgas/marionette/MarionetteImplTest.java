@@ -166,7 +166,7 @@ public class MarionetteImplTest {
         .thenCompose(c -> {client = c; return client.newSession();})
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(e -> MarionetteParser.ELEMENT.parseFrom(e))
+        .thenApply(MarionetteParser.ELEMENT::parseFrom)
         .thenCompose(e -> client.singleTap(e, 0, 0))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSingleTap_String");
