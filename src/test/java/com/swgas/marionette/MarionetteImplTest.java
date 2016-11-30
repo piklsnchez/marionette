@@ -83,7 +83,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testNewSession");
         Assertions.assertTrue(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.getCurrentUrl())
             .get(TIMEOUT,TimeUnit.SECONDS)
@@ -98,7 +98,7 @@ public class MarionetteImplTest {
         String body = "body";
         Assertions.assertTrue(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElements(Marionette.SearchMethod.CSS_SELECTOR, body))
             .thenApply(MarionetteParser.ARRAY::parseFrom)
@@ -116,7 +116,7 @@ public class MarionetteImplTest {
         String attribute = "title";
         Assertions.assertTrue(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -132,7 +132,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testClickElement");
         String css = "input[name='username']";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -148,7 +148,7 @@ public class MarionetteImplTest {
         String css = "body";
         Point point = new Point(1, 1);
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -163,7 +163,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testSingleTap_String");
         String css = "body";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -178,7 +178,7 @@ public class MarionetteImplTest {
         String id = "menu_myaccount";
         Assertions.assertTrue(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -196,7 +196,7 @@ public class MarionetteImplTest {
         String css = "input[name='username']";
         String text = "user";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -212,7 +212,7 @@ public class MarionetteImplTest {
         String css = "input[name='username']";
         String text = "user";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -230,7 +230,7 @@ public class MarionetteImplTest {
         String css = "body";
         Assertions.assertFalse(
             (Boolean)MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -247,7 +247,7 @@ public class MarionetteImplTest {
         String css = ".LoginForm button";
         Assertions.assertTrue(
             (Boolean)MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -264,7 +264,7 @@ public class MarionetteImplTest {
         String css = ".LoginForm button";
         Assertions.assertTrue(
             (Boolean)MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -282,7 +282,7 @@ public class MarionetteImplTest {
         Assertions.assertEquals(
             "button"
             , MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
             .thenApply(MarionetteParser.ELEMENT::parseFrom)
@@ -298,7 +298,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetElementRectangle");
         String css = ".LoginForm button";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply  (MarionetteParser.ELEMENT::parseFrom)
@@ -313,7 +313,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetElementValueOfCssProperty");
         String css = ".LoginForm button";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply  (MarionetteParser.ELEMENT::parseFrom)
@@ -328,7 +328,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testAcceptDialog");
         String script = "window.confirm();";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.executeScript(script, "[]", false, Duration.ofSeconds(TIMEOUT)))
         .thenCompose(s -> client.acceptDialog())
@@ -341,7 +341,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testDismissDialog");
         String script = "window.confirm();";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.executeScript(script, "[]", false, Duration.ofSeconds(TIMEOUT)))
         .thenCompose(s -> client.dismissDialog())
@@ -356,7 +356,7 @@ public class MarionetteImplTest {
         Assertions.assertEquals(
             "house"
             , MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.executeScript(script, "[]", false, Duration.ofSeconds(TIMEOUT)))
             .thenCompose(s -> client.getTextFromDialog())
@@ -371,7 +371,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testSendKeysToDialog");
         String script = "return window.prompt('say house');";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.executeScript(script, "[]", false, Duration.ofSeconds(TIMEOUT)))
         .thenCompose(s -> client.sendKeysToDialog("house"))
@@ -384,7 +384,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testQuitApplication");
         List<String> flags = null;
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.quitApplication(flags))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testQuitApplication");
@@ -405,7 +405,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testSetTestName");
         String testName = "tester";
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.setTestName(testName))
         .get(TIMEOUT, TimeUnit.SECONDS);
@@ -416,7 +416,7 @@ public class MarionetteImplTest {
     public void testDeleteSession() throws Exception{
         LOG.entering(CLASS, "testDeleteSession");
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.deleteSession())
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testDeleteSession");
@@ -427,7 +427,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testSetScriptTimeout");
         Duration timeout = Duration.ofSeconds(2);
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.setScriptTimeout(timeout))
         .get(TIMEOUT, TimeUnit.SECONDS);
@@ -439,7 +439,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testSetSearchTimeout");
         Duration timeout = Duration.ofSeconds(2);
         MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.newSession();})
+        .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.setSearchTimeout(timeout))
         .get(TIMEOUT, TimeUnit.SECONDS);
@@ -451,7 +451,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetWindowHandle");
         LOG.info(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s ->client.getWindowHandle())
             .thenApply(MarionetteParser.STRING::parseFrom)
@@ -465,7 +465,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetCurrentChromeWindowHandle");
         LOG.info(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.getCurrentChromeWindowHandle())
             .thenApply(MarionetteParser.STRING::parseFrom)
@@ -479,7 +479,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetWindowPosition");
         LOG.info(""+
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.getWindowPosition())
             .thenApply(MarionetteParser.POINT::parseFrom)
@@ -493,7 +493,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testTakeScreenshot_0args");
         LOG.info(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.takeScreenshot())
             .thenApply(MarionetteParser.STRING::parseFrom)
@@ -507,7 +507,7 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testGetPageSource");
         LOG.info(
             MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> {client = c; return client.newSession();})
+            .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get("http://infonet.swgas.com"))
             .thenCompose(s -> client.getPageSource())
             .thenApply(MarionetteParser.STRING::parseFrom)
