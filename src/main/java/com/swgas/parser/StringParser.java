@@ -10,7 +10,7 @@ public class StringParser implements MarionetteParser<String>{
     public String parseFrom(String s) {
         JsonObject success = get(s);
         JsonValue v;
-        if(success.getValueType() == JsonValue.ValueType.NULL || null == (v = success.get("value"))){
+        if(success.getValueType() == JsonValue.ValueType.NULL || null == (v = success.get("value")) || v.getValueType() == JsonValue.ValueType.NULL){
             return null;
         }
         return ((JsonString)v).getString();
