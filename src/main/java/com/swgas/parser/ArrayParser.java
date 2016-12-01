@@ -20,7 +20,6 @@ public class ArrayParser implements MarionetteParser<List<String>> {
             return null;
         }        
         return success.stream().map(j -> {
-            LOG.info(String.format("type: %s", j.getValueType()));
             switch(j.getValueType()){
                 case STRING: return ((JsonString)j).getString();
                 case NULL:   return null;
