@@ -16,6 +16,12 @@ public class ArrayParser implements MarionetteParser<List<String>> {
         if (success.getValueType() == JsonValue.ValueType.NULL) {
             return null;
         }
-        return (success).stream().map(Objects::toString).collect(Collectors.<String>toList());
+        return success.stream().map(j -> {
+            switch(j.getValueType()){
+                case STRING: return ((JsonString)j).getString();
+                case NULL:   return null;
+                default:     return Objects.toString(j);
+            }
+        }).collect(Collectors.toList());
     }
 }
