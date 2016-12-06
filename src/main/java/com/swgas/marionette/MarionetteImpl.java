@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,6 @@ public class MarionetteImpl implements Marionette {
                     return;
                 }
                 _size = _size.substring(0, pos);
-                LOG.info(String.format("size: %s", _size));
                 if(!_size.chars().allMatch(Character::isDigit)){
                     future.completeExceptionally(new MarionetteException(String.format("\"%s\" is not numeric", _size)));
                     return;
@@ -73,7 +73,7 @@ public class MarionetteImpl implements Marionette {
                             } catch(CharacterCodingException e){
                                 throw new MarionetteException(e);
                             }
-                            LOG.info(String.format("readAsync: messageId: %d: %s", id, result.length() > 55 ? result.substring(0, 55).concat("...") : result));
+                            LOG.logp(Level.FINER, CLASS, "readAsync", String.format("RETURN %s", result.length() > 55 ? result.substring(0, 55).concat("...") : result));
                             future.complete(result);
                         } else {
                             channel.read(bigBuf, future, this);
