@@ -47,7 +47,7 @@ public interface Marionette {
     public CompletableFuture<String> clickElement(String element);
     public CompletableFuture<String> singleTap(String element, int x, int y);
     public CompletableFuture<String> getElementText(String element);
-    public CompletableFuture<String> sendKeysToElement(String element, String text);
+    public CompletableFuture<String> sendKeysToElement(String element, String arrayOfChars);
     public CompletableFuture<String> clearElement(String element);
     public CompletableFuture<String> isElementSelected(String element);
     public CompletableFuture<String> isElementEnabled(String element);

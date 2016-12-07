@@ -15,6 +15,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 
 
 public class MarionetteImpl implements Marionette {
@@ -137,9 +139,16 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> sendKeysToElement(String elementId, String text) {
+    public CompletableFuture<String> sendKeysToElement(String elementId, String text) {        
+        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();        
+        text.codePoints().forEachOrdered(c -> arrayBuilder.add(new String(Character.toChars(c))));
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": %s}]"
-        , messageId, Command.sendKeysToElement.getCommand(), elementId, text.chars().mapToObj(c -> Objects.toString((char)c)).collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        , messageId, Command.sendKeysToElement.getCommand(), elementId, text.codePoints()
+        .collect(
+            Json::createArrayBuilder
+            , (builder, item) -> builder.add(new String(Character.toChars(item)))
+            , (a,b)->{}
+        ).build().toString());
         return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 
