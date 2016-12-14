@@ -8,6 +8,6 @@ public class PointParser implements MarionetteParser<Point2D>{
     @Override
     public Point2D parseFrom(String s) {
         JsonObject value = (JsonObject)MarionetteParser.OBJECT.parseFrom(s);
-        return new Point2D.Double(0, 0);
-    }    
+        return new Point2D.Double(value.getInt("x", 0), value.getInt("y", 0));
+    }
 }

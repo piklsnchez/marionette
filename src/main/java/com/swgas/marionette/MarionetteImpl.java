@@ -1,6 +1,11 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
+import com.swgas.parser.ElementParser;
+import com.swgas.parser.MarionetteParser;
+import java.awt.geom.Dimension2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -116,7 +121,7 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> getElementAttribute(String elementId, String attribute) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"name\": \"%s\"}]", messageId, Command.getElementAttribute.getCommand(), elementId, attribute);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
@@ -134,7 +139,7 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> getElementText(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.getElementText.getCommand(), elementId);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
@@ -158,33 +163,33 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> isElementSelected(String elementId) {
+    public CompletableFuture<Boolean> isElementSelected(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.isElementSelected.getCommand(), elementId);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b));
     }
 
     @Override
-    public CompletableFuture<String> isElementEnabled(String elementId) {
+    public CompletableFuture<Boolean> isElementEnabled(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.isElementEnabled.getCommand(), elementId);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b));
     }
 
     @Override
-    public CompletableFuture<String> isElementDisplayed(String elementId) {
+    public CompletableFuture<Boolean> isElementDisplayed(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.isElementDisplayed.getCommand(), elementId);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b));
     }
 
     @Override
     public CompletableFuture<String> getElementTagName(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.getElementTagName.getCommand(), elementId);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
-    public CompletableFuture<String> getElementRectangle(String elementId) {
+    public CompletableFuture<Rectangle2D> getElementRectangle(String elementId) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId, Command.getElementRect.getCommand(), elementId);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(r -> MarionetteParser.RECTANGLE.parseFrom(r));
     }
 
     @Override
@@ -208,7 +213,7 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> getTextFromDialog() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getTextFromDialog.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
@@ -277,19 +282,19 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> getWindowHandle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowHandle.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
     public CompletableFuture<String> getCurrentChromeWindowHandle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getCurrentChromeWindowHandle.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
-    public CompletableFuture<String> getWindowPosition() {
+    public CompletableFuture<Point2D> getWindowPosition() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowPosition.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(p -> MarionetteParser.POINT.parseFrom(p));
     }
 
     /**
@@ -299,7 +304,7 @@ public class MarionetteImpl implements Marionette {
      * @return 
      */
     @Override
-    public CompletableFuture<String> setWindowPosition(String pointArg) {
+    public CompletableFuture<String> setWindowPosition(Point2D pointArg) {
         String command = String.format("[0, %d, \"%s\", %s]", messageId, Command.setWindowPosition.getCommand(), pointArg);
         return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
@@ -307,25 +312,29 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> getTitle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getTitle.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
-    public CompletableFuture<String> getWindowHandles() {
+    public CompletableFuture<List<String>> getWindowHandles() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowHandles.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++))
+        .thenApply(MarionetteParser.ARRAY::parseFrom)
+        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
     }
 
     @Override
-    public CompletableFuture<String> getChromeWindowHandles() {
+    public CompletableFuture<List<String>> getChromeWindowHandles() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getChromeWindowHandles.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++))
+        .thenApply(MarionetteParser.ARRAY::parseFrom)
+        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
     }
 
     @Override
     public CompletableFuture<String> getPageSource() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getPageSource.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
@@ -347,9 +356,9 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> getContext() {
+    public CompletableFuture<Context> getContext() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getContext.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.CONTEXT::parseFrom);
     }
 
     @Override
@@ -361,7 +370,7 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> getActiveFrame() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getActiveFrame.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
         
     }
 
@@ -386,13 +395,13 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> getCurrentUrl() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getCurrentUrl.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
     public CompletableFuture<String> getWindowType() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowType.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
@@ -449,19 +458,21 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> findElement(SearchMethod method, String value) {
         String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId, Command.findElement.getCommand(), value, method);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(e -> MarionetteParser.ELEMENT.parseFrom(e));
     }
 
     @Override
-    public CompletableFuture<String> findElements(SearchMethod method, String value) {
+    public CompletableFuture<List<String>> findElements(SearchMethod method, String value) {
         String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId, Command.findElements.getCommand(), value, method);
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++))
+        .thenApply(elements -> MarionetteParser.ARRAY.parseFrom(elements))
+        .thenApply(e -> e.stream().map(ElementParser::toElement).collect(Collectors.toList()));
     }
 
     @Override
     public CompletableFuture<String> getActiveElement() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getActiveElement.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(ElementParser::toElement);
     }
 
     @Override
@@ -471,9 +482,11 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> getLogs() {
+    public CompletableFuture<List<String>> getLogs() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getLogs.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++))
+        .thenApply(elements -> MarionetteParser.ARRAY.parseFrom(elements))
+        .thenApply(e -> e.stream().map(ElementParser::toElement).collect(Collectors.toList()));
     }
 
     @Override
@@ -515,20 +528,20 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<String> takeScreenshot() {
         String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": null, \"full\": true}]", messageId, Command.takeScreenshot.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
     public CompletableFuture<String> takeScreenshot(List<String> elementIds) {
         String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": %s, \"full\": true}]"
         , messageId, Command.takeScreenshot.getCommand(), elementIds.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(MarionetteParser.STRING::parseFrom);
     }
 
     @Override
-    public CompletableFuture<String> getScreenOrientation() {
+    public CompletableFuture<Orientation> getScreenOrientation() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getScreenOrientation.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(o -> MarionetteParser.ORIENTATION.parseFrom(o));
     }
 
     @Override
@@ -538,16 +551,14 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> getWindowSize() {
+    public CompletableFuture<Dimension2D> getWindowSize() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getWindowSize.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++)).thenApply(d -> MarionetteParser.DIMENSION.parseFrom(d));
     }
 
     @Override
-    public CompletableFuture<String> setWindowSize(String size) {
-        int width = 0;
-        int height = 0;
-        String command = String.format("[0, %d, \"%s\", {\"width\": %d, \"height\": %d}]", messageId, Command.setWindowSize.getCommand(), width, height);
+    public CompletableFuture<String> setWindowSize(Dimension2D size) {
+        String command = String.format("[0, %d, \"%s\", {\"width\": %f, \"height\": %f}]", messageId, Command.setWindowSize.getCommand(), size.getWidth(), size.getHeight());
         return writeAsync(command).thenCompose(i -> readAsync(messageId++));
     }
 

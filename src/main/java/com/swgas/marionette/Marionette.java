@@ -1,5 +1,8 @@
 package com.swgas.marionette;
 
+import java.awt.geom.Dimension2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -49,11 +52,11 @@ public interface Marionette {
     public CompletableFuture<String> getElementText(String element);
     public CompletableFuture<String> sendKeysToElement(String element, String arrayOfChars);
     public CompletableFuture<String> clearElement(String element);
-    public CompletableFuture<String> isElementSelected(String element);
-    public CompletableFuture<String> isElementEnabled(String element);
-    public CompletableFuture<String> isElementDisplayed(String element);
+    public CompletableFuture<Boolean> isElementSelected(String element);
+    public CompletableFuture<Boolean> isElementEnabled(String element);
+    public CompletableFuture<Boolean> isElementDisplayed(String element);
     public CompletableFuture<String> getElementTagName(String element);
-    public CompletableFuture<String> getElementRectangle(String element);
+    public CompletableFuture<Rectangle2D> getElementRectangle(String element);
     public CompletableFuture<String> getElementValueOfCssProperty(String element, String property);
     default CompletableFuture<String> actionChain(List<Object> actionChain, String id){return null;}
     default CompletableFuture<String> multiAction(List<Object> multiActions){return null;}
@@ -70,16 +73,16 @@ public interface Marionette {
     public CompletableFuture<String> setSearchTimeout(Duration timeout);
     public CompletableFuture<String> getWindowHandle();
     public CompletableFuture<String> getCurrentChromeWindowHandle();
-    public CompletableFuture<String> getWindowPosition();
-    public CompletableFuture<String> setWindowPosition(String point);
+    public CompletableFuture<Point2D> getWindowPosition();
+    public CompletableFuture<String> setWindowPosition(Point2D point);
     public CompletableFuture<String> getTitle();
-    public CompletableFuture<String> getWindowHandles();
-    public CompletableFuture<String> getChromeWindowHandles();
+    public CompletableFuture<List<String>> getWindowHandles();
+    public CompletableFuture<List<String>> getChromeWindowHandles();
     public CompletableFuture<String> getPageSource();
     public CompletableFuture<String> close();
     public CompletableFuture<String> closeChromeWindow();
     public CompletableFuture<String> setContext(Context context);
-    public CompletableFuture<String> getContext();
+    public CompletableFuture<Context> getContext();
     public CompletableFuture<String> switchToWindow(String id);
     public CompletableFuture<String> getActiveFrame();
     public CompletableFuture<String> switchToParentFrame();
@@ -96,10 +99,10 @@ public interface Marionette {
     public CompletableFuture<String> executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout);
     public CompletableFuture<String> executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug);
     public CompletableFuture<String> findElement(SearchMethod method, String value);
-    public CompletableFuture<String> findElements(SearchMethod method, String value);
+    public CompletableFuture<List<String>> findElements(SearchMethod method, String value);
     public CompletableFuture<String> getActiveElement();
     public CompletableFuture<String> log(LogLevel level, String message);
-    public CompletableFuture<String> getLogs();
+    public CompletableFuture<List<String>> getLogs();
     public CompletableFuture<String> importScript(String script);
     public CompletableFuture<String> clearImportedScripts();
     public CompletableFuture<String> addCookie(String cookie);
@@ -108,9 +111,9 @@ public interface Marionette {
     public CompletableFuture<String> getCookies();
     public CompletableFuture<String> takeScreenshot();
     public CompletableFuture<String> takeScreenshot(List<String> elements);
-    public CompletableFuture<String> getScreenOrientation();
+    public CompletableFuture<Orientation> getScreenOrientation();
     public CompletableFuture<String> setScreenOrientation(Orientation orientation);
-    public CompletableFuture<String> getWindowSize();
-    public CompletableFuture<String> setWindowSize(String size);
+    public CompletableFuture<Dimension2D> getWindowSize();
+    public CompletableFuture<String> setWindowSize(Dimension2D size);
     public CompletableFuture<String> maximizeWindow();
 }
