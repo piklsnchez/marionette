@@ -108,7 +108,7 @@ public interface Marionette {
     public CompletableFuture<String> addCookie(String cookie);
     public CompletableFuture<String> deleteAllCookies();
     public CompletableFuture<String> deleteCookie(String name);
-    public CompletableFuture<String> getCookies();
+    public CompletableFuture<List<String>> getCookies();
     public CompletableFuture<String> takeScreenshot();
     public CompletableFuture<String> takeScreenshot(List<String> elements);
     public CompletableFuture<Orientation> getScreenOrientation();

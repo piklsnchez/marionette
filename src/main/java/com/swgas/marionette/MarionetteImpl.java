@@ -520,9 +520,11 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> getCookies() {
+    public CompletableFuture<List<String>> getCookies() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getCookies.getCommand());
-        return writeAsync(command).thenCompose(i -> readAsync(messageId++));
+        return writeAsync(command).thenCompose(i -> readAsync(messageId++))
+        .thenApply(elements -> MarionetteParser.ARRAY.parseFrom(elements))
+        .thenApply(e -> e.stream().map(ElementParser::toElement).collect(Collectors.toList()));
     }
 
     @Override
