@@ -485,8 +485,8 @@ public class MarionetteImpl implements Marionette {
     public CompletableFuture<List<String>> getLogs() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getLogs.getCommand());
         return writeAsync(command).thenCompose(i -> readAsync(messageId++))
-        .thenApply(elements -> MarionetteParser.ARRAY.parseFrom(elements))
-        .thenApply(e -> e.stream().map(ElementParser::toElement).collect(Collectors.toList()));
+        .thenApply(MarionetteParser.ARRAY::parseFrom)
+        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
     }
 
     @Override
@@ -523,8 +523,8 @@ public class MarionetteImpl implements Marionette {
     public CompletableFuture<List<String>> getCookies() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId, Command.getCookies.getCommand());
         return writeAsync(command).thenCompose(i -> readAsync(messageId++))
-        .thenApply(elements -> MarionetteParser.ARRAY.parseFrom(elements))
-        .thenApply(e -> e.stream().map(ElementParser::toElement).collect(Collectors.toList()));
+        .thenApply(MarionetteParser.ARRAY::parseFrom)
+        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
     }
 
     @Override
