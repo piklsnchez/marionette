@@ -16,6 +16,7 @@ import java.nio.charset.CharsetDecoder;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,7 +27,7 @@ import javax.json.JsonArrayBuilder;
 public class MarionetteImpl implements Marionette {
     private static final String CLASS = MarionetteImpl.class.getName();
     private static final Logger LOG = Logger.getLogger(CLASS);
-    private static final long TIMEOUT = 1;
+    private static final long TIMEOUT = 10;
     private static final CharsetDecoder charsetDecoder = Charset.defaultCharset().newDecoder();
     private final AsynchronousSocketChannel channel;
     private CompletableFuture<String> futureQueue = CompletableFuture.completedFuture("");
@@ -70,7 +71,11 @@ public class MarionetteImpl implements Marionette {
                 ByteBuffer bigBuf = ByteBuffer.allocate(size);
                 buf.position(pos + 1);
                 bigBuf.put(buf);
-                channel.read(bigBuf, future, new CompletionHandler<Integer, CompletableFuture>() {
+                channel.read(bigBuf
+                , TIMEOUT
+                , TimeUnit.SECONDS
+                , future
+                , new CompletionHandler<Integer, CompletableFuture>() {
                     @Override
                     public void completed(Integer len, CompletableFuture future) {
                         if(!bigBuf.hasRemaining()){
@@ -108,6 +113,8 @@ public class MarionetteImpl implements Marionette {
         //CompletableFuture<String> ret = new CompletableFuture<>();
         channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length()
         , command).getBytes())
+        , TIMEOUT
+        , TimeUnit.SECONDS
         , null
         , new CompletionHandler<Integer, CompletableFuture>() {
             @Override
