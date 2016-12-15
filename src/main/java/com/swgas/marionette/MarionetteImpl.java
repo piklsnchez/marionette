@@ -31,7 +31,7 @@ public class MarionetteImpl implements Marionette {
     private static final long TIMEOUT = 10;
     private static final CharsetDecoder charsetDecoder = Charset.defaultCharset().newDecoder();
     private final AsynchronousSocketChannel channel;
-    private CompletableFuture<String> futureQueue = CompletableFuture.completedFuture("");
+    //private CompletableFuture<String> futureQueue = CompletableFuture.completedFuture("");
     private int messageId = 0;
     
     protected MarionetteImpl(AsynchronousSocketChannel channel){
@@ -111,7 +111,7 @@ public class MarionetteImpl implements Marionette {
     
     private CompletableFuture<String> writeAsync(String command){
         LOG.entering(CLASS, "writeAsync", command);
-        //CompletableFuture<String> ret = new CompletableFuture<>();
+        CompletableFuture<String> ret = new CompletableFuture<>();
         channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length()
         , command).getBytes())
         , TIMEOUT
@@ -120,16 +120,16 @@ public class MarionetteImpl implements Marionette {
         , new CompletionHandler<Integer, CompletableFuture>() {
             @Override
             public void completed(Integer result, CompletableFuture future) {
-                futureQueue.complete("");
+                ret.complete("");
             }
 
             @Override
             public void failed(Throwable e, CompletableFuture future) {
                 LOG.throwing(CLASS, "failed", e);
-                futureQueue.completeExceptionally(e);
+                ret.completeExceptionally(e);
             }
         });
-        return futureQueue = futureQueue.thenCompose(s -> readAsync());
+        return ret.thenCompose(s -> readAsync());
     }
 
     @Override
@@ -585,6 +585,6 @@ public class MarionetteImpl implements Marionette {
     
     @Override
     public String toString(){
-        return Arrays.toString(new Object[]{messageId, channel, futureQueue});
+        return Arrays.toString(new Object[]{messageId, channel});
     }
 }
