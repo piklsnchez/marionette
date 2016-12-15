@@ -14,6 +14,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -580,5 +581,10 @@ public class MarionetteImpl implements Marionette {
     public CompletableFuture<String> maximizeWindow() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.maximizeWindow.getCommand());
         return writeAsync(command);
-    }    
+    }
+    
+    @Override
+    public String toString(){
+        return Arrays.toString(new Object[]{messageId, channel, futureQueue});
+    }
 }
