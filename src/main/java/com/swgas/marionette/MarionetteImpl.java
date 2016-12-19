@@ -29,9 +29,8 @@ public class MarionetteImpl implements Marionette {
     private static final String CLASS = MarionetteImpl.class.getName();
     private static final Logger LOG = Logger.getLogger(CLASS);
     private static final long TIMEOUT = 10;
-    private static final CharsetDecoder charsetDecoder = Charset.defaultCharset().newDecoder();
+    private static final CharsetDecoder CHARSET_DECODER = Charset.defaultCharset().newDecoder();
     private final AsynchronousSocketChannel channel;
-    //private CompletableFuture<String> futureQueue = CompletableFuture.completedFuture("");
     private int messageId = 0;
     
     protected MarionetteImpl(AsynchronousSocketChannel channel){
@@ -41,8 +40,11 @@ public class MarionetteImpl implements Marionette {
     
     @Override
     protected void finalize() throws Throwable{
-        channel.close();
-        super.finalize();
+        try{
+            channel.close();
+        } finally{
+            super.finalize();
+        }
     }
     
     private CompletableFuture<String> readAsync(){
@@ -54,7 +56,7 @@ public class MarionetteImpl implements Marionette {
                 buf.flip();
                 String _size;
                 try{
-                    _size = charsetDecoder.decode(buf).toString();
+                    _size = CHARSET_DECODER.decode(buf).toString();
                 } catch(CharacterCodingException e){
                     throw new MarionetteException(e);
                 }
@@ -83,7 +85,7 @@ public class MarionetteImpl implements Marionette {
                             bigBuf.flip();
                             String result;
                             try{
-                                result = charsetDecoder.decode(bigBuf).toString();
+                                result = CHARSET_DECODER.decode(bigBuf).toString();
                             } catch(CharacterCodingException e){
                                 throw new MarionetteException(e);
                             }
