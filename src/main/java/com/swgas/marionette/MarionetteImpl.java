@@ -16,6 +16,7 @@ import java.nio.charset.CharsetDecoder;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -539,7 +540,7 @@ public class MarionetteImpl implements Marionette {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCookies.getCommand());
         return writeAsync(command)
         .thenApply(MarionetteParser.ARRAY::parseFrom)
-        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
+        .thenApply(a -> a.stream().map(obj -> Objects.toString(obj, "")).collect(Collectors.toList()));
     }
 
     @Override

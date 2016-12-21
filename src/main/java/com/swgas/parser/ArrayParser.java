@@ -5,8 +5,6 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
