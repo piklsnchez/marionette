@@ -337,7 +337,7 @@ public class MarionetteImpl implements Marionette {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandles.getCommand());
         return writeAsync(command)
         .thenApply(MarionetteParser.ARRAY::parseFrom)
-        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
+        .thenApply(a -> a.stream().map(handle -> Objects.toString(handle, "")).collect(Collectors.toList()));
     }
 
     @Override
@@ -345,7 +345,7 @@ public class MarionetteImpl implements Marionette {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getChromeWindowHandles.getCommand());
         return writeAsync(command)
         .thenApply(MarionetteParser.ARRAY::parseFrom)
-        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
+        .thenApply(a -> a.stream().map(handle -> Objects.toString(handle, "")).collect(Collectors.toList()));
     }
 
     @Override
