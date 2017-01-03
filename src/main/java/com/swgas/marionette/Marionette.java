@@ -15,7 +15,8 @@ public interface Marionette {
         SEARCH, SCRIPT, PAGE
     }
     public enum SearchMethod{
-          ID            ("")
+          ELEMENT       ("ele=")
+        , ID            ("")
         , NAME          ("name=")
         , CLASS_NAME    ("class=")
         , TAG_NAME      ("tag=")
