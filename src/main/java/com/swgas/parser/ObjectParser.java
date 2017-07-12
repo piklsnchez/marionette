@@ -1,6 +1,5 @@
 package com.swgas.parser;
 
-import com.swgas.parser.MarionetteParser;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;

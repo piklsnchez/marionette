@@ -1,7 +1,6 @@
 package com.swgas.parser;
 
 import com.swgas.marionette.Marionette;
-import java.awt.geom.Rectangle2D;
 import javax.json.JsonObject;
 
 /**

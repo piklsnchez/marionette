@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import com.swgas.parser.MarionetteParser;
 import com.swgas.ocs.util.Copy;
 import com.swgas.ocs.util.Remove;
 import java.io.File;
@@ -29,7 +28,7 @@ public class MarionetteImplTest {
     private static final int    TIMEOUT = 20;
     private static final String URL     = "https://myaccountdev.swgas.com/";
     private static final String PROFILE_DRIECTORY        = System.getProperty("user.home").concat("/.mozilla/firefox/marionette").replace('/', File.separatorChar);
-    private static final String BACKUP_PROFILE_DIRECTORY = System.getProperty("java.io.tmpdir").concat("/ffProf");
+    private static final String BACKUP_PROFILE_DIRECTORY = System.getProperty("java.io.tmpdir").concat("/ffProf").replace('/', File.separatorChar);
     
     public Process browser;
     private Marionette client;

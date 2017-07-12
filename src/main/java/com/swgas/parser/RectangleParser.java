@@ -1,6 +1,5 @@
 package com.swgas.parser;
 
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import javax.json.JsonObject;
 
