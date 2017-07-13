@@ -7,6 +7,7 @@ import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.lang.ref.Cleaner;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
@@ -27,25 +28,19 @@ import javax.json.JsonArrayBuilder;
 
 
 public class MarionetteImpl implements Marionette {
-    private static final String CLASS = MarionetteImpl.class.getName();
-    private static final Logger LOG = Logger.getLogger(CLASS);
-    private static final long TIMEOUT = 10;
-    private static final CharsetDecoder CHARSET_DECODER = Charset.defaultCharset().newDecoder();
-    private final AsynchronousSocketChannel channel;
-    private int messageId = 0;
+    private static final String                    CLASS = MarionetteImpl.class.getName();
+    private static final Logger                    LOG = Logger.getLogger(CLASS);
+    private static final Cleaner                   CLEANER = Cleaner.create();
+    private static final long                      TIMEOUT = 10;
+    private static final CharsetDecoder            CHARSET_DECODER = Charset.defaultCharset().newDecoder();
+    private        final AsynchronousSocketChannel channel;
+    private              int                       messageId = 0;
+    
     
     protected MarionetteImpl(AsynchronousSocketChannel channel){
         this.channel = channel;
+        CLEANER.register(this, ()-> {try{LOG.info("Cleaning"); channel.close();}catch(IOException e){}});
         readAsync().join();
-    }
-    
-    @Override
-    protected void finalize() throws Throwable{
-        try{
-            channel.close();
-        } finally{
-            super.finalize();
-        }
     }
     
     private CompletableFuture<String> readAsync(){
