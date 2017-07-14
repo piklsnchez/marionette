@@ -34,7 +34,6 @@ public class MarionetteImplTest {
     private Marionette client;
     
     public MarionetteImplTest() {
-        //LogManager.getLogManager().getLoggerNames().asIterator().forEachRemaining(s -> LOG.info(String.format("Logger: %s", s)));
     }
     
     @BeforeAll

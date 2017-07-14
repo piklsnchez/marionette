@@ -1,0 +1,54 @@
+POST	/session	New Session
+DELETE	/session/{session_id}	Delete Session
+GET	/status	Status
+GET	/session/{session_id}/timeouts	Get Timeouts
+POST	/session/{session_id}/timeouts	Set Timeouts
+POST	/session/{session_id}/url	Go
+GET	/session/{session_id}/url	Get Current URL
+POST	/session/{session_id}/back	Back
+POST	/session/{session_id}/forward	Forward
+POST	/session/{session_id}/refresh	Refresh
+GET	/session/{session_id}/title	Get Title
+GET	/session/{session_id}/window	Get Window Handle
+DELETE	/session/{session_id}/window	Close Window
+POST	/session/{session_id}/window	Switch To Window
+GET	/session/{session_id}/window/handles	Get Window Handles
+POST	/session/{session_id}/frame	Switch To Frame
+POST	/session/{session_id}/frame/parent	Switch To Parent Frame
+GET	/session/{session_id}/window/rect	Get Window Rect
+POST	/session/{session_id}/window/rect	Set Window Rect
+POST	/session/{session_id}/window/maximize	Maximize Window
+POST	/session/{session_id}/window/minimize	Minimize Window
+POST	/session/{session_id}/window/fullscreen	Fullscreen Window
+GET	/session/{session_id}/element/active	Get Active Element
+POST	/session/{session_id}/element	Find Element
+POST	/session/{session_id}/elements	Find Elements
+POST	/session/{session_id}/element/{element_id}/element	Find Element From Element
+POST	/session/{session_id}/element/{element_id}/elements	Find Elements From Element
+GET	/session/{session_id}/element/{element_id}/selected	Is Element Selected
+GET	/session/{session_id}/element/{element_id}/attribute/{name}	Get Element Attribute
+GET	/session/{session_id}/element/{element_id}/property/{name}	Get Element Property
+GET	/session/{session_id}/element/{element_id}/css/{property_name}	Get Element CSS Value
+GET	/session/{session_id}/element/{element_id}/text	Get Element Text
+GET	/session/{session_id}/element/{element_id}/name	Get Element Tag Name
+GET	/session/{session_id}/element/{element_id}/rect	Get Element Rect
+GET	/session/{session_id}/element/{element_id}/enabled	Is Element Enabled
+POST	/session/{session_id}/element/{element_id}/click	Element Click
+POST	/session/{session_id}/element/{element_id}/clear	Element Clear
+POST	/session/{session_id}/element/{element_id}/value	Element Send Keys
+GET	/session/{session_id}/source	Get Page Source
+POST	/session/{session_id}/execute/sync	Execute Script
+POST	/session/{session_id}/execute/async	Execute Async Script
+GET	/session/{session_id}/cookie	Get All Cookies
+GET	/session/{session_id}/cookie/{name}	Get Named Cookie
+POST	/session/{session_id}/cookie	Add Cookie
+DELETE	/session/{session_id}/cookie/{name}	Delete Cookie
+DELETE	/session/{session id)/cookie	Delete All Cookies
+POST	/session/{session_id}/actions	Perform Actions
+DELETE	/session/{session_id}/actions	Release Actions
+POST	/session/{session_id}/alert/dismiss	Dismiss Alert
+POST	/session/{session_id}/alert/accept	Accept Alert
+GET	/session/{session_id}/alert/text	Get Alert Text
+POST	/session/{session_id}/alert/text	Send Alert Text
+GET	/session/{session_id}/screenshot	Take Screenshot
+GET	/session/{session_id}/element/{element_id}/screenshot	Take Element Screenshot
