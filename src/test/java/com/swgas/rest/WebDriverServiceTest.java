@@ -1,7 +1,14 @@
 package com.swgas.rest;
 
+import com.swgas.marionette.Marionette;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.logging.Logger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +16,33 @@ public class WebDriverServiceTest {
     private static final String CLASS = WebDriverServiceTest.class.getName();
     private static final Logger LOG   = Logger.getLogger(CLASS);
     
+    private WebDriverService instance;
+    
     public WebDriverServiceTest() {
+    }
+    
+    @BeforeEach
+    public void beforeEach(){
+        LOG.entering(CLASS, "beforeEach");
+        instance = new WebDriverService();
+        LOG.exiting(CLASS, "beforeEach");
+    }
+    
+    @AfterEach
+    public void afterEach() {
+        LOG.entering(CLASS, "afterEach");
+        try{
+            Field sessionsField = instance.getClass().getDeclaredField("SESSIONS");
+            sessionsField.setAccessible(true);
+            new ArrayList<String>(((HashMap<String, Session>) sessionsField.get(null)).keySet())
+            .forEach(s -> {
+                LOG.info(String.format("deleting session: %s", s));
+                instance.deleteSession(s);
+            });
+        } catch(Exception e){
+            LOG.throwing(CLASS, "afterEach", e);
+        }
+        LOG.exiting(CLASS, "afterEach");
     }
 
     /**
@@ -18,12 +51,14 @@ public class WebDriverServiceTest {
     @Test
     public void testNewSession() {
         LOG.entering(CLASS, "testNewSession");
-        WebDriverService instance = new WebDriverService();
-        String result = instance.newSession();
-        LOG.info(result);
-        Assertions.assertTrue(null != result);
-        
-        instance.deleteSession(result);
+        try{
+            String result = instance.newSession();
+            LOG.info(result);
+            Assertions.assertTrue(null != result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testNewSession", e);
+            throw e;
+        }
         LOG.exiting(CLASS, "testNewSession");
     }
 
@@ -33,13 +68,11 @@ public class WebDriverServiceTest {
     @Test
     public void testDeleteSession() {
         LOG.entering(CLASS, "testDeleteSession");
-        String sessionId = "123";
-        WebDriverService instance = new WebDriverService();
         try{
-            String result = instance.deleteSession(sessionId);
-            LOG.info(result);
+            String result = instance.deleteSession(instance.newSession());
         } catch(Exception e){
-            LOG.fine(e.toString());
+            LOG.throwing(CLASS, "testDeleteSession", e);
+            throw e;
         }
         LOG.exiting(CLASS, "testDeleteSession");
     }
@@ -49,69 +82,80 @@ public class WebDriverServiceTest {
      */
     @Test @Disabled
     public void testGetStatus() {
-        LOG.info("getStatus");
-        WebDriverService instance = new WebDriverService();
+        LOG.entering(CLASS, "testGetStatus");
         String expResult = "";
         String result = instance.getStatus();
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
+        LOG.exiting(CLASS, "testGetStatus");
     }
 
     /**
      * Test of getTimeouts method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetTimeouts() {
-        LOG.info("getTimeouts");
-        WebDriverService instance = new WebDriverService();
-        String expResult = "";
-        String result = instance.getTimeouts();
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testGetTimeouts");
+        try{
+            String result = instance.getTimeouts(instance.newSession());
+            Assertions.assertTrue(null != result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetTimeouts", e);
+            throw e;
+        }
+        LOG.exiting(CLASS, "testGetTimeouts");
     }
 
     /**
      * Test of setTimeouts method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSetTimeouts() {
-        LOG.info("setTimeouts");
-        WebDriverService instance = new WebDriverService();
-        String expResult = "";
-        String result = instance.setTimeouts();
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testSetTimeouts");
+        try{
+            String result = instance.setTimeouts(instance.newSession(), Marionette.Timeout.SCRIPT, "PT0.01S");
+            Assertions.assertTrue(null != result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testSetTimeouts", e);
+            throw e;
+        }
+        LOG.exiting(CLASS, "testSetTimeouts");
     }
 
     /**
      * Test of setUrl method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSetUrl() {
-        LOG.info("setUrl");
-        WebDriverService instance = new WebDriverService();
-        String expResult = "";
-        String result = instance.setUrl();
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testSetUrl");
+        try{
+            String result = instance.setUrl(instance.newSession(), "https://myaccountdev.swgas.com");
+            Assertions.assertTrue(null != result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testSetUrl", e);
+            throw e;
+        }
+        LOG.exiting(CLASS, "testSetUrl");
     }
 
     /**
      * Test of getUrl method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetUrl() {
-        LOG.info("getUrl");
-        WebDriverService instance = new WebDriverService();
-        String expResult = "";
-        String result = instance.getUrl();
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testGetUrl");
+        try{
+            String sessionId = instance.newSession();
+            String url = "https://myaccountdev.swgas.com";
+            instance.setUrl(sessionId, url);
+            String result = instance.getUrl(sessionId);
+            Assertions.assertTrue(Objects.equals(url, result));
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetUrl", e);
+            throw e;
+        }
+        LOG.exiting(CLASS, "testGetUrl");
     }
 
     /**
@@ -120,9 +164,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testBack() {
         LOG.info("back");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.back();
+        String result = instance.back("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -134,9 +178,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testForward() {
         LOG.info("forward");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.forward();
+        String result = instance.forward("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -148,9 +192,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testRefresh() {
         LOG.info("refresh");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.refresh();
+        String result = instance.refresh("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -162,9 +206,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetTitle() {
         LOG.info("getTitle");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getTitle();
+        String result = instance.getTitle("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -176,9 +220,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetWindow() {
         LOG.info("getWindow");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getWindow();
+        String result = instance.getWindow("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -190,9 +234,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testCloseWindow() {
         LOG.info("closeWindow");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.closeWindow();
+        String result = instance.closeWindow("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -204,9 +248,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testSetWindow() {
         LOG.info("setWindow");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.setWindow();
+        String result = instance.setWindow("","");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -218,9 +262,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetWindows() {
         LOG.info("getWindows");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getWindows();
+        String result = instance.getWindows("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -232,9 +276,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testSetFrame() {
         LOG.info("setFrame");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.setFrame();
+        String result = instance.setFrame("","");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -246,9 +290,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testParentFrame() {
         LOG.info("parentFrame");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.parentFrame();
+        String result = instance.parentFrame("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -260,9 +304,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetWindowDimension() {
         LOG.info("getWindowDimension");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getWindowDimension();
+        String result = instance.getWindowDimension("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -274,9 +318,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testSetWindowDimension() {
         LOG.info("setWindowDimension");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.setWindowDimension();
+        String result = instance.setWindowDimension("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -288,9 +332,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testMaximizeWindow() {
         LOG.info("maximizeWindow");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.maximizeWindow();
+        String result = instance.maximizeWindow("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -302,9 +346,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testMinimizeWindow() {
         LOG.info("minimizeWindow");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.minimizeWindow();
+        String result = instance.minimizeWindow("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -316,9 +360,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testFullscreen() {
         LOG.info("fullscreen");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.fullscreen();
+        String result = instance.fullscreen("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -330,9 +374,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetActiveElement() {
         LOG.info("getActiveElement");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getActiveElement();
+        String result = instance.getActiveElement("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -344,9 +388,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testFindElement() {
         LOG.info("findElement");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.findElement();
+        String result = instance.findElement("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -358,9 +402,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testFindElements() {
         LOG.info("findElements");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.findElements();
+        String result = instance.findElements("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -372,9 +416,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testFindElementFromElement() {
         LOG.info("findElementFromElement");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.findElementFromElement();
+        String result = instance.findElementFromElement("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -386,9 +430,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testFindElementsFromElement() {
         LOG.info("findElementsFromElement");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.findElementsFromElement();
+        String result = instance.findElementsFromElement("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -400,9 +444,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testIsElementSelected() {
         LOG.info("isElementSelected");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.isElementSelected();
+        String result = instance.isElementSelected("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -414,9 +458,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetElementAttribute() {
         LOG.info("getElementAttribute");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getElementAttribute();
+        String result = instance.getElementAttribute("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -428,9 +472,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetElementProperty() {
         LOG.info("getElementProperty");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getElementProperty();
+        String result = instance.getElementProperty("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -442,9 +486,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetElementCss() {
         LOG.info("getElementCss");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getElementCss();
+        String result = instance.getElementCss("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -456,9 +500,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetElementText() {
         LOG.info("getElementText");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getElementText();
+        String result = instance.getElementText("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -470,9 +514,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetElementTagName() {
         LOG.info("getElementTagName");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getElementTagName();
+        String result = instance.getElementTagName("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -484,9 +528,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetElementDimension() {
         LOG.info("getElementDimension");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getElementDimension();
+        String result = instance.getElementDimension("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -498,9 +542,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testIsElementEnabled() {
         LOG.info("isElementEnabled");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.isElementEnabled();
+        String result = instance.isElementEnabled("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -512,9 +556,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testClickElement() {
         LOG.info("clickElement");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.clickElement();
+        String result = instance.clickElement("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -526,9 +570,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testClearElement() {
         LOG.info("clearElement");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.clearElement();
+        String result = instance.clearElement("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -540,9 +584,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testSendKeysToElement() {
         LOG.info("sendKeysToElement");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.sendKeysToElement();
+        String result = instance.sendKeysToElement("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -554,9 +598,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetPageSource() {
         LOG.info("getPageSource");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getPageSource();
+        String result = instance.getPageSource("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -568,9 +612,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testExecuteScript() {
         LOG.info("executeScript");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.executeScript();
+        String result = instance.executeScript("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -582,9 +626,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testExecuteScriptAsync() {
         LOG.info("executeScriptAsync");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.executeScriptAsync();
+        String result = instance.executeScriptAsync("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -596,9 +640,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetCookies() {
         LOG.info("getCookies");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getCookies();
+        String result = instance.getCookies("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -610,9 +654,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetCookie() {
         LOG.info("getCookie");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getCookie();
+        String result = instance.getCookie("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -624,9 +668,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testAddCookie() {
         LOG.info("addCookie");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.addCookie();
+        String result = instance.addCookie("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -638,9 +682,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testRemoveCookie() {
         LOG.info("removeCookie");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.removeCookie();
+        String result = instance.removeCookie("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -652,9 +696,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testRemoveCookies() {
         LOG.info("removeCookies");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.removeCookies();
+        String result = instance.removeCookies("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -666,9 +710,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testPerformActions() {
         LOG.info("performActions");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.performActions();
+        String result = instance.performActions("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -680,9 +724,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testReleaseActions() {
         LOG.info("releaseActions");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.releaseActions();
+        String result = instance.releaseActions("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -694,9 +738,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testDismissAlert() {
         LOG.info("dismissAlert");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.dismissAlert();
+        String result = instance.dismissAlert("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -708,9 +752,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testAcceptAlert() {
         LOG.info("acceptAlert");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.acceptAlert();
+        String result = instance.acceptAlert("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -722,9 +766,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetAlertText() {
         LOG.info("getAlertText");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getAlertText();
+        String result = instance.getAlertText("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -736,9 +780,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testSetAlertText() {
         LOG.info("setAlertText");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.setAlertText();
+        String result = instance.setAlertText("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -750,9 +794,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetScreenshot() {
         LOG.info("getScreenshot");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getScreenshot();
+        String result = instance.getScreenshot("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -764,9 +808,9 @@ public class WebDriverServiceTest {
     @Test @Disabled
     public void testGetElementScreenshot() {
         LOG.info("getElementScreenshot");
-        WebDriverService instance = new WebDriverService();
+        
         String expResult = "";
-        String result = instance.getElementScreenshot();
+        String result = instance.getElementScreenshot("");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");

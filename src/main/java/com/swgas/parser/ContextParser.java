@@ -1,6 +1,7 @@
 package com.swgas.parser;
 
 import com.swgas.marionette.Marionette;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 
 /**
@@ -9,8 +10,8 @@ import javax.json.JsonObject;
  */
 public class ContextParser implements MarionetteParser<Marionette.Context>{
     @Override
-    public Marionette.Context parseFrom(String c){        
-        JsonObject value = (JsonObject)MarionetteParser.OBJECT.parseFrom(c);
+    public Marionette.Context parseFrom(JsonArray json){        
+        JsonObject value = (JsonObject)MarionetteParser.OBJECT.parseFrom(json);
         return Marionette.Context.valueOf(value.getString("context"));
     }
 }

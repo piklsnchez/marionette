@@ -1,9 +1,13 @@
 package com.swgas.rest;
 
+import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteFactory;
+import com.swgas.parser.MarionetteParser;
+import com.swgas.util.MarionetteUtil;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +15,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
+import javax.json.Json;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -33,6 +39,7 @@ public class WebDriverService {
     @Path("/session")
     @Produces(MediaType.APPLICATION_JSON)
     public String newSession() {
+        LOG.entering(CLASS, "newSession");
         try{
             ProcessBuilder procBuilder = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
             Process proc = procBuilder.start();
@@ -42,12 +49,18 @@ public class WebDriverService {
             session.setProc(proc);
             String sessionId = MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> {session.setClient(c); return c.newSession();})
+            .thenApply(MarionetteUtil::parseToSession)
             .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.info("done");
             session.setSessionId(sessionId);
             SESSIONS.put(sessionId, session);
-            return sessionId;
+            String result = Json.createObjectBuilder().add("sessionId", sessionId).build().toString();
+            LOG.exiting(CLASS, "newSession", result);
+            return result;
             //FIXME return http error
-        } catch(IOException | InterruptedException | ExecutionException | TimeoutException e){
+        //} catch(IOException | InterruptedException | ExecutionException | TimeoutException e){
+        }catch(Exception e){
+            LOG.throwing(CLASS, "newSession", e);
             throw new RuntimeException(e);
         }
     }
@@ -61,8 +74,12 @@ public class WebDriverService {
         String result = "";
         if(session.getProc() != null){
             try{
-                result = session.getClient().quitApplication(Collections.singletonList("eForceQuit"))
-                .get(TIMEOUT, TimeUnit.SECONDS);
+                result = session.getClient()
+                .deleteSession()
+                .thenApply(MarionetteUtil::parseToObject)
+                .get(TIMEOUT, TimeUnit.SECONDS)
+                .toString();                
+                session.getClient().quitApplication(Collections.singletonList("eForceQuit")).get(TIMEOUT, TimeUnit.SECONDS);
                 session.getProc().destroy();
                 SESSIONS.remove(sessionId);
                 //FIXME return http error
@@ -78,118 +95,238 @@ public class WebDriverService {
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     public String getStatus() {
-        return "??";
+        throw new RuntimeException("Not yet implemented");
     }
 
     //Get Timeouts
     @GET
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getTimeouts() {
-        return "??";
+    public String getTimeouts(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .getTimeouts()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException | DateTimeParseException e){            
+            throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
+        }
     }
 
     //Set Timeouts
     @POST
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setTimeouts() {
-        return "??";
+    public String setTimeouts(@PathParam("session_id") String sessionId, @FormParam("timeout") Marionette.Timeout timeout, @FormParam("duration") String duration) {
+        try {
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .setTimeouts(timeout, Duration.parse(duration))
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException | DateTimeParseException e){
+            throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
+        }
     }
 
     //Go
     @POST
     @Path("/session/{session_id}/url")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setUrl() {
-        return "??";
+    public String setUrl(@PathParam("session_id") String sessionId, @FormParam("url") String url) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .get(url)
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Get Current URL
     @GET
     @Path("/session/{session_id}/url")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUrl() {
-        return "??";
+    public String getUrl(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .getCurrentUrl()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Back
     @POST
     @Path("/session/{session_id}/back")
     @Produces(MediaType.APPLICATION_JSON)
-    public String back() {
-        return "??";
+    public String back(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .goBack()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Forward
     @POST
     @Path("/session/{session_id}/forward")
     @Produces(MediaType.APPLICATION_JSON)
-    public String forward() {
-        return "??";
+    public String forward(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .goForward()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Refresh
     @POST
     @Path("/session/{session_id}/refresh")
     @Produces(MediaType.APPLICATION_JSON)
-    public String refresh() {
-        return "??";
+    public String refresh(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .refresh()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Get Title
     @GET
     @Path("/session/{session_id}/title")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getTitle() {
-        return "??";
+    public String getTitle(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .getTitle()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Get Window Handle
     @GET
     @Path("/session/{session_id}/window")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getWindow() {
-        return "??";
-    }
-
-    //Close Window
-    @DELETE
-    @Path("/session/{session_id}/window")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String closeWindow() {
-        return "??";
+    public String getWindow(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .getWindowHandle()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Switch To Window
     @POST
     @Path("/session/{session_id}/window")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setWindow() {
-        return "??";
+    public String setWindow(@PathParam("session_id") String sessionId, @FormParam("name") String name) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .switchToWindow(name)
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    //Close Window
+    @DELETE
+    @Path("/session/{session_id}/window")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String closeWindow(@PathParam("session_id") String sessionId) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .closeChromeWindow()
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Get Window Handles
     @GET
     @Path("/session/{session_id}/window/handles")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getWindows() {
-        return "??";
+    public String getWindows(@PathParam("session_id") String sessionId) {
+        try{            
+            return Json.createObjectBuilder().add(
+                  "windows"
+                , Json.createArrayBuilder(SESSIONS.get(sessionId)
+                .getClient()
+                .getWindowHandles()
+                .thenApply(MarionetteUtil::parseToList)
+                .get(TIMEOUT, TimeUnit.SECONDS))
+            ).build().toString();
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Switch To Frame
     @POST
     @Path("/session/{session_id}/frame")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setFrame() {
-        return "??";
+    public String setFrame(@PathParam("session_id") String sessionId, @FormParam("id") String id) {
+        try{
+            return SESSIONS.get(sessionId)
+            .getClient()
+            .switchToFrame(id)
+            .thenApply(MarionetteParser.STRING::parseFrom)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            throw new RuntimeException(e);
+        }
     }
 
     //Switch To Parent Frame
     @POST
     @Path("/session/{session_id}/frame/parent")
     @Produces(MediaType.APPLICATION_JSON)
-    public String parentFrame() {
+    public String parentFrame(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -197,7 +334,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/window/rect")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getWindowDimension() {
+    public String getWindowDimension(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -205,7 +342,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/window/rect")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setWindowDimension() {
+    public String setWindowDimension(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -213,7 +350,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/window/maximize")
     @Produces(MediaType.APPLICATION_JSON)
-    public String maximizeWindow() {
+    public String maximizeWindow(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -221,7 +358,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/window/minimize")
     @Produces(MediaType.APPLICATION_JSON)
-    public String minimizeWindow() {
+    public String minimizeWindow(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -229,7 +366,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/window/fullscreen")
     @Produces(MediaType.APPLICATION_JSON)
-    public String fullscreen() {
+    public String fullscreen(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -237,7 +374,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/active")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getActiveElement() {
+    public String getActiveElement(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -245,7 +382,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElement() {
+    public String findElement(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -253,7 +390,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/elements")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElements() {
+    public String findElements(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -261,7 +398,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/element")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElementFromElement() {
+    public String findElementFromElement(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -269,7 +406,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/elements")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElementsFromElement() {
+    public String findElementsFromElement(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -277,7 +414,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/selected")
     @Produces(MediaType.APPLICATION_JSON)
-    public String isElementSelected() {
+    public String isElementSelected(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -285,7 +422,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/attribute/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementAttribute() {
+    public String getElementAttribute(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -293,7 +430,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/property/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementProperty() {
+    public String getElementProperty(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -301,7 +438,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/css/{property_name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementCss() {
+    public String getElementCss(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -309,7 +446,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/text")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementText() {
+    public String getElementText(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -317,7 +454,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/name")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementTagName() {
+    public String getElementTagName(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -325,7 +462,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/rect")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementDimension() {
+    public String getElementDimension(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -333,7 +470,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/enabled")
     @Produces(MediaType.APPLICATION_JSON)
-    public String isElementEnabled() {
+    public String isElementEnabled(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -341,7 +478,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/click")
     @Produces(MediaType.APPLICATION_JSON)
-    public String clickElement() {
+    public String clickElement(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -349,7 +486,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/clear")
     @Produces(MediaType.APPLICATION_JSON)
-    public String clearElement() {
+    public String clearElement(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -357,7 +494,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/value")
     @Produces(MediaType.APPLICATION_JSON)
-    public String sendKeysToElement() {
+    public String sendKeysToElement(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -365,7 +502,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/source")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getPageSource() {
+    public String getPageSource(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -373,7 +510,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/execute/sync")
     @Produces(MediaType.APPLICATION_JSON)
-    public String executeScript() {
+    public String executeScript(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -381,7 +518,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/execute/async")
     @Produces(MediaType.APPLICATION_JSON)
-    public String executeScriptAsync() {
+    public String executeScriptAsync(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -389,7 +526,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/cookie")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getCookies() {
+    public String getCookies(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -397,7 +534,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/cookie/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getCookie() {
+    public String getCookie(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -405,7 +542,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/cookie")
     @Produces(MediaType.APPLICATION_JSON)
-    public String addCookie() {
+    public String addCookie(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -413,7 +550,7 @@ public class WebDriverService {
     @DELETE
     @Path("/session/{session_id}/cookie/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String removeCookie() {
+    public String removeCookie(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -421,7 +558,7 @@ public class WebDriverService {
     @DELETE
     @Path("/session/{session id)/cookie")
     @Produces(MediaType.APPLICATION_JSON)
-    public String removeCookies() {
+    public String removeCookies(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -429,7 +566,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/actions")
     @Produces(MediaType.APPLICATION_JSON)
-    public String performActions() {
+    public String performActions(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -437,7 +574,7 @@ public class WebDriverService {
     @DELETE
     @Path("/session/{session_id}/actions")
     @Produces(MediaType.APPLICATION_JSON)
-    public String releaseActions() {
+    public String releaseActions(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -445,7 +582,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/alert/dismiss")
     @Produces(MediaType.APPLICATION_JSON)
-    public String dismissAlert() {
+    public String dismissAlert(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -453,7 +590,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/alert/accept")
     @Produces(MediaType.APPLICATION_JSON)
-    public String acceptAlert() {
+    public String acceptAlert(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -461,7 +598,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/alert/text")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAlertText() {
+    public String getAlertText(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -469,7 +606,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/alert/text")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setAlertText() {
+    public String setAlertText(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -477,7 +614,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/screenshot")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getScreenshot() {
+    public String getScreenshot(@PathParam("session_id") String sessionId) {
         return "??";
     }
 
@@ -485,7 +622,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/screenshot")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementScreenshot() {
+    public String getElementScreenshot(@PathParam("session_id") String sessionId) {
         return "??";
     }
 }

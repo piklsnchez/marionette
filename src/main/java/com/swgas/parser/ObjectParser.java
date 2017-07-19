@@ -13,8 +13,8 @@ public class ObjectParser<T> implements MarionetteParser<T>{
     private static final Logger LOG = Logger.getLogger(ObjectParser.class.getName());
     
     @Override
-    public T parseFrom(String s) {
-        JsonObject success = get(s);
+    public T parseFrom(JsonArray json) {
+        JsonObject success = get(json);
         JsonValue.ValueType successType = success.getValueType();
         JsonValue v;
         if(successType == JsonValue.ValueType.NULL){

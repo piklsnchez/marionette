@@ -1,18 +1,16 @@
 package com.swgas.parser;
 
 import com.swgas.marionette.Marionette;
-import java.io.StringReader;
 import java.util.NoSuchElementException;
-import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 public class ElementParser implements MarionetteParser<String> {
 
     @Override
-    public String parseFrom(String s) {
-        JsonValue[] tuple = getTuple(s);
+    public String parseFrom(JsonArray json) {
+        JsonValue[] tuple = getTuple(json);
         if (tuple[0].getValueType() != JsonValue.ValueType.NULL) {
             String e = ((JsonObject) tuple[0]).getJsonString("error").getString();
             String m = ((JsonObject) tuple[0]).getJsonString("message").getString();
@@ -25,11 +23,5 @@ public class ElementParser implements MarionetteParser<String> {
             return null;
         }
         return ((JsonObject) tuple[1]).getJsonObject("value").getString(Marionette.WEBELEMENT_KEY);
-    }
-    
-    public static String toElement(String ele){
-        try(JsonReader reader = Json.createReader(new StringReader(ele))){
-            return reader.readObject().getString(Marionette.WEBELEMENT_KEY);
-        }
     }
 }

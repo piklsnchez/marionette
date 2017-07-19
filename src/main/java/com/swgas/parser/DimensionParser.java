@@ -1,6 +1,7 @@
 package com.swgas.parser;
 
 import java.awt.geom.Dimension2D;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 
 /**
@@ -9,8 +10,8 @@ import javax.json.JsonObject;
  */
 public class DimensionParser implements MarionetteParser<Dimension2D>{
     @Override
-    public Dimension2D parseFrom(String dimension){        
-        JsonObject value = (JsonObject)MarionetteParser.OBJECT.parseFrom(dimension);
+    public Dimension2D parseFrom(JsonArray json){        
+        JsonObject value = (JsonObject)MarionetteParser.OBJECT.parseFrom(json);
         Dimension2D d = new Dimension2D() {
             private double width;
             private double height;

@@ -1,115 +1,105 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
-import com.swgas.parser.ElementParser;
-import com.swgas.parser.MarionetteParser;
+import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
 
 
 public class MarionetteImpl implements Marionette {
-    private static final String                    CLASS = MarionetteImpl.class.getName();
-    private static final Logger                    LOG = Logger.getLogger(CLASS);
-    private static final Cleaner                   CLEANER = Cleaner.create();
-    private static final long                      TIMEOUT = 10;
-    private static final CharsetDecoder            CHARSET_DECODER = Charset.defaultCharset().newDecoder();
+    private static final String                    CLASS           = MarionetteImpl.class.getName();
+    private static final Logger                    LOG             = Logger.getLogger(CLASS);
+    private static final Cleaner                   CLEANER         = Cleaner.create();
+    private static final long                      TIMEOUT         = 10;
     private        final AsynchronousSocketChannel channel;
-    private              int                       messageId = 0;
+    private              int                       messageId       = 0;
     
     
     protected MarionetteImpl(AsynchronousSocketChannel channel){
         this.channel = channel;
         CLEANER.register(this, ()-> {try{channel.close();}catch(IOException e){}});
-        readAsync().join();
+        try{
+            readAsync().get(TIMEOUT, TimeUnit.SECONDS);
+        }catch(ExecutionException | InterruptedException | TimeoutException e){
+            LOG.throwing(CLASS, "<init>", e);
+            throw new MarionetteException(e);
+        }
     }
     
-    private CompletableFuture<String> readAsync(){
-        CompletableFuture<String> ret = new CompletableFuture<>();
+    private CompletableFuture<JsonArray> readAsync(){
+        CompletableFuture<JsonArray> ret = new CompletableFuture<>();
         ByteBuffer buf = ByteBuffer.allocateDirect(8);
-        channel.read(buf, ret, new CompletionHandler<Integer, CompletableFuture>() {
+        channel.read(buf, ret, new CompletionHandler<Integer, CompletableFuture<JsonArray>>() {
             @Override
-            public void completed(Integer len, CompletableFuture future) {
+            public void completed(Integer len, CompletableFuture<JsonArray> future) {
                 buf.flip();
-                String _size;
+                int size;
                 try{
-                    _size = CHARSET_DECODER.decode(buf).toString();
-                } catch(CharacterCodingException e){
-                    throw new MarionetteException(e);
-                }
-                int pos = _size.indexOf(':');
-                if(0 > pos){
-                    future.completeExceptionally(new MarionetteException(String.format("%s dosen't contain a ':'", _size)));
+                    size = MarionetteUtil.parseIncomingPayloadLength(buf);
+                } catch(Exception e){
+                    future.completeExceptionally(e);
                     return;
                 }
-                _size = _size.substring(0, pos);
-                if(!_size.chars().allMatch(Character::isDigit)){
-                    future.completeExceptionally(new MarionetteException(String.format("\"%s\" is not numeric", _size)));
-                    return;
-                }
-                int size = Integer.parseInt(_size, 10);
                 ByteBuffer bigBuf = ByteBuffer.allocate(size);
-                buf.position(pos + 1);
                 bigBuf.put(buf);
                 channel.read(bigBuf
                 , TIMEOUT
                 , TimeUnit.SECONDS
                 , future
-                , new CompletionHandler<Integer, CompletableFuture>() {
+                , new CompletionHandler<Integer, CompletableFuture<JsonArray>>() {
                     @Override
-                    public void completed(Integer len, CompletableFuture future) {
+                    public void completed(Integer len, CompletableFuture<JsonArray> future) {
                         if(!bigBuf.hasRemaining()){
                             bigBuf.flip();
-                            String result;
                             try{
-                                result = CHARSET_DECODER.decode(bigBuf).toString();
-                            } catch(CharacterCodingException e){
-                                throw new MarionetteException(e);
+                                JsonArray result = MarionetteUtil.parseIncomingMessage(bigBuf);
+                                LOG.logp(Level.FINER, CLASS, "readAsync", String.format("RETURN %s", result.toString().length() > 55 ? result.toString().substring(0, 55).concat("...") : result));
+                                future.complete(result);
+                            } catch(Exception e){
+                                future.completeExceptionally(e);
                             }
-                            LOG.logp(Level.FINER, CLASS, "readAsync", String.format("RETURN %s", result.length() > 55 ? result.substring(0, 55).concat("...") : result));
-                            future.complete(result);
                         } else {
                             channel.read(bigBuf, future, this);
                         }
                     }
-
                     @Override
                     public void failed(Throwable e, CompletableFuture future) {
+                        LOG.throwing(CLASS, "failed", e);
                         future.completeExceptionally(e);
                     }
                 });
             }
-
             @Override
             public void failed(Throwable e, CompletableFuture future) {
+                LOG.throwing(CLASS, "failed", e);
                 future.completeExceptionally(e);
             }
         });
         return ret;
     }
     
-    private CompletableFuture<String> writeAsync(String command){
+    private CompletableFuture<JsonArray> writeAsync(String command){
         LOG.entering(CLASS, "writeAsync", command);
-        CompletableFuture<String> ret = new CompletableFuture<>();
+        CompletableFuture<JsonArray> ret = new CompletableFuture<>();
         channel.write(ByteBuffer.wrap(String.format("%d:%s", command.length()
         , command).getBytes())
         , TIMEOUT
@@ -118,7 +108,7 @@ public class MarionetteImpl implements Marionette {
         , new CompletionHandler<Integer, CompletableFuture>() {
             @Override
             public void completed(Integer result, CompletableFuture future) {
-                ret.complete("");
+                ret.complete(JsonArray.EMPTY_JSON_ARRAY);
             }
 
             @Override
@@ -131,118 +121,34 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> getElementAttribute(String elementId, String attribute) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"name\": \"%s\"}]", messageId++, Command.getElementAttribute.getCommand(), elementId, attribute);
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
-    }
-
-    @Override
-    public CompletableFuture<String> clickElement(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clickElement.getCommand(), elementId);
+    public CompletableFuture<JsonArray> newSession(String sessionId) {
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": {\"acceptSslCerts\":true}, \"sessionId\": \"%s\"}]", messageId++, Command.newSession.getCommand(), sessionId);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> singleTap(String elementId, int x, int y) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, x, y);
+    public CompletableFuture<JsonArray> newSession() {
+        String command = String.format("[0, %d, \"%s\", {\"capabilities\": {\"acceptSslCerts\":true}, \"sessionId\": null}]", messageId++, Command.newSession.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> getElementText(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementText.getCommand(), elementId);
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
-    }
-
-    @Override
-    public CompletableFuture<String> sendKeysToElement(String elementId, String text) {        
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();        
-        text.codePoints().forEachOrdered(c -> arrayBuilder.add(new String(Character.toChars(c))));
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": %s}]"
-        , messageId++, Command.sendKeysToElement.getCommand(), elementId, text.codePoints()
-        .collect(
-            Json::createArrayBuilder
-            , (builder, item) -> builder.add(new String(Character.toChars(item)))
-            , (a,b)->{}
-        ).build().toString());
+    public CompletableFuture<JsonArray> deleteSession() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.deleteSession.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> clearElement(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clearElement.getCommand(), elementId);
-        return writeAsync(command);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> isElementSelected(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementSelected.getCommand(), elementId);
-        return writeAsync(command).thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b));
-    }
-
-    @Override
-    public CompletableFuture<Boolean> isElementEnabled(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementEnabled.getCommand(), elementId);
-        return writeAsync(command).thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b));
-    }
-
-    @Override
-    public CompletableFuture<Boolean> isElementDisplayed(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementDisplayed.getCommand(), elementId);
-        return writeAsync(command).thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b));
-    }
-
-    @Override
-    public CompletableFuture<String> getElementTagName(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementTagName.getCommand(), elementId);
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
-    }
-
-    @Override
-    public CompletableFuture<Rectangle2D> getElementRectangle(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementRect.getCommand(), elementId);
-        return writeAsync(command).thenApply(r -> MarionetteParser.RECTANGLE.parseFrom(r));
-    }
-
-    @Override
-    public CompletableFuture<String> getElementValueOfCssProperty(String elementId, String property) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"propertyName\": \"%s\"}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
-    }
-
-    @Override
-    public CompletableFuture<String> acceptDialog() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.acceptDialog.getCommand());
-        return writeAsync(command);
-    }
-
-    @Override
-    public CompletableFuture<String> dismissDialog() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.dismissDialog.getCommand());
-        return writeAsync(command);
-    }
-
-    @Override
-    public CompletableFuture<String> getTextFromDialog() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTextFromDialog.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
-    }
-
-    @Override
-    public CompletableFuture<String> sendKeysToDialog(String text) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
-        return writeAsync(command);
-    }
-
-    @Override
-    public CompletableFuture<String> quitApplication(List<String> flags) {
-        CompletableFuture<String> ret = new CompletableFuture<>();        
+    public CompletableFuture<JsonArray> quitApplication(List<String> flags) {
+        LOG.entering(CLASS, "quitApplication", flags.toArray());
+        CompletableFuture<JsonArray> ret = new CompletableFuture<>();        
         if(!channel.isOpen()){
-            ret.complete("[1,0,null,{}]");
+            ret.complete(Json.createArrayBuilder().add(1).add(0).addNull().add(JsonObject.EMPTY_JSON_OBJECT).build());
             return ret;
         }
         String command = String.format("[0, %d, \"%s\", {\"flags\": %s}]"
         , messageId++, Command.quitApplication.getCommand(), (null == flags) ? "[]" : flags.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+        LOG.exiting(CLASS, "quitApplication");
         return writeAsync(command).thenCompose(s -> {
             try{
                 channel.close();
@@ -256,327 +162,419 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<String> newSession(String sessionId) {
-        String command = String.format("[0, %d, \"%s\", {\"capabilities\": {\"acceptSslCerts\":true}, \"sessionId\": \"%s\"}]", messageId++, Command.newSession.getCommand(), sessionId);
+    public CompletableFuture<JsonArray> getElementAttribute(String elementId, String attribute) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"name\": \"%s\"}]", messageId++, Command.getElementAttribute.getCommand(), elementId, attribute);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> newSession() {
-        String command = String.format("[0, %d, \"%s\", {\"capabilities\": {\"acceptSslCerts\":true}, \"sessionId\": null}]", messageId++, Command.newSession.getCommand());
+    public CompletableFuture<JsonArray> clickElement(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clickElement.getCommand(), elementId);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> setTestName(String testName) {
+    public CompletableFuture<JsonArray> singleTap(String elementId, int x, int y) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, x, y);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> getElementText(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementText.getCommand(), elementId);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> sendKeysToElement(String elementId, String text) {        
+        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();        
+        text.codePoints().forEachOrdered(c -> arrayBuilder.add(new String(Character.toChars(c))));
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": %s}]"
+        , messageId++, Command.sendKeysToElement.getCommand(), elementId, text.codePoints()
+        .collect(
+            Json::createArrayBuilder
+            , (builder, item) -> builder.add(new String(Character.toChars(item)))
+            , (a,b)->{}
+        ).build().toString());
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> clearElement(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clearElement.getCommand(), elementId);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> isElementSelected(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementSelected.getCommand(), elementId);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> isElementEnabled(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementEnabled.getCommand(), elementId);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> isElementDisplayed(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.isElementDisplayed.getCommand(), elementId);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> getElementTagName(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementTagName.getCommand(), elementId);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> getElementRectangle(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.getElementRect.getCommand(), elementId);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> getElementValueOfCssProperty(String elementId, String property) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"propertyName\": \"%s\"}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> acceptDialog() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.acceptDialog.getCommand());
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> dismissDialog() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.dismissDialog.getCommand());
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> getTextFromDialog() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTextFromDialog.getCommand());
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> sendKeysToDialog(String text) {
+        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> setTestName(String testName) {
         String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.setTestName.getCommand(), testName);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> deleteSession() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.deleteSession.getCommand());
-        return writeAsync(command);
-    }
-
-    @Override
-    public CompletableFuture<String> setScriptTimeout(Duration timeout) {
+    public CompletableFuture<JsonArray> setScriptTimeout(Duration timeout) {
         String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId++, Command.setScriptTimeout.getCommand(), timeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> setSearchTimeout(Duration timeout) {
+    public CompletableFuture<JsonArray> setSearchTimeout(Duration timeout) {
         String command = String.format("[0, %d, \"%s\", {\"ms\": %d}]", messageId++, Command.setSearchTimeout.getCommand(), timeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> getWindowHandle() {
+    public CompletableFuture<JsonArray> getWindowHandle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandle.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> getCurrentChromeWindowHandle() {
+    public CompletableFuture<JsonArray> getCurrentChromeWindowHandle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentChromeWindowHandle.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<Point2D> getWindowPosition() {
+    public CompletableFuture<JsonArray> getWindowPosition() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowPosition.getCommand());
-        return writeAsync(command).thenApply(p -> MarionetteParser.POINT.parseFrom(p));
+        return writeAsync(command);
     }
 
-    /**
-     * 
-     * @param <T>
-     * @param pointArg ex. {x:0, y:0}
-     * @return 
-     */
     @Override
-    public CompletableFuture<String> setWindowPosition(Point2D pointArg) {
+    public CompletableFuture<JsonArray> setWindowPosition(Point2D pointArg) {
         String command = String.format("[0, %d, \"%s\", %s]", messageId++, Command.setWindowPosition.getCommand(), pointArg);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> getTitle() {
+    public CompletableFuture<JsonArray> getTitle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTitle.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<List<String>> getWindowHandles() {
+    public CompletableFuture<JsonArray> getWindowHandles() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowHandles.getCommand());
-        return writeAsync(command)
-        .thenApply(MarionetteParser.ARRAY::parseFrom)
-        .thenApply(a -> a.stream().map(handle -> Objects.toString(handle, "")).collect(Collectors.toList()));
+        return writeAsync(command);
+        //.thenApply(MarionetteParser.ARRAY::parseFrom)
+        //.thenApply(a -> a.stream().map(handle -> Objects.toString(handle, "")).collect(Collectors.toList()));
     }
 
     @Override
-    public CompletableFuture<List<String>> getChromeWindowHandles() {
+    public CompletableFuture<JsonArray> getChromeWindowHandles() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getChromeWindowHandles.getCommand());
-        return writeAsync(command)
-        .thenApply(MarionetteParser.ARRAY::parseFrom)
-        .thenApply(a -> a.stream().map(handle -> Objects.toString(handle, "")).collect(Collectors.toList()));
+        return writeAsync(command);
+        //.thenApply(MarionetteParser.ARRAY::parseFrom)
+        //.thenApply(a -> a.stream().map(handle -> Objects.toString(handle, "")).collect(Collectors.toList()));
     }
 
     @Override
-    public CompletableFuture<String> getPageSource() {
+    public CompletableFuture<JsonArray> getPageSource() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getPageSource.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> close() {
+    public CompletableFuture<JsonArray> close() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.close.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> closeChromeWindow() {
+    public CompletableFuture<JsonArray> closeChromeWindow() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.closeChromeWindow.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> setContext(Context context) {
+    public CompletableFuture<JsonArray> setContext(Context context) {
         String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.setContext.getCommand(), context);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<Context> getContext() {
+    public CompletableFuture<JsonArray> getContext() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getContext.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.CONTEXT::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> switchToWindow(String id) {
+    public CompletableFuture<JsonArray> switchToWindow(String id) {
         String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId++, Command.switchToWindow.getCommand(), id);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> getActiveFrame() {
+    public CompletableFuture<JsonArray> getActiveFrame() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveFrame.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);        
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> switchToParentFrame() {
+    public CompletableFuture<JsonArray> switchToParentFrame() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.switchToParentFrame.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> switchToFrame(String id) {
+    public CompletableFuture<JsonArray> switchToFrame(String id) {
         String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": \"%s\"}]", messageId++, Command.switchToFrame.getCommand(), id);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> switchToShadowRoot(String id) {
+    public CompletableFuture<JsonArray> switchToShadowRoot(String id) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.switchToShadowRoot.getCommand(), id);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> getCurrentUrl() {
+    public CompletableFuture<JsonArray> getCurrentUrl() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCurrentUrl.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> getWindowType() {
+    public CompletableFuture<JsonArray> getWindowType() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowType.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> get(String url) {
+    public CompletableFuture<JsonArray> get(String url) {
         String command = String.format("[0, %d, \"%s\", {\"url\": \"%s\"}]", messageId++, Command.get.getCommand(), url);
         return writeAsync(command);
     }
 
+    /**
+     * 
+     * @param timeout i.e. ("script", "implicit", "page load")
+     * @param ms time in milliseconds
+     * @return 
+     */
     @Override
-    public CompletableFuture<String> timeouts(Timeout timeout, Duration time) {
-        String command = String.format("[0, %d, \"%s\", {\"type\": \"%s\", \"ms\", %d}]", messageId++, Command.get.getCommand(), timeout, time.toMillis());
+    public CompletableFuture<JsonArray> setTimeouts(Timeout timeout, Duration ms) {
+        String command = String.format("[0, %d, \"%s\", {\"%s\": %d}]", messageId++, Command.setTimeouts.getCommand(), timeout, ms.toMillis());
+        return writeAsync(command);
+    }
+    
+    @Override
+    public CompletableFuture<JsonArray> getTimeouts(){
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTimeouts.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> goBack() {
+    public CompletableFuture<JsonArray> goBack() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.goBack.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> goForward() {
+    public CompletableFuture<JsonArray> goForward() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.goForward.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> refresh() {
+    public CompletableFuture<JsonArray> refresh() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.refresh.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
+    public CompletableFuture<JsonArray> executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
         , messageId++, Command.executeJsScript.getCommand(), script, args, async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout) {
+    public CompletableFuture<JsonArray> executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": \"default\", \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
         , messageId++, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
+    public CompletableFuture<JsonArray> executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
         , messageId++, Command.executeAsyncScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis(), debug);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> findElement(SearchMethod method, String value) {
+    public CompletableFuture<JsonArray> findElement(SearchMethod method, String value) {
         String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElement.getCommand(), value, method);
-        return writeAsync(command).thenApply(e -> MarionetteParser.ELEMENT.parseFrom(e));
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<List<String>> findElements(SearchMethod method, String value) {
+    public CompletableFuture<JsonArray> findElements(SearchMethod method, String value) {
         String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElements.getCommand(), value, method);
-        return writeAsync(command)
-        .thenApply(elements -> MarionetteParser.ARRAY.parseFrom(elements))
-        .thenApply(e -> e.stream().map(ElementParser::toElement).collect(Collectors.toList()));
+        return writeAsync(command);
+        //.thenApply(elements -> MarionetteParser.ARRAY.parseFrom(elements))
+        //.thenApply(e -> e.stream().map(ElementParser::toElement).collect(Collectors.toList()));
     }
 
     @Override
-    public CompletableFuture<String> getActiveElement() {
+    public CompletableFuture<JsonArray> getActiveElement() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveElement.getCommand());
-        return writeAsync(command).thenApply(ElementParser::toElement);
+        return writeAsync(command);//.thenApply(ElementParser::toElement);
     }
 
     @Override
-    public CompletableFuture<String> log(LogLevel level, String message) {
+    public CompletableFuture<JsonArray> log(LogLevel level, String message) {
         String command = String.format("[0, %d, \"%s\", {\"level\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.log.getCommand(), level, message);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<List<String>> getLogs() {
+    public CompletableFuture<JsonArray> getLogs() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getLogs.getCommand());
-        return writeAsync(command)
-        .thenApply(MarionetteParser.ARRAY::parseFrom)
-        .thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
+        return writeAsync(command);
+        //.thenApply(MarionetteParser.ARRAY::parseFrom)
+        //.thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
     }
 
     @Override
-    public CompletableFuture<String> importScript(String script) {
+    public CompletableFuture<JsonArray> importScript(String script) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\"}]", messageId++, Command.importScript.getCommand(), script);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> clearImportedScripts() {
+    public CompletableFuture<JsonArray> clearImportedScripts() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.clearImportedScripts.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> addCookie(String cookie) {
+    public CompletableFuture<JsonArray> addCookie(String cookie) {
         String command = String.format("[0, %d, \"%s\", {\"cookie\": \"%s\"}]", messageId++, Command.addCookie.getCommand(), cookie);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> deleteAllCookies() {
+    public CompletableFuture<JsonArray> deleteAllCookies() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.deleteAllCookies.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> deleteCookie(String name) {
+    public CompletableFuture<JsonArray> deleteCookie(String name) {
         String command = String.format("[0, %d, \"%s\", {\"name\": \"%s\"}]", messageId++, Command.deleteCookie.getCommand(), name);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<List<String>> getCookies() {
+    public CompletableFuture<JsonArray> getCookies() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCookies.getCommand());
-        return writeAsync(command)
-        .thenApply(MarionetteParser.ARRAY::parseFrom)
-        .thenApply(a -> a.stream().map(obj -> Objects.toString(obj, "")).collect(Collectors.toList()));
+        return writeAsync(command);
+        //.thenApply(MarionetteParser.ARRAY::parseFrom)
+        //.thenApply(a -> a.stream().map(obj -> Objects.toString(obj, "")).collect(Collectors.toList()));
     }
 
     @Override
-    public CompletableFuture<String> takeScreenshot() {
+    public CompletableFuture<JsonArray> takeScreenshot() {
         String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": null, \"full\": true}]", messageId++, Command.takeScreenshot.getCommand());
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> takeScreenshot(List<String> elementIds) {
+    public CompletableFuture<JsonArray> takeScreenshot(List<String> elementIds) {
         String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": %s, \"full\": true}]"
         , messageId++, Command.takeScreenshot.getCommand(), elementIds.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
-        return writeAsync(command).thenApply(MarionetteParser.STRING::parseFrom);
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<Orientation> getScreenOrientation() {
+    public CompletableFuture<JsonArray> getScreenOrientation() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getScreenOrientation.getCommand());
-        return writeAsync(command).thenApply(o -> MarionetteParser.ORIENTATION.parseFrom(o));
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> setScreenOrientation(Orientation orientation) {
+    public CompletableFuture<JsonArray> setScreenOrientation(Orientation orientation) {
         String command = String.format("[0, %d, \"%s\", {\"orientation\": \"%s\"}]", messageId++, Command.setScreenOrientation.getCommand(), orientation);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<Dimension2D> getWindowSize() {
+    public CompletableFuture<JsonArray> getWindowSize() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowSize.getCommand());
-        return writeAsync(command).thenApply(d -> MarionetteParser.DIMENSION.parseFrom(d));
+        return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> setWindowSize(Dimension2D size) {
+    public CompletableFuture<JsonArray> setWindowSize(Dimension2D size) {
         String command = String.format("[0, %d, \"%s\", {\"width\": %f, \"height\": %f}]", messageId++, Command.setWindowSize.getCommand(), size.getWidth(), size.getHeight());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<String> maximizeWindow() {
+    public CompletableFuture<JsonArray> maximizeWindow() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.maximizeWindow.getCommand());
         return writeAsync(command);
     }
