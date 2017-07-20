@@ -5,16 +5,19 @@ import com.swgas.marionette.MarionetteFactory;
 import com.swgas.parser.MarionetteParser;
 import com.swgas.util.MarionetteUtil;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.json.Json;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -27,10 +30,10 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/ws")
 public class WebDriverService {
-    private static final String CLASS = WebDriverService.class.getName();
-    private static final Logger LOG   = Logger.getLogger(CLASS);
-    private static final String HOST  = "localhost";
-    private static final int    PORT  = 2828;
+    private static final String CLASS   = WebDriverService.class.getName();
+    private static final Logger LOG     = Logger.getLogger(CLASS);
+    private static final String HOST    = "localhost";
+    private static final int    PORT    = 2828;
     private static final int    TIMEOUT = 20;
     private static final Map<String, Session> SESSIONS = new HashMap<>();
     
@@ -51,15 +54,14 @@ public class WebDriverService {
             .thenCompose(c -> {session.setClient(c); return c.newSession();})
             .thenApply(MarionetteUtil::parseToSession)
             .get(TIMEOUT, TimeUnit.SECONDS);
-            LOG.info("done");
             session.setSessionId(sessionId);
+            
             SESSIONS.put(sessionId, session);
-            String result = Json.createObjectBuilder().add("sessionId", sessionId).build().toString();
+            String result = MarionetteUtil.createResult("sessionId", sessionId);
             LOG.exiting(CLASS, "newSession", result);
             return result;
             //FIXME return http error
-        //} catch(IOException | InterruptedException | ExecutionException | TimeoutException e){
-        }catch(Exception e){
+        } catch(IOException | InterruptedException | ExecutionException | TimeoutException e){
             LOG.throwing(CLASS, "newSession", e);
             throw new RuntimeException(e);
         }
@@ -69,24 +71,41 @@ public class WebDriverService {
     @DELETE
     @Path("/session/{session_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String deleteSession(@PathParam("session_id") String sessionId) {        
+    public String deleteSession(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "deleteSession", sessionId);
         Session session = SESSIONS.get(sessionId);
         String result = "";
+        //no such session
+        if(null == session){
+            RuntimeException e = new RuntimeException("No such session");
+            LOG.throwing(CLASS, "deleteSession", e);
+            throw e;
+        }        
         if(session.getProc() != null){
             try{
-                result = session.getClient()
+                //this causes error
+                /*result = session.getClient()
                 .deleteSession()
                 .thenApply(MarionetteUtil::parseToObject)
-                .get(TIMEOUT, TimeUnit.SECONDS)
-                .toString();                
-                session.getClient().quitApplication(Collections.singletonList("eForceQuit")).get(TIMEOUT, TimeUnit.SECONDS);
+                .thenApply(Objects::toString)
+                .get(TIMEOUT, TimeUnit.SECONDS);*/
+                
+                result = session.getClient()
+                .quitApplication(Collections.singletonList("eForceQuit"))
+                .thenApply(MarionetteUtil::parseToObject)
+                .thenApply(Objects::toString)
+                .get(TIMEOUT, TimeUnit.SECONDS);
+                
                 session.getProc().destroy();
                 SESSIONS.remove(sessionId);
                 //FIXME return http error
             } catch(InterruptedException | ExecutionException | TimeoutException e){
-                throw new RuntimeException(e);
+                LOG.throwing(CLASS, "deleteSession", e);
+                Throwable t = e instanceof ExecutionException ? e.getCause() : e;                
+                throw t instanceof RuntimeException ? (RuntimeException)t : new RuntimeException(t);
             }
         }
+        LOG.exiting(CLASS, "deleteSession", result);
         return result;
     }
 
@@ -103,14 +122,19 @@ public class WebDriverService {
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTimeouts(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "getTimeouts", sessionId);
         try{
-            return SESSIONS.get(sessionId)
+            String result = SESSIONS.get(sessionId)
             .getClient()
             .getTimeouts()
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::parseToObject)
+            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getTimeouts", result);
+            return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException | DateTimeParseException e){            
+        } catch(InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException | DateTimeParseException e){
+            LOG.throwing(CLASS, "getTimeouts", e);
             throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
         }
     }
@@ -120,14 +144,19 @@ public class WebDriverService {
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
     public String setTimeouts(@PathParam("session_id") String sessionId, @FormParam("timeout") Marionette.Timeout timeout, @FormParam("duration") String duration) {
+        LOG.entering(CLASS, "setTimeouts", Stream.of(sessionId, timeout, duration).toArray());
         try {
-            return SESSIONS.get(sessionId)
+            String result = SESSIONS.get(sessionId)
             .getClient()
             .setTimeouts(timeout, Duration.parse(duration))
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::parseToObject)
+            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "setTimeouts", result);
+            return result;
         //FIXME return http error
         } catch(InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException | DateTimeParseException e){
+            LOG.throwing(CLASS, "setTimeouts", e);
             throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
         }
     }
@@ -137,14 +166,24 @@ public class WebDriverService {
     @Path("/session/{session_id}/url")
     @Produces(MediaType.APPLICATION_JSON)
     public String setUrl(@PathParam("session_id") String sessionId, @FormParam("url") String url) {
+        LOG.entering(CLASS, "setUrl", Stream.of(sessionId, url).toArray());
+        if(!SESSIONS.containsKey(sessionId)){
+            RuntimeException e = new RuntimeException("No such session");
+            LOG.throwing(CLASS, "setUrl", e);
+            throw e;
+        }
         try{
-            return SESSIONS.get(sessionId)
+            String result = SESSIONS.get(sessionId)
             .getClient()
             .get(url)
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::parseToObject)
+            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "setTimeouts", result);
+            return result;
         //FIXME return http error
         } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "setTimeouts", e);
             throw new RuntimeException(e);
         }
     }
@@ -154,14 +193,19 @@ public class WebDriverService {
     @Path("/session/{session_id}/url")
     @Produces(MediaType.APPLICATION_JSON)
     public String getUrl(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "getUrl", sessionId);
         try{
-            return SESSIONS.get(sessionId)
+            String result = SESSIONS.get(sessionId)
             .getClient()
             .getCurrentUrl()
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::parseToValue)
+            .thenApply(u -> MarionetteUtil.createResult("url", u))
             .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getUrl", result);
+            return result;
         //FIXME return http error
         } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getUrl", e);
             throw new RuntimeException(e);
         }
     }

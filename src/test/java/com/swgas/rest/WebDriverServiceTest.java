@@ -1,11 +1,13 @@
 package com.swgas.rest;
 
 import com.swgas.marionette.Marionette;
+import com.swgas.util.MarionetteUtil;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Logger;
+import javax.json.JsonObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,10 +36,10 @@ public class WebDriverServiceTest {
         try{
             Field sessionsField = instance.getClass().getDeclaredField("SESSIONS");
             sessionsField.setAccessible(true);
-            new ArrayList<String>(((HashMap<String, Session>) sessionsField.get(null)).keySet())
+            new ArrayList<>(((HashMap<String, Session>) sessionsField.get(null)).keySet())
             .forEach(s -> {
-                LOG.info(String.format("deleting session: %s", s));
-                instance.deleteSession(s);
+                JsonObject result = MarionetteUtil.toJsonObject(instance.deleteSession(s));
+                LOG.info(String.format("deleting session: %s result: %s", s, result));
             });
         } catch(Exception e){
             LOG.throwing(CLASS, "afterEach", e);
@@ -52,14 +54,13 @@ public class WebDriverServiceTest {
     public void testNewSession() {
         LOG.entering(CLASS, "testNewSession");
         try{
-            String result = instance.newSession();
-            LOG.info(result);
-            Assertions.assertTrue(null != result);
+            JsonObject result = MarionetteUtil.toJsonObject(instance.newSession());
+            Assertions.assertTrue(null != result, "result should not be null");
+            LOG.exiting(CLASS, "testNewSession", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testNewSession", e);
             throw e;
         }
-        LOG.exiting(CLASS, "testNewSession");
     }
 
     /**
@@ -69,12 +70,13 @@ public class WebDriverServiceTest {
     public void testDeleteSession() {
         LOG.entering(CLASS, "testDeleteSession");
         try{
-            String result = instance.deleteSession(instance.newSession());
+            String sessionId  = MarionetteUtil.toJsonObject(instance.newSession()).getString("sessionId");
+            JsonObject result = MarionetteUtil.toJsonObject(instance.deleteSession(sessionId));
+            LOG.exiting(CLASS, "testDeleteSession", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testDeleteSession", e);
             throw e;
         }
-        LOG.exiting(CLASS, "testDeleteSession");
     }
 
     /**
@@ -98,13 +100,14 @@ public class WebDriverServiceTest {
     public void testGetTimeouts() {
         LOG.entering(CLASS, "testGetTimeouts");
         try{
-            String result = instance.getTimeouts(instance.newSession());
-            Assertions.assertTrue(null != result);
+            String session    = MarionetteUtil.toJsonObject(instance.newSession()).getString("sessionId");
+            JsonObject result = MarionetteUtil.toJsonObject(instance.getTimeouts(session));
+            Assertions.assertTrue(null != result, "result should not be null");
+            LOG.exiting(CLASS, "testGetTimeouts", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testGetTimeouts", e);
             throw e;
         }
-        LOG.exiting(CLASS, "testGetTimeouts");
     }
 
     /**
@@ -114,13 +117,13 @@ public class WebDriverServiceTest {
     public void testSetTimeouts() {
         LOG.entering(CLASS, "testSetTimeouts");
         try{
-            String result = instance.setTimeouts(instance.newSession(), Marionette.Timeout.SCRIPT, "PT0.01S");
-            Assertions.assertTrue(null != result);
+            JsonObject result = MarionetteUtil.toJsonObject(instance.setTimeouts(MarionetteUtil.toJsonObject(instance.newSession()).getString("sessionId"), Marionette.Timeout.SCRIPT, "PT0.01S"));
+            Assertions.assertTrue(null != result, "result should not be null");
+            LOG.exiting(CLASS, "testSetTimeouts", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testSetTimeouts", e);
             throw e;
         }
-        LOG.exiting(CLASS, "testSetTimeouts");
     }
 
     /**
@@ -130,13 +133,14 @@ public class WebDriverServiceTest {
     public void testSetUrl() {
         LOG.entering(CLASS, "testSetUrl");
         try{
-            String result = instance.setUrl(instance.newSession(), "https://myaccountdev.swgas.com");
-            Assertions.assertTrue(null != result);
+            String session = MarionetteUtil.toJsonObject(instance.newSession()).getString("sessionId");
+            JsonObject result = MarionetteUtil.toJsonObject(instance.setUrl(session, "https://myaccountdev.swgas.com"));
+            Assertions.assertTrue(null != result, "result should not be null");
+            LOG.exiting(CLASS, "testSetUrl", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testSetUrl", e);
             throw e;
         }
-        LOG.exiting(CLASS, "testSetUrl");
     }
 
     /**
@@ -146,16 +150,16 @@ public class WebDriverServiceTest {
     public void testGetUrl() {
         LOG.entering(CLASS, "testGetUrl");
         try{
-            String sessionId = instance.newSession();
-            String url = "https://myaccountdev.swgas.com";
-            instance.setUrl(sessionId, url);
-            String result = instance.getUrl(sessionId);
-            Assertions.assertTrue(Objects.equals(url, result));
+            String sessionId = MarionetteUtil.toJsonObject(instance.newSession()).getString("sessionId");
+            String url = "https://myaccountdev.swgas.com/";
+            MarionetteUtil.toJsonObject(instance.setUrl(sessionId, url));
+            String result = MarionetteUtil.toJsonObject(instance.getUrl(sessionId)).getString("url");
+            Assertions.assertTrue(Objects.equals(url, result), String.format("\"%s\" should match \"%s\"", result, url));
+            LOG.exiting(CLASS, "testGetUrl");
         } catch(Exception e){
             LOG.throwing(CLASS, "testGetUrl", e);
             throw e;
         }
-        LOG.exiting(CLASS, "testGetUrl");
     }
 
     /**

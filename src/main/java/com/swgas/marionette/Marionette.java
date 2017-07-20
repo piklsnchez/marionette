@@ -13,7 +13,11 @@ public interface Marionette {
         CONTEXT_CHROME, CONTEXT_CONTENT
     }
     public enum Timeout{
-        SEARCH, SCRIPT, PAGE_LOAD
+        SEARCH, SCRIPT, PAGE_LOAD;
+        @Override
+        public String toString(){
+            return name().toLowerCase().replace("_", " ").replace("search", "implicit");
+        }
     }
     public enum SearchMethod{
           ELEMENT       ("ele=")
@@ -37,7 +41,7 @@ public interface Marionette {
         }        
         @Override
         public String toString(){
-            return name().toLowerCase().replace("_", " ").replace("search", "implicit");
+            return name().toLowerCase().replace("_", " ");
         }
     }
     public enum LogLevel{

@@ -2,15 +2,12 @@ package com.swgas.util;
 
 import com.swgas.exception.MarionetteException;
 import com.swgas.marionette.Marionette;
-import com.swgas.parser.MarionetteParser;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -25,6 +22,14 @@ public class MarionetteUtil {
     private static final Logger LOG = Logger.getLogger(CLASS);
     
     private static final CharsetDecoder CHARSET_DECODER = Charset.defaultCharset().newDecoder();
+    
+    public static JsonObject toJsonObject(String s){
+        return Json.createReader(new StringReader(s)).readObject();
+    }
+    
+    public static String createResult(String key, String value){
+        return Json.createObjectBuilder().add(key, value).build().toString();
+    }
     
     /**
      * parse the message length out of the buffer and move position to beginning of message
@@ -75,7 +80,10 @@ public class MarionetteUtil {
     private static JsonValue get(JsonArray json){
         JsonValue[] tuple = getTuple(json);
         if(tuple[0].getValueType() != JsonValue.ValueType.NULL){
-            throw new RuntimeException(String.format("%s: %s", ((JsonObject)tuple[0]).getJsonString("error").getString(), ((JsonObject)tuple[0]).getJsonString("message").getString()));
+            throw new MarionetteException(String.format("%s: %s"
+                    , tuple[0].asJsonObject().getString("error")
+                    , tuple[0].asJsonObject().getString("message"))
+                , new Throwable(tuple[0].asJsonObject().getString("stacktrace")));
         }
         return tuple[1];
     }
