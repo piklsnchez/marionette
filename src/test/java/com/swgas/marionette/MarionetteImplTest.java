@@ -104,7 +104,7 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElements(Marionette.SearchMethod.CSS_SELECTOR, body))
-            .thenApply(MarionetteUtil::parseToList)
+            .thenApply(MarionetteUtil::toList)
             .thenApply(a -> a.stream().map(obj -> Objects.toString(obj, "")).collect(Collectors.toList()))
             .get(TIMEOUT,TimeUnit.SECONDS)
             .size() == 1);
@@ -366,7 +366,7 @@ public class MarionetteImplTest {
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.executeScript(script, "[]", false, Duration.ofSeconds(TIMEOUT)))
             .thenCompose(s -> client.getTextFromDialog())
-            .thenApply(MarionetteUtil::parseToValue)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetTextFromDialog");
@@ -479,20 +479,6 @@ public class MarionetteImplTest {
         );
         LOG.exiting(CLASS, "testGetCurrentChromeWindowHandle");
     }
-
-    @Test
-    public void testGetWindowPosition() throws Exception {
-        LOG.entering(CLASS, "testGetWindowPosition");
-        LOG.info(
-            MarionetteFactory.getAsync(HOST, PORT)
-            .thenCompose(c -> (client = c).newSession())
-            .thenCompose(s -> client.get(URL))
-            .thenCompose(s -> client.getWindowPosition())
-            .get(TIMEOUT, TimeUnit.SECONDS)
-            .toString()
-        );
-        LOG.exiting(CLASS, "testGetWindowPosition");
-    }
     
     @Test
     public void testTakeScreenshot_0args() throws Exception {
@@ -522,14 +508,7 @@ public class MarionetteImplTest {
         LOG.exiting(CLASS, "testGetPageSource");
     }
     
-    /*@Test    @Ignore
-    public void testSetWindowPosition() {
-        System.out.println("setWindowPosition");
-        Point point = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        //instance.setWindowPosition(point);
-        Assertions.fail("The test case is a prototype.");
-    }
+    /*
 
     @Test    @Ignore
     public void testGetTitle() {
@@ -903,6 +882,16 @@ public class MarionetteImplTest {
         MarionetteImpl instance = new MarionetteImpl();
         String expResult = "";
         //String result = instance.maximizeWindow();
+        
+        Assertions.fail("The test case is a prototype.");
+    }
+
+    @Test    @Ignore
+    public void testFullscreen() {
+        System.out.println("testFullscreen");
+        MarionetteImpl instance = new MarionetteImpl();
+        String expResult = "";
+        //String result = instance.fullscreen();
         
         Assertions.fail("The test case is a prototype.");
     }*/

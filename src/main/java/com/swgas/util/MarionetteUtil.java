@@ -2,6 +2,7 @@ package com.swgas.util;
 
 import com.swgas.exception.MarionetteException;
 import com.swgas.marionette.Marionette;
+import java.awt.geom.Rectangle2D;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -23,8 +24,17 @@ public class MarionetteUtil {
     
     private static final CharsetDecoder CHARSET_DECODER = Charset.defaultCharset().newDecoder();
     
-    public static JsonObject toJsonObject(String s){
+    public static JsonObject parseJsonObject(String s){
         return Json.createReader(new StringReader(s)).readObject();
+    }
+    
+    public static JsonArray parseJsonArray(String json){
+        return Json.createReader(new StringReader(json)).readArray();
+    }    
+    
+    public static Rectangle2D parseRectangle(String json){
+        JsonObject value = Json.createReader(new StringReader(json)).readObject();
+        return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("w", 0), value.getInt("h", 0));
     }
     
     public static String createResult(String key, String value){
@@ -88,15 +98,19 @@ public class MarionetteUtil {
         return tuple[1];
     }
     
-    public static String parseToValue(JsonArray json){
+    public static String toStringValue(JsonArray json){
         return get(json).asJsonObject().getString("value");
     }
     
-    public static String parseToSession(JsonArray json) {
+    public static boolean toBooleanValue(JsonArray json){
+        return get(json).asJsonObject().getBoolean("value");
+    }
+    
+    public static String toSession(JsonArray json) {
         return get(json).asJsonObject().getString("sessionId");
     }
     
-    public static List<String> parseToList(JsonArray json) {
+    public static List<String> toList(JsonArray json) {
         return get(json).asJsonArray().stream().map(j -> {
             switch(j.getValueType()){
                 case STRING: return ((JsonString)j).getString();
@@ -106,11 +120,24 @@ public class MarionetteUtil {
         }).collect(Collectors.toList());
     }
     
-    public static String parseToElement(JsonArray json) {
-        return get(json).asJsonObject().getString(Marionette.W3C_WEBELEMENT_KEY);
+    public static String toElement(JsonArray json) {
+        return get(json).asJsonObject().getJsonObject("value").getString(Marionette.WEBELEMENT_KEY);
     }
     
-    public static JsonObject parseToObject(JsonArray json){
+    public static List<String> toElements(JsonArray json){        
+        return get(json).asJsonArray().stream().map(e -> e.asJsonObject().getString(Marionette.WEBELEMENT_KEY)).collect(Collectors.toList());
+    }
+    
+    public static JsonObject toObject(JsonArray json){
         return get(json).asJsonObject();
+    }
+    
+    public static JsonArray toArray(JsonArray json){
+        return get(json).asJsonArray();
+    }
+    
+    public static Rectangle2D toRectangle(JsonArray json){
+        JsonObject value = get(json).asJsonObject();
+        return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("w", 0), value.getInt("h", 0));
     }
 }

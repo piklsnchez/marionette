@@ -34,8 +34,6 @@ public enum Command {
     , setSearchTimeout            ("setSearchTimeout")
     , getWindowHandle             ("getWindowHandle")
     , getCurrentChromeWindowHandle("getCurrentChromeWindowHandle")
-    , getWindowPosition           ("getWindowPosition")
-    , setWindowPosition           ("setWindowPosition")
     , getTitle                    ("getTitle")
     , getWindowHandles            ("getWindowHandles")
     , getChromeWindowHandles      ("getChromeWindowHandles")
@@ -73,9 +71,11 @@ public enum Command {
     , takeScreenshot              ("takeScreenshot")
     , getScreenOrientation        ("getScreenOrientation")
     , setScreenOrientation        ("setScreenOrientation")
-    , getWindowSize               ("getWindowSize")
-    , setWindowSize               ("setWindowSize")
-    , maximizeWindow              ("maximizeWindow");
+    , getWindowRect               ("getWindowRect")
+    , setWindowRect               ("setWindowRect")
+    , minimizeWindow              ("minimizeWindow")
+    , maximizeWindow              ("maximizeWindow")
+    , fullscreen                  ("fullscreen");
     private final String command;
     Command(String command){
         this.command = command;

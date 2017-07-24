@@ -2,8 +2,7 @@ package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
 import com.swgas.util.MarionetteUtil;
-import java.awt.geom.Dimension2D;
-import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
 import java.nio.ByteBuffer;
@@ -36,13 +35,19 @@ public class MarionetteImpl implements Marionette {
     
     protected MarionetteImpl(AsynchronousSocketChannel channel){
         this.channel = channel;
-        CLEANER.register(this, ()-> {try{channel.close();}catch(IOException e){}});
+        CLEANER.register(this, this::shutdown);
         try{
             readAsync().get(TIMEOUT, TimeUnit.SECONDS);
         }catch(ExecutionException | InterruptedException | TimeoutException e){
             LOG.throwing(CLASS, "<init>", e);
             throw new MarionetteException(e);
         }
+    }
+    
+    public void shutdown(){
+        try{
+            channel.close();
+        } catch(IOException e){}
     }
     
     private CompletableFuture<JsonArray> readAsync(){
@@ -296,18 +301,6 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> getWindowPosition() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowPosition.getCommand());
-        return writeAsync(command);
-    }
-
-    @Override
-    public CompletableFuture<JsonArray> setWindowPosition(Point2D pointArg) {
-        String command = String.format("[0, %d, \"%s\", %s]", messageId++, Command.setWindowPosition.getCommand(), pointArg);
-        return writeAsync(command);
-    }
-
-    @Override
     public CompletableFuture<JsonArray> getTitle() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getTitle.getCommand());
         return writeAsync(command);
@@ -379,7 +372,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<JsonArray> switchToFrame(String id) {
-        String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": \"%s\"}]", messageId++, Command.switchToFrame.getCommand(), id);
+        String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": %s}]", messageId++, Command.switchToFrame.getCommand(), null == id ? "null" : "\""+id+"\"");
         return writeAsync(command);
     }
 
@@ -479,6 +472,18 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
+    public CompletableFuture<JsonArray> findElementFromElement(SearchMethod method, String value, String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"element\": \"%s\", \"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElement.getCommand(), elementId, value, method);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> findElementsFromElement(SearchMethod method, String value, String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"element\": \"%s\", \"value\": \"%s\", \"using\": \"%s\"}]", messageId++, Command.findElements.getCommand(), elementId, value, method);
+        return writeAsync(command);
+    }
+
+    @Override
     public CompletableFuture<JsonArray> getActiveElement() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getActiveElement.getCommand());
         return writeAsync(command);//.thenApply(ElementParser::toElement);
@@ -562,20 +567,32 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> getWindowSize() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowSize.getCommand());
+    public CompletableFuture<JsonArray> getWindowRect() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getWindowRect.getCommand());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<JsonArray> setWindowSize(Dimension2D size) {
-        String command = String.format("[0, %d, \"%s\", {\"width\": %f, \"height\": %f}]", messageId++, Command.setWindowSize.getCommand(), size.getWidth(), size.getHeight());
+    public CompletableFuture<JsonArray> setWindowRect(Rectangle2D size) {
+        String command = String.format("[0, %d, \"%s\", {\"width\": %f, \"height\": %f}]", messageId++, Command.setWindowRect.getCommand(), size.getWidth(), size.getHeight());
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> minimizeWindow() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.minimizeWindow.getCommand());
         return writeAsync(command);
     }
 
     @Override
     public CompletableFuture<JsonArray> maximizeWindow() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.maximizeWindow.getCommand());
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> fullscreen() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.fullscreen.getCommand());
         return writeAsync(command);
     }
     
