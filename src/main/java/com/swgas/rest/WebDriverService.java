@@ -355,7 +355,7 @@ public class WebDriverService {
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .closeChromeWindow()
+            .close()
             .thenApply(MarionetteUtil::toArray)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);

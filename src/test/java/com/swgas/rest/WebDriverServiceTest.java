@@ -2,11 +2,13 @@ package com.swgas.rest;
 
 import com.swgas.exception.NotImplementedException;
 import com.swgas.marionette.Marionette;
+import com.swgas.marionette.MarionetteImpl;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.json.Json;
@@ -40,13 +42,20 @@ public class WebDriverServiceTest {
         try{
             Field sessionsField = instance.getClass().getDeclaredField("SESSIONS");
             sessionsField.setAccessible(true);
-            new ArrayList<>(((HashMap<String, Session>) sessionsField.get(null)).keySet())
+            Map<String, Session> sessions = (HashMap<String, Session>) sessionsField.get(null);
+            new ArrayList<>(sessions.keySet())
             .forEach(s -> {
-                JsonObject result = MarionetteUtil.parseJsonObject(instance.deleteSession(s));
-                LOG.info(String.format("deleting session: %s result: %s", s, result));
+                try{
+                    JsonObject result = MarionetteUtil.parseJsonObject(instance.deleteSession(s));
+                    LOG.info(String.format("deleting session: %s result: %s", s, result));
+                } catch(Exception e){
+                    ((MarionetteImpl)sessions.get(s).getClient()).shutdown();
+                    return;
+                }
             });
-        } catch(Exception e){
+        } catch(Exception e){            
             LOG.throwing(CLASS, "afterEach", e);
+            
         }
         LOG.exiting(CLASS, "afterEach");
     }

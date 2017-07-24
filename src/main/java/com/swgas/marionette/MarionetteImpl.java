@@ -27,8 +27,9 @@ import javax.json.JsonObject;
 public class MarionetteImpl implements Marionette {
     private static final String                    CLASS           = MarionetteImpl.class.getName();
     private static final Logger                    LOG             = Logger.getLogger(CLASS);
+    private static final int                   MAX_READ_LOG_LENGTH = 127;
     private static final Cleaner                   CLEANER         = Cleaner.create();
-    private static final long                      TIMEOUT         = 10;
+    private static final long                      TIMEOUT         = 30;
     private        final AsynchronousSocketChannel channel;
     private              int                       messageId       = 0;
     
@@ -77,7 +78,7 @@ public class MarionetteImpl implements Marionette {
                             bigBuf.flip();
                             try{
                                 JsonArray result = MarionetteUtil.parseIncomingMessage(bigBuf);
-                                LOG.logp(Level.FINER, CLASS, "readAsync", String.format("RETURN %s", result.toString().length() > 55 ? result.toString().substring(0, 55).concat("...") : result));
+                                LOG.logp(Level.FINER, CLASS, "readAsync", String.format("RETURN %s", result.toString().length() > MAX_READ_LOG_LENGTH ? result.toString().substring(0, MAX_READ_LOG_LENGTH).concat("...") : result));
                                 future.complete(result);
                             } catch(Exception e){
                                 future.completeExceptionally(e);
