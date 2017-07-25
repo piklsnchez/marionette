@@ -174,14 +174,14 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> clickElement(String elementId) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clickElement.getCommand(), elementId);
+    public CompletableFuture<JsonArray> getElementProperty(String elementId, String property) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"name\": \"%s\"}]", messageId++, Command.getElementProperty.getCommand(), elementId, property);
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<JsonArray> singleTap(String elementId, int x, int y) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, x, y);
+    public CompletableFuture<JsonArray> clickElement(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\"}]", messageId++, Command.clickElement.getCommand(), elementId);
         return writeAsync(command);
     }
 
@@ -193,15 +193,15 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<JsonArray> sendKeysToElement(String elementId, String text) {        
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();        
-        text.codePoints().forEachOrdered(c -> arrayBuilder.add(new String(Character.toChars(c))));
-        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"value\": %s}]"
-        , messageId++, Command.sendKeysToElement.getCommand(), elementId, text.codePoints()
+        /*JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();        
+        text.codePoints().forEachOrdered(c -> arrayBuilder.add(new String(Character.toChars(c))));*/
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"text\": \"%s\"}]"
+        , messageId++, Command.sendKeysToElement.getCommand(), elementId, /*text.codePoints()
         .collect(
             Json::createArrayBuilder
             , (builder, item) -> builder.add(new String(Character.toChars(item)))
             , (a,b)->{}
-        ).build().toString());
+        ).build().toString()*/text);
         return writeAsync(command);
     }
 
@@ -242,8 +242,14 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> getElementValueOfCssProperty(String elementId, String property) {
+    public CompletableFuture<JsonArray> getElementCssProperty(String elementId, String property) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"propertyName\": \"%s\"}]", messageId++, Command.getElementValueOfCssProperty.getCommand(), elementId, property);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> singleTap(String elementId, int x, int y) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"x\": %d, \"y\": %d}]", messageId++, Command.singleTap.getCommand(), elementId, x, y);
         return writeAsync(command);
     }
 
@@ -438,23 +444,23 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> executeJsScript(String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %d, \"inactivityTimeout\": %d, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeJsScript.getCommand(), script, args, async, newSandbox, scriptTimeout.toMillis(), inactivityTimeout.toMillis());
+    public CompletableFuture<JsonArray> executeJsScript(String script, String args, Boolean async, Boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %s, \"inactivityTimeout\": %s, \"filename\": null, \"line\": null}]"
+        , messageId++, Command.executeJsScript.getCommand(), script, args, async, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis(), inactivityTimeout == null ? null : inactivityTimeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<JsonArray> executeScript(String script, String args, boolean newSandbox, Duration scriptTimeout) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": \"default\", \"scriptTimeout\": %d, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis());
+    public CompletableFuture<JsonArray> executeScript(String script, String args, Boolean newSandbox, Duration scriptTimeout) {
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": \"default\", \"scriptTimeout\": %s, \"filename\": null, \"line\": null}]"
+        , messageId++, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
-    public CompletableFuture<JsonArray> executeAsyncScript(String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %d, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
-        , messageId++, Command.executeAsyncScript.getCommand(), script, args, newSandbox, scriptTimeout.toMillis(), debug);
+    public CompletableFuture<JsonArray> executeAsyncScript(String script, String args, Boolean newSandbox, Duration scriptTimeout, Boolean debug) {
+        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %s, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
+        , messageId++, Command.executeAsyncScript.getCommand(), script, args, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis(), debug);
         return writeAsync(command);
     }
 

@@ -34,7 +34,7 @@ public class MarionetteUtil {
     
     public static Rectangle2D parseRectangle(String json){
         JsonObject value = Json.createReader(new StringReader(json)).readObject();
-        return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("w", 0), value.getInt("h", 0));
+        return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("width", 0), value.getInt("height", 0));
     }
     
     public static String createResult(String key, String value){
@@ -100,6 +100,10 @@ public class MarionetteUtil {
     
     public static String toStringValue(JsonArray json){
         return get(json).asJsonObject().getString("value");
+    }
+    
+    public static JsonValue toJsonValue(JsonArray json){
+        return get(json).asJsonObject().get("value");
     }
     
     public static boolean toBooleanValue(JsonArray json){

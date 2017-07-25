@@ -18,6 +18,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.json.Json;
+import static javax.json.JsonValue.ValueType.FALSE;
+import static javax.json.JsonValue.ValueType.TRUE;
+import static javax.json.JsonValue.ValueType.ARRAY;
+import static javax.json.JsonValue.ValueType.NULL;
+import static javax.json.JsonValue.ValueType.NUMBER;
+import static javax.json.JsonValue.ValueType.OBJECT;
+import static javax.json.JsonValue.ValueType.STRING;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -364,6 +371,9 @@ public class WebDriverService {
         //FIXME return http error
         } catch(InterruptedException | ExecutionException | TimeoutException e){
             LOG.throwing(CLASS, "closeWindow", e);
+            if(e instanceof TimeoutException){
+                SESSIONS.get(sessionId).getProc().destroy();
+            }
             throw new RuntimeException(e);
         }
     }
@@ -480,6 +490,9 @@ public class WebDriverService {
         //FIXME return http error
         } catch(InterruptedException | ExecutionException | TimeoutException e){
             LOG.throwing(CLASS, "setWindowRect", e);
+            if(e instanceof TimeoutException){
+                SESSIONS.get(sessionId).getProc().destroy();
+            }
             throw new RuntimeException(e);
         }
     }
@@ -562,7 +575,6 @@ public class WebDriverService {
             .getActiveElement()
             .thenApply(MarionetteUtil::toElement)
             .thenApply(e -> MarionetteUtil.createResult("element", e))
-            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getActiveElement", result);
             return result;
@@ -585,7 +597,6 @@ public class WebDriverService {
             .findElement(using, value)
             .thenApply(MarionetteUtil::toElement)
             .thenApply(e -> MarionetteUtil.createResult("element", e))
-            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElement", result);
             return result;
@@ -631,7 +642,6 @@ public class WebDriverService {
             .findElementFromElement(using, value, elementId)
             .thenApply(MarionetteUtil::toElement)
             .thenApply(e -> MarionetteUtil.createResult("element", e))
-            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElementFromElement", result);
             return result;
@@ -700,7 +710,6 @@ public class WebDriverService {
             .getElementAttribute(elementId, name)
             .thenApply(MarionetteUtil::toStringValue)
             .thenApply(n -> MarionetteUtil.createResult("attribute", n))
-            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementAttribute", result);
             return result;
@@ -715,72 +724,201 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/element/{element_id}/property/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementProperty(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String getElementProperty(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, @PathParam("name") String name) {
+        LOG.entering(CLASS, "getElementProperty", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getElementProperty(elementId, name)
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(n -> MarionetteUtil.createResult("property", n))
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getElementProperty", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getElementProperty", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Get Element CSS Value
     @GET
-    @Path("/session/{session_id}/element/{element_id}/css/{property_name}")
+    @Path("/session/{session_id}/element/{element_id}/css/{css_property}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementCss(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String getElementCssProperty(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, @PathParam("css_property") String property) {
+        LOG.entering(CLASS, "getElementCss", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getElementCssProperty(elementId, property)
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(n -> MarionetteUtil.createResult("css", n))
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getElementCss", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getElementCss", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Get Element Text
     @GET
     @Path("/session/{session_id}/element/{element_id}/text")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementText(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String getElementText(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId) {
+        LOG.entering(CLASS, "getElementText", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getElementText(elementId)
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(n -> MarionetteUtil.createResult("text", n))
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getElementText", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getElementText", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Get Element Tag Name
     @GET
     @Path("/session/{session_id}/element/{element_id}/name")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementTagName(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String getElementTagName(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId) {
+        LOG.entering(CLASS, "getElementTagName", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getElementTagName(elementId)
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(n -> MarionetteUtil.createResult("tag", n))
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getElementTagName", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getElementTagName", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Get Element Rect
     @GET
     @Path("/session/{session_id}/element/{element_id}/rect")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getElementDimension(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String getElementRect(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId) {
+        LOG.entering(CLASS, "getElementRect", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getElementRectangle(elementId)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getElementRect", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getElementRect", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Is Element Enabled
     @GET
     @Path("/session/{session_id}/element/{element_id}/enabled")
     @Produces(MediaType.APPLICATION_JSON)
-    public String isElementEnabled(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String isElementEnabled(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId) {
+        LOG.entering(CLASS, "isElementEnabled", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .isElementEnabled(elementId)
+            .thenApply(MarionetteUtil::toBooleanValue)
+            .thenApply(b -> Json.createObjectBuilder().add("enabled", b).build())
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "isElementEnabled", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "isElementEnabled", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Element Click
     @POST
     @Path("/session/{session_id}/element/{element_id}/click")
     @Produces(MediaType.APPLICATION_JSON)
-    public String clickElement(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String clickElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId) {
+        LOG.entering(CLASS, "clickElement", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .clickElement(elementId)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "clickElement", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "clickElement", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Element Clear
     @POST
     @Path("/session/{session_id}/element/{element_id}/clear")
     @Produces(MediaType.APPLICATION_JSON)
-    public String clearElement(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String clearElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId) {
+        LOG.entering(CLASS, "clearElement", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .clearElement(elementId)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "clearElement", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "clearElement", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Element Send Keys
     @POST
     @Path("/session/{session_id}/element/{element_id}/value")
     @Produces(MediaType.APPLICATION_JSON)
-    public String sendKeysToElement(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String sendKeysToElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, @FormParam("keys") String keys) {
+        LOG.entering(CLASS, "sendKeysToElement", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .sendKeysToElement(elementId, keys)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "sendKeysToElement", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "sendKeysToElement", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Get Page Source
@@ -788,15 +926,63 @@ public class WebDriverService {
     @Path("/session/{session_id}/source")
     @Produces(MediaType.APPLICATION_JSON)
     public String getPageSource(@PathParam("session_id") String sessionId) {
-        return "??";
+        LOG.entering(CLASS, "getPageSource", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getPageSource()
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(s -> MarionetteUtil.createResult("source", s))
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getPageSource", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getPageSource", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Execute Script
     @POST
     @Path("/session/{session_id}/execute/sync")
     @Produces(MediaType.APPLICATION_JSON)
-    public String executeScript(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String executeScript(@PathParam("session_id") String sessionId, @FormParam("script") String script, @FormParam("args") String args) {
+        LOG.entering(CLASS, "executeScript", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .executeScript(script, args, null, null)
+            .thenApply(MarionetteUtil::toJsonValue)
+            .thenApply(r -> {
+                String string = null;
+                switch(r.getValueType()){
+                    case TRUE:   string = "true";
+                    break;
+                    case FALSE:  string = "false";
+                    break;
+                    case ARRAY:  string = r.asJsonArray().toString();
+                    break;
+                    case OBJECT: string = r.asJsonObject().toString();
+                    break;
+                    case NULL:   string = null;
+                    break;
+                    case NUMBER: string = r.toString();
+                    break;
+                    case STRING: string = r.toString();
+                    break;
+                }
+                return string;
+            })
+            .thenApply(r -> MarionetteUtil.createResult("return", r))
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "executeScript", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "executeScript", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Execute Async Script

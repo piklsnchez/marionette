@@ -324,7 +324,7 @@ public class MarionetteImplTest {
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
         .thenApply(MarionetteParser.ELEMENT::parseFrom)
-        .thenCompose(e -> client.getElementValueOfCssProperty(e, "width"))
+        .thenCompose(e -> client.getElementCssProperty(e, "width"))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testGetElementValueOfCssProperty");
     }

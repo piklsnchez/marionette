@@ -51,9 +51,9 @@ public interface Marionette {
     public static final String WEBELEMENT_KEY     = "ELEMENT";
     public static final String W3C_WEBELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf";
     
-    public CompletableFuture<JsonArray>  getElementAttribute         (String element, String name);
+    public CompletableFuture<JsonArray>  getElementAttribute         (String element, String attribute);
+    public CompletableFuture<JsonArray>  getElementProperty          (String element, String property);
     public CompletableFuture<JsonArray>  clickElement                (String element);
-    public CompletableFuture<JsonArray>  singleTap                   (String element, int x, int y);
     public CompletableFuture<JsonArray>  getElementText              (String element);
     public CompletableFuture<JsonArray>  sendKeysToElement           (String element, String arrayOfChars);
     public CompletableFuture<JsonArray>  clearElement                (String element);
@@ -62,7 +62,8 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  isElementDisplayed          (String element);
     public CompletableFuture<JsonArray>  getElementTagName           (String element);
     public CompletableFuture<JsonArray>  getElementRectangle         (String element);
-    public CompletableFuture<JsonArray>  getElementValueOfCssProperty(String element, String property);
+    public CompletableFuture<JsonArray>  getElementCssProperty       (String element, String property);
+    public CompletableFuture<JsonArray>  singleTap                   (String element, int x, int y);
     default CompletableFuture<JsonArray> actionChain                 (List<Object> actionChain, String id){return null;}
     default CompletableFuture<JsonArray> multiAction                 (List<Object> multiActions){return null;}
     public CompletableFuture<JsonArray>  acceptDialog                ();
@@ -99,9 +100,9 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  goBack                      ();
     public CompletableFuture<JsonArray>  goForward                   ();
     public CompletableFuture<JsonArray>  refresh                     ();
-    public CompletableFuture<JsonArray>  executeJsScript             (String script, String args, boolean async, boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
-    public CompletableFuture<JsonArray>  executeScript               (String script, String args, boolean newSandbox, Duration scriptTimeout);
-    public CompletableFuture<JsonArray>  executeAsyncScript          (String script, String args, boolean newSandbox, Duration scriptTimeout, boolean debug);
+    public CompletableFuture<JsonArray>  executeJsScript             (String script, String args, Boolean async, Boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
+    public CompletableFuture<JsonArray>  executeScript               (String script, String args, Boolean newSandbox, Duration scriptTimeout);
+    public CompletableFuture<JsonArray>  executeAsyncScript          (String script, String args, Boolean newSandbox, Duration scriptTimeout, Boolean debug);
     public CompletableFuture<JsonArray>  findElement                 (SearchMethod method, String value);
     public CompletableFuture<JsonArray>  findElements                (SearchMethod method, String value);
     public CompletableFuture<JsonArray>  findElementFromElement      (SearchMethod method, String value, String elementId);
