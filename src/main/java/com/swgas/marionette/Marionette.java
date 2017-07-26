@@ -125,4 +125,5 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  minimizeWindow              ();
     public CompletableFuture<JsonArray>  maximizeWindow              ();
     public CompletableFuture<JsonArray>  fullscreen                  ();
+    public CompletableFuture<JsonArray>  performActions              ();
 }

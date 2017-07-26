@@ -6,6 +6,8 @@ import com.swgas.marionette.MarionetteImpl;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -782,8 +784,8 @@ public class WebDriverServiceTest {
         try{
             String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
             instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.executeScript(sessionId, "document.querySelector('#menu_myaccount')", "[]"));
-            Assertions.assertTrue(null != result.getString("return"));
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.executeScript(sessionId, "return document.querySelector('#menu_myaccount')", "[]"));
+            Assertions.assertTrue(null != result.get("return"));
             LOG.exiting(CLASS, "testExecuteScript", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testExecuteScript", e);
@@ -794,99 +796,134 @@ public class WebDriverServiceTest {
     /**
      * Test of executeScriptAsync method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test @Disabled("Can't get this to return")
     public void testExecuteScriptAsync() {
-        LOG.info("executeScriptAsync");
-        
-        String expResult = "";
-        String result = instance.executeScriptAsync("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testExecuteScriptAsync");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.executeScriptAsync(sessionId, "setTimeout(function(){return 1;}, 500);", "[]"));
+            Assertions.assertTrue(null != result.get("return"));
+            LOG.exiting(CLASS, "testExecuteScriptAsync", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testExecuteScriptAsync", e);
+            throw e;
+        }
     }
 
     /**
      * Test of getCookies method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetCookies() {
-        LOG.info("getCookies");
-        
-        String expResult = "";
-        String result = instance.getCookies("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testGetCookies");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonArray result = MarionetteUtil.parseJsonArray(instance.getCookies(sessionId));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testGetCookies", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetCookies", e);
+            throw e;
+        }
     }
 
     /**
      * Test of getCookie method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetCookie() {
-        LOG.info("getCookie");
-        
-        String expResult = "";
-        String result = instance.getCookie("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testGetCookie");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.getCookie(sessionId, "cookieName"));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testGetCookie", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetCookie", e);
+            throw e;
+        }
     }
 
     /**
      * Test of addCookie method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testAddCookie() {
-        LOG.info("addCookie");
-        
-        String expResult = "";
-        String result = instance.addCookie("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testAddCookie");
+        try{
+            String cookie = Json.createObjectBuilder()
+            .add("name", "cookieName")
+            .add("value", "cookieValue")
+            .add("path", "/")
+            .add("domain", ".swgas.com")
+            .add("expires", LocalDateTime.now().plusDays(5).toEpochSecond(ZoneOffset.UTC))
+            .build().toString();
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.addCookie(sessionId, cookie));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testAddCookie", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testAddCookie", e.getCause());
+            throw e;
+        }
     }
 
     /**
-     * Test of removeCookie method, of class WebDriverService.
+     * Test of deleteCookie method, of class WebDriverService.
      */
-    @Test @Disabled
-    public void testRemoveCookie() {
-        LOG.info("removeCookie");
-        
-        String expResult = "";
-        String result = instance.removeCookie("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+    @Test
+    public void testDeleteCookie() {
+        LOG.entering(CLASS, "testDeleteCookie");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.deleteCookie(sessionId, "cookieName"));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testDeleteCookie", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testDeleteCookie", e);
+            throw e;
+        }
     }
 
     /**
-     * Test of removeCookies method, of class WebDriverService.
+     * Test of testDeleteAllCookies method, of class WebDriverService.
      */
-    @Test @Disabled
-    public void testRemoveCookies() {
-        LOG.info("removeCookies");
-        
-        String expResult = "";
-        String result = instance.removeCookies("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+    @Test
+    public void testDeleteAllCookies() {
+        LOG.entering(CLASS, "testDeleteAllCookies");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.deleteAllCookies(sessionId));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testDeleteAllCookies", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testDeleteAllCookies", e);
+            throw e;
+        }
     }
 
     /**
      * Test of performActions method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test @Disabled("Not Implemented")
     public void testPerformActions() {
-        LOG.info("performActions");
-        
-        String expResult = "";
-        String result = instance.performActions("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        LOG.entering(CLASS, "testPerformActions");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.performActions(sessionId));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testPerformActions", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testPerformActions", e);
+            throw e;
+        }
     }
 
     /**

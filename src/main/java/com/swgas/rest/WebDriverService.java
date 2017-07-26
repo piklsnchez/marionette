@@ -1,11 +1,14 @@
 package com.swgas.rest;
 
+import com.swgas.exception.NotImplementedException;
 import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteFactory;
 import com.swgas.util.MarionetteUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
@@ -18,6 +21,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonValue;
 import static javax.json.JsonValue.ValueType.FALSE;
 import static javax.json.JsonValue.ValueType.TRUE;
 import static javax.json.JsonValue.ValueType.ARRAY;
@@ -32,6 +37,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 
 @Path("/ws")
@@ -954,27 +960,8 @@ public class WebDriverService {
             .getClient()
             .executeScript(script, args, null, null)
             .thenApply(MarionetteUtil::toJsonValue)
-            .thenApply(r -> {
-                String string = null;
-                switch(r.getValueType()){
-                    case TRUE:   string = "true";
-                    break;
-                    case FALSE:  string = "false";
-                    break;
-                    case ARRAY:  string = r.asJsonArray().toString();
-                    break;
-                    case OBJECT: string = r.asJsonObject().toString();
-                    break;
-                    case NULL:   string = null;
-                    break;
-                    case NUMBER: string = r.toString();
-                    break;
-                    case STRING: string = r.toString();
-                    break;
-                }
-                return string;
-            })
-            .thenApply(r -> MarionetteUtil.createResult("return", r))
+            .thenApply(r -> Json.createObjectBuilder().add("return", r).build())
+            .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "executeScript", result);
             return result;
@@ -989,8 +976,23 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/execute/async")
     @Produces(MediaType.APPLICATION_JSON)
-    public String executeScriptAsync(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String executeScriptAsync(@PathParam("session_id") String sessionId, @FormParam("script") String script, @FormParam("args") String args) {
+        LOG.entering(CLASS, "executeScriptAsync", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .executeAsyncScript(script, args, null, null, null)
+            .thenApply(MarionetteUtil::toJsonValue)
+            .thenApply(r -> Json.createObjectBuilder().add("return", r).build())
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "executeScriptAsync", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "executeScriptAsync", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Get All Cookies
@@ -998,39 +1000,113 @@ public class WebDriverService {
     @Path("/session/{session_id}/cookie")
     @Produces(MediaType.APPLICATION_JSON)
     public String getCookies(@PathParam("session_id") String sessionId) {
-        return "??";
+        LOG.entering(CLASS, "getCookies", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getCookies()
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getCookies", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getCookies", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Get Named Cookie
     @GET
     @Path("/session/{session_id}/cookie/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getCookie(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String getCookie(@PathParam("session_id") String sessionId, @PathParam("name") String name) {
+        LOG.entering(CLASS, "getCookie", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getCookies()
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(array -> array.stream()
+                .filter(cookie -> Objects.equals(name, cookie.asJsonObject().getString("name")))
+                .findFirst().orElse(JsonObject.EMPTY_JSON_OBJECT)
+            )
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getCookie", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getCookie", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Add Cookie
     @POST
     @Path("/session/{session_id}/cookie")
     @Produces(MediaType.APPLICATION_JSON)
-    public String addCookie(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String addCookie(@PathParam("session_id") String sessionId, String cookie) {
+        LOG.entering(CLASS, "addCookie", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .addCookie(cookie)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "addCookie", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "addCookie", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Delete Cookie
     @DELETE
     @Path("/session/{session_id}/cookie/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String removeCookie(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String deleteCookie(@PathParam("session_id") String sessionId, @FormParam("cookie") String cookie) {
+        LOG.entering(CLASS, "deleteCookie", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .deleteCookie(cookie)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "deleteCookie", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "deleteCookie", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Delete All Cookies
     @DELETE
     @Path("/session/{session id)/cookie")
     @Produces(MediaType.APPLICATION_JSON)
-    public String removeCookies(@PathParam("session_id") String sessionId) {
-        return "??";
+    public String deleteAllCookies(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "deleteAllCookies", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .deleteAllCookies()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "deleteAllCookies", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "deleteAllCookies", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Perform Actions
@@ -1038,7 +1114,21 @@ public class WebDriverService {
     @Path("/session/{session_id}/actions")
     @Produces(MediaType.APPLICATION_JSON)
     public String performActions(@PathParam("session_id") String sessionId) {
-        return "??";
+        LOG.entering(CLASS, "performActions", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .performActions()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "performActions", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "performActions", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 
     //Release Actions

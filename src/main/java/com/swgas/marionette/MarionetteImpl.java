@@ -1,6 +1,7 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
+import com.swgas.exception.NotImplementedException;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -20,7 +21,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 
 
@@ -54,7 +54,7 @@ public class MarionetteImpl implements Marionette {
     private CompletableFuture<JsonArray> readAsync(){
         CompletableFuture<JsonArray> ret = new CompletableFuture<>();
         ByteBuffer buf = ByteBuffer.allocateDirect(8);
-        channel.read(buf, ret, new CompletionHandler<Integer, CompletableFuture<JsonArray>>() {
+        channel.read(buf, TIMEOUT/2, TimeUnit.SECONDS, ret, new CompletionHandler<Integer, CompletableFuture<JsonArray>>() {
             @Override
             public void completed(Integer len, CompletableFuture<JsonArray> future) {
                 buf.flip();
@@ -78,7 +78,7 @@ public class MarionetteImpl implements Marionette {
                             bigBuf.flip();
                             try{
                                 JsonArray result = MarionetteUtil.parseIncomingMessage(bigBuf);
-                                LOG.logp(Level.FINER, CLASS, "readAsync", String.format("RETURN %s", result.toString().length() > MAX_READ_LOG_LENGTH ? result.toString().substring(0, MAX_READ_LOG_LENGTH).concat("...") : result));
+                                LOG.logp(Level.FINER, this.getClass().getName(), "readAsync", String.format("RETURN %s", result.toString().length() > MAX_READ_LOG_LENGTH ? result.toString().substring(0, MAX_READ_LOG_LENGTH).concat("...") : result));
                                 future.complete(result);
                             } catch(Exception e){
                                 future.completeExceptionally(e);
@@ -89,14 +89,14 @@ public class MarionetteImpl implements Marionette {
                     }
                     @Override
                     public void failed(Throwable e, CompletableFuture future) {
-                        LOG.throwing(CLASS, "failed", e);
+                        LOG.throwing(this.getClass().getName(), "failed", e);
                         future.completeExceptionally(e);
                     }
                 });
             }
             @Override
             public void failed(Throwable e, CompletableFuture future) {
-                LOG.throwing(CLASS, "failed", e);
+                LOG.throwing(this.getClass().getName(), "failed", e);
                 future.completeExceptionally(e);
             }
         });
@@ -446,21 +446,21 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<JsonArray> executeJsScript(String script, String args, Boolean async, Boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %s, \"inactivityTimeout\": %s, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeJsScript.getCommand(), script, args, async, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis(), inactivityTimeout == null ? null : inactivityTimeout.toMillis());
+        , messageId++, Command.executeJsScript.getCommand(), script.replace("\"", "\\\""), args, async, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis(), inactivityTimeout == null ? null : inactivityTimeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
     public CompletableFuture<JsonArray> executeScript(String script, String args, Boolean newSandbox, Duration scriptTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": \"default\", \"scriptTimeout\": %s, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeScript.getCommand(), script, args, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis());
+        , messageId++, Command.executeScript.getCommand(), script.replace("\"", "\\\""), args, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis());
         return writeAsync(command);
     }
 
     @Override
     public CompletableFuture<JsonArray> executeAsyncScript(String script, String args, Boolean newSandbox, Duration scriptTimeout, Boolean debug) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": null, \"scriptTimeout\": %s, \"line\": null, \"filename\": null, \"debug_script\": %s}]"
-        , messageId++, Command.executeAsyncScript.getCommand(), script, args, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis(), debug);
+        , messageId++, Command.executeAsyncScript.getCommand(), script.replace("\"", "\\\""), args, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis(), debug);
         return writeAsync(command);
     }
 
@@ -524,7 +524,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<JsonArray> addCookie(String cookie) {
-        String command = String.format("[0, %d, \"%s\", {\"cookie\": \"%s\"}]", messageId++, Command.addCookie.getCommand(), cookie);
+        String command = String.format("[0, %d, \"%s\", {\"cookie\": %s}]", messageId++, Command.addCookie.getCommand(), cookie);
         return writeAsync(command);
     }
 
@@ -601,6 +601,11 @@ public class MarionetteImpl implements Marionette {
     public CompletableFuture<JsonArray> fullscreen() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.fullscreen.getCommand());
         return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> performActions() {
+        throw new NotImplementedException();
     }
     
     @Override
