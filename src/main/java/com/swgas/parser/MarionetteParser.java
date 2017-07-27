@@ -4,11 +4,11 @@ import com.swgas.marionette.Marionette;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
+@Deprecated(forRemoval = true)
 @FunctionalInterface
 public interface MarionetteParser<T> {
     public static final String NO_SUCH_ELEMENT_EXCEPTION = "no such element";

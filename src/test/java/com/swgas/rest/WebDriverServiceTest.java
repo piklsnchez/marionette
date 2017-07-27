@@ -765,7 +765,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testGetPageSource");
         try{
             String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/maintenance/");
             String result = MarionetteUtil.parseJsonObject(instance.getPageSource(sessionId)).getString("source");
             Assertions.assertTrue(!result.isEmpty());
             LOG.exiting(CLASS, "testGetPageSource", result);
@@ -929,99 +929,126 @@ public class WebDriverServiceTest {
     /**
      * Test of releaseActions method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test @Disabled("Not Implemented")
     public void testReleaseActions() {
-        LOG.info("releaseActions");
-        
-        String expResult = "";
-        String result = instance.releaseActions("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.releaseActions(sessionId));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testReleaseActions", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testReleaseActions", e);
+            throw e;
+        }
     }
 
     /**
      * Test of dismissAlert method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testDismissAlert() {
-        LOG.info("dismissAlert");
-        
-        String expResult = "";
-        String result = instance.dismissAlert("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            instance.executeScript(sessionId, "window.alert('alert');", "[]");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.dismissAlert(sessionId));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testDismissAlert", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testDismissAlert", e);
+            throw e;
+        }
     }
 
     /**
      * Test of acceptAlert method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testAcceptAlert() {
-        LOG.info("acceptAlert");
-        
-        String expResult = "";
-        String result = instance.acceptAlert("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            instance.executeScript(sessionId, "window.alert('alert');", "[]");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.acceptAlert(sessionId));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testAcceptAlert", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testAcceptAlert", e);
+            throw e;
+        }
     }
 
     /**
      * Test of getAlertText method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetAlertText() {
-        LOG.info("getAlertText");
-        
-        String expResult = "";
-        String result = instance.getAlertText("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        String expected = "alert";
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            instance.executeScript(sessionId, String.format("window.alert('%s');", expected), "[]");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.getAlertText(sessionId));
+            Assertions.assertTrue(Objects.equals(expected, result.getString("text")), String.format("result should be %s but was %s", expected, result.getString("text")));
+            LOG.exiting(CLASS, "testGetAlertText", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetAlertText", e);
+            throw e;
+        }
     }
 
     /**
      * Test of setAlertText method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSetAlertText() {
-        LOG.info("setAlertText");
-        
-        String expResult = "";
-        String result = instance.setAlertText("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        String expected = "trela";
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            instance.executeScript(sessionId, "window.prompt('alert');", "[]");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.setAlertText(sessionId, expected));
+            Assertions.assertTrue(null != result);
+            LOG.exiting(CLASS, "testSetAlertText", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testSetAlertText", e);
+            throw e;
+        }
     }
 
     /**
      * Test of getScreenshot method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetScreenshot() {
-        LOG.info("getScreenshot");
-        
-        String expResult = "";
-        String result = instance.getScreenshot("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.getScreenshot(sessionId));
+            Assertions.assertTrue(!result.getString("screenshot","").isEmpty());
+            LOG.exiting(CLASS, "testGetScreenshot", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetScreenshot", e);
+            throw e;
+        }
     }
 
     /**
      * Test of getElementScreenshot method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementScreenshot() {
-        LOG.info("getElementScreenshot");
-        
-        String expResult = "";
-        String result = instance.getElementScreenshot("");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
-    }
-    
+        try{
+            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
+            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            String element = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "#sticky-menu #menu_myaccount")).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(instance.getElementScreenshot(sessionId, element));
+            Assertions.assertTrue(!result.getString("screenshot","").isEmpty());
+            LOG.exiting(CLASS, "testGetElementScreenshot", result);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetElementScreenshot", e);
+            throw e;
+        }
+    }    
 }

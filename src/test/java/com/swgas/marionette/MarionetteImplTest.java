@@ -9,20 +9,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import com.swgas.ocs.util.Copy;
-import com.swgas.ocs.util.Remove;
-import com.swgas.parser.MarionetteParser;
 import com.swgas.parser.SessionParser;
 import com.swgas.util.MarionetteUtil;
-import java.io.File;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -34,8 +28,6 @@ public class MarionetteImplTest {
     private static final int    PORT    = 2828;
     private static final int    TIMEOUT = 20;
     private static final String URL     = "https://myaccountdev.swgas.com/";
-    private static final String PROFILE_DRIECTORY        = System.getProperty("user.home").concat("/.mozilla/firefox/marionette").replace('/', File.separatorChar);
-    private static final String BACKUP_PROFILE_DIRECTORY = System.getProperty("java.io.tmpdir").concat("/ffProf").replace('/', File.separatorChar);
     
     public Process browser;
     private Marionette client;
@@ -43,18 +35,8 @@ public class MarionetteImplTest {
     public MarionetteImplTest() {
     }
     
-    @BeforeAll
-    private static void beforeAll(){
-        Remove.removeDirectory(BACKUP_PROFILE_DIRECTORY);
-        Copy.copyDirectory(PROFILE_DRIECTORY, BACKUP_PROFILE_DIRECTORY);
-    }
-    
     @BeforeEach
     private void beforeEach() {
-        boolean copied = Copy.copyDirectory(BACKUP_PROFILE_DIRECTORY, PROFILE_DRIECTORY);
-        if(!copied){
-            LOG.warning("wasn't able to copy profile directory");
-        }
         ProcessBuilder _proc = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
         //_proc.inheritIO();
         try{
@@ -76,11 +58,6 @@ public class MarionetteImplTest {
             } catch(Exception e){}
         }
     }
-    
-    @AfterAll
-    private static void afterAll(){
-        Copy.copyDirectory(BACKUP_PROFILE_DIRECTORY, PROFILE_DRIECTORY);
-    }    
 
     @Test
     public void testNewSession() throws Exception{
@@ -125,9 +102,9 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenApply(MarionetteUtil::toElement)
             .thenCompose(e -> client.getElementAttribute(e, attribute))
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT,TimeUnit.SECONDS)
             .contains("Home")
         );
@@ -142,7 +119,7 @@ public class MarionetteImplTest {
         .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.clickElement(e))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testClickElement");
@@ -158,7 +135,7 @@ public class MarionetteImplTest {
         .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.singleTap(e, (int)point.getX(), (int)point.getY()))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSingleTap_String_Point");
@@ -173,7 +150,7 @@ public class MarionetteImplTest {
         .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.singleTap(e, 0, 0))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSingleTap_String");
@@ -188,9 +165,9 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.ID, id))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenApply(MarionetteUtil::toElement)
             .thenCompose(e -> client.getElementText(e))
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
             .contains("Home")
         );
@@ -206,7 +183,7 @@ public class MarionetteImplTest {
         .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.sendKeysToElement(e, text))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testSendKeysToElement");
@@ -221,10 +198,10 @@ public class MarionetteImplTest {
         .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.sendKeysToElement(e, text))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.clearElement(e))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testClearElement");
@@ -239,9 +216,9 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenApply(MarionetteUtil::toElement)
             .thenCompose(e -> client.isElementSelected(e))
-            .thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b))
+            .thenApply(MarionetteUtil::toBooleanValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testIsElementSelected");
@@ -256,9 +233,9 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenApply(MarionetteUtil::toElement)
             .thenCompose(e -> client.isElementEnabled(e))
-            .thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b))
+            .thenApply(MarionetteUtil::toBooleanValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testIsElementEnabled");
@@ -273,9 +250,9 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenApply(MarionetteUtil::toElement)
             .thenCompose(e -> client.isElementDisplayed(e))
-            .thenApply(b -> (Boolean)MarionetteParser.OBJECT.parseFrom(b))
+            .thenApply(MarionetteUtil::toBooleanValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testIsElementDisplayed");
@@ -291,9 +268,9 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-            .thenApply(MarionetteParser.ELEMENT::parseFrom)
+            .thenApply(MarionetteUtil::toElement)
             .thenCompose(e -> client.getElementTagName(e))
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetElementTagName");
@@ -307,9 +284,9 @@ public class MarionetteImplTest {
         .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.getElementRectangle(e))
-        .thenApply(MarionetteParser.RECTANGLE::parseFrom)
+        .thenApply(MarionetteUtil::toRectangle)
         .get(TIMEOUT, TimeUnit.SECONDS)
         .getBounds();
         LOG.exiting(CLASS, "testGetElementRectangle");
@@ -323,7 +300,7 @@ public class MarionetteImplTest {
         .thenCompose(c -> (client = c).newSession())
         .thenCompose(s -> client.get(URL))
         .thenCompose(s -> client.findElement(Marionette.SearchMethod.CSS_SELECTOR, css))
-        .thenApply(MarionetteParser.ELEMENT::parseFrom)
+        .thenApply(MarionetteUtil::toElement)
         .thenCompose(e -> client.getElementCssProperty(e, "width"))
         .get(TIMEOUT, TimeUnit.SECONDS);
         LOG.exiting(CLASS, "testGetElementValueOfCssProperty");
@@ -460,7 +437,7 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s ->client.getWindowHandle())
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetWindowHandle");
@@ -474,7 +451,7 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.getCurrentChromeWindowHandle())
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetCurrentChromeWindowHandle");
@@ -488,7 +465,7 @@ public class MarionetteImplTest {
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get(URL))
             .thenCompose(s -> client.takeScreenshot())
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testTakeScreenshot_0args");
@@ -500,399 +477,600 @@ public class MarionetteImplTest {
         LOG.info(
             MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> (client = c).newSession())
-            .thenCompose(s -> client.get("http://infonet.swgas.com"))
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/maintenance/"))
             .thenCompose(s -> client.getPageSource())
-            .thenApply(MarionetteParser.STRING::parseFrom)
+            .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
         );
         LOG.exiting(CLASS, "testGetPageSource");
     }
-    
-    /*
 
-    @Test    @Ignore
-    public void testGetTitle() {
-        System.out.println("getTitle");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getTitle();
-        
-        Assertions.fail("The test case is a prototype.");
+    @Test
+    public void testGetTitle() throws Exception {
+        LOG.entering(CLASS, "testGetTitle");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getTitle())
+            .thenApply(MarionetteUtil::toStringValue)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetTitle");
+    }
+
+    @Test
+    public void testGetWindowHandles() throws Exception {
+        LOG.entering(CLASS, "testGetWindowHandles");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getWindowHandles())
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetWindowHandles");
+    }
+
+    @Test
+    public void testGetChromeWindowHandles() throws Exception {
+        LOG.entering(CLASS, "testGetChromeWindowHandles");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getChromeWindowHandles())
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetChromeWindowHandles");
+    }
+
+    @Test
+    public void testClose() throws Exception {
+        LOG.entering(CLASS, "testClose");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.close())
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testClose");
+    }
+
+    @Test
+    public void testCloseChromeWindow() throws Exception {
+        LOG.entering(CLASS, "testCloseChromeWindow");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.closeChromeWindow())
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testCloseChromeWindow");
+    }
+
+    @Test
+    public void testSetContext() throws Exception {
+        LOG.entering(CLASS, "testSetContext");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.setContext(Marionette.Context.CONTEXT_CHROME))
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testSetContext");
+    }
+
+    @Test
+    public void testGetContext() throws Exception {
+        LOG.entering(CLASS, "testGetContext");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getContext())
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetContext");
+    }
+
+    @Test
+    public void testSwitchToWindow() throws Exception {
+        LOG.entering(CLASS, "testSwitchToWindow");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getWindowHandles())
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(array -> array.getString(0))
+            .thenCompose(client::switchToWindow)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testSwitchToWindow");
+    }
+
+    @Test
+    public void testGetActiveFrame() throws Exception {
+        LOG.entering(CLASS, "testGetActiveFrame");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getActiveFrame())
+            .thenApply(MarionetteUtil::toJsonValue)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetActiveFrame");
+    }
+
+    @Test
+    public void testSwitchToParentFrame() throws Exception {
+        LOG.entering(CLASS, "testSwitchToParentFrame");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.switchToParentFrame())
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testSwitchToParentFrame");
+    }
+
+    @Test
+    public void testSwitchToFrame() throws Exception {
+        LOG.entering(CLASS, "testSwitchToFrame");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.switchToFrame(0))
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testSwitchToFrame");
+    }
+
+    @Test
+    public void testSwitchToShadowRoot() throws Exception {
+        LOG.entering(CLASS, "testSwitchToShadowRoot");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.switchToShadowRoot())
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testSwitchToShadowRoot");
+    }
+
+    @Test
+    public void testGetCurrentUrl() throws Exception {
+        LOG.entering(CLASS, "testGetCurrentUrl");
+        String url = "https://myaccountdev.swgas.com/";
+        String result;
+        Assertions.assertTrue(
+            Objects.equals(
+                (result = MarionetteFactory.getAsync(HOST, PORT)
+                .thenCompose(c -> (client = c).newSession())
+                .thenCompose(s -> client.get(url))
+                .thenCompose(s -> client.getCurrentUrl())
+                .thenApply(MarionetteUtil::toStringValue)
+                .get(TIMEOUT, TimeUnit.SECONDS))
+                , url
+            )
+        );
+        LOG.exiting(CLASS, "testGetCurrentUrl", result);
+    }
+
+    @Test
+    public void testGetWindowType() throws Exception {
+        LOG.entering(CLASS, "testGetWindowType");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getWindowType())
+            .thenApply(MarionetteUtil::toStringValue)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetWindowType");
+    }
+
+    @Test
+    public void testGet()throws Exception {
+        LOG.entering(CLASS, "testGet");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGet");
+    }
+
+    @Test
+    public void testTimeouts() throws Exception {
+        LOG.entering(CLASS, "testTimeouts");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.timeouts)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testTimeouts");
     }
 
     @Test    @Ignore
-    public void testGetWindowHandles() {
-        System.out.println("getWindowHandles");
-        MarionetteImpl instance = new MarionetteImpl();
-        List<String> expResult = null;
-        //List<String> result = instance.getWindowHandles();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testGoBack() throws Exception {
+        LOG.entering(CLASS, "testGoBack");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.goBack)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGoBack");
     }
 
     @Test    @Ignore
-    public void testGetChromeWindowHandles() {
-        System.out.println("getChromeWindowHandles");
-        MarionetteImpl instance = new MarionetteImpl();
-        List<String> expResult = null;
-       // List<String> result = instance.getChromeWindowHandles();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testGoForward() throws Exception {
+        LOG.entering(CLASS, "testGoForward");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.goForward)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGoForward");
     }
 
     @Test    @Ignore
-    public void testClose() {
-        System.out.println("close");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.close();
-        Assertions.fail("The test case is a prototype.");
+    public void testRefresh() throws Exception {
+        LOG.entering(CLASS, "testRefresh");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.refresh)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testRefresh");
     }
 
     @Test    @Ignore
-    public void testCloseChromeWindow() {
-        System.out.println("closeChromeWindow");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.closeChromeWindow();
-        Assertions.fail("The test case is a prototype.");
+    public void testExecuteJsScript() throws Exception {
+        LOG.entering(CLASS, "testExecuteJsScript");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.executeJsScript)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testExecuteJsScript");
     }
 
     @Test    @Ignore
-    public void testSetContext() {
-        System.out.println("setContext");
-        Marionette.Context context = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.setContext(context);
-        Assertions.fail("The test case is a prototype.");
+    public void testExecuteScript() throws Exception {
+        LOG.entering(CLASS, "testExecuteScript");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.executeScript)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testExecuteScript");
     }
 
     @Test    @Ignore
-    public void testGetContext() {
-        System.out.println("getContext");
-        MarionetteImpl instance = new MarionetteImpl();
-        Marionette.Context expResult = null;
-        //Marionette.Context result = instance.getContext();
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testSwitchToWindow() {
-        System.out.println("switchToWindow");
-        String id = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.switchToWindow(id);
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testGetActiveFrame() {
-        System.out.println("getActiveFrame");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getActiveFrame();
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testSwitchToParentFrame() {
-        System.out.println("switchToParentFrame");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.switchToParentFrame();
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testSwitchToFrame() {
-        System.out.println("switchToFrame");
-        String id = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.switchToFrame(id);
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testSwitchToShadowRoot() {
-        System.out.println("switchToShadowRoot");
-        String id = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.switchToShadowRoot(id);
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testGetCurrentUrl() {
-        System.out.println("getCurrentUrl");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getCurrentUrl().join();
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testGetWindowType() {
-        System.out.println("getWindowType");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getWindowType();
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testGet() {
-        System.out.println("get");
-        String url = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.get(url);
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testTimeouts() {
-        System.out.println("timeouts");
-        Marionette.Timeout timeout = null;
-        Duration time = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.timeouts(timeout, time);
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testGoBack() {
-        System.out.println("goBack");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.goBack();
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testGoForward() {
-        System.out.println("goForward");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.goForward();
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testRefresh() {
-        System.out.println("refresh");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.refresh();
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testExecuteJsScript() {
-        System.out.println("executeJsScript");
-        String script = "";
-        String args = null;
-        boolean async = false;
-        boolean newSandbox = false;
-        Duration scriptTimeout = null;
-        Duration inactivityTimeout = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.executeJsScript(script, args, async, newSandbox, scriptTimeout, inactivityTimeout);
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testExecuteScript() {
-        System.out.println("executeScript");
-        String script = "";
-        String args = null;
-        boolean newSandbox = false;
-        Duration scriptTimeout = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.executeScript(script, args, newSandbox, scriptTimeout);
-        
-        Assertions.fail("The test case is a prototype.");
-    }
-
-    @Test    @Ignore
-    public void testExecuteAsyncScript() {
-        System.out.println("executeAsyncScript");
-        String script = "";
-        String args = null;
-        boolean newSandbox = false;
-        Duration scriptTimeout = null;
-        boolean debug = false;
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.executeAsyncScript(script, args, newSandbox, scriptTimeout, debug);
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testExecuteAsyncScript() throws Exception {
+        LOG.entering(CLASS, "testExecuteAsyncScript");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.executeAsyncScript)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testExecuteAsyncScript");
     }
 
     @Test @Ignore
     public void testFindElement() throws Exception {
-        System.out.println("findElement");
-        Marionette.SearchMethod method = null;
-        String value = "";
-        String expResult = "";
-        String result = MarionetteFactory.getAsync(HOST, PORT)
-        .thenCompose(c -> {client = c; return client.findElement(method, value);})
-        .get(TIMEOUT, TimeUnit.SECONDS);
-        
+        LOG.entering(CLASS, "testFindElement");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.findElement)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testFindElement");
     }
 
     @Test    @Ignore
-    public void testGetActiveElement() {
-        System.out.println("getActiveElement");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getActiveElement();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testGetActiveElement() throws Exception {
+        LOG.entering(CLASS, "testGetActiveElement");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getActiveElement)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetActiveElement");
     }
 
     @Test    @Ignore
-    public void testLog() {
-        System.out.println("log");
-        Marionette.LogLevel level = null;
-        String message = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.log(level, message);
-        Assertions.fail("The test case is a prototype.");
+    public void testLog() throws Exception {
+        LOG.entering(CLASS, "testLog");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.log)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testLog");
     }
 
     @Test    @Ignore
-    public void testGetLogs() {
-        System.out.println("getLogs");
-        MarionetteImpl instance = new MarionetteImpl();
-        List<String> expResult = null;
-       // List<String> result = instance.getLogs();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testGetLogs() throws Exception {
+        LOG.entering(CLASS, "testGetLogs");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getLogs)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetLogs");
     }
 
     @Test    @Ignore
-    public void testImportScript() {
-        System.out.println("importScript");
-        String script = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.importScript(script);
-        Assertions.fail("The test case is a prototype.");
+    public void testImportScript() throws Exception {
+        LOG.entering(CLASS, "testImportScript");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.importScript)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testImportScript");
     }
 
     @Test    @Ignore
-    public void testClearImportedScripts() {
-        System.out.println("clearImportedScripts");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.clearImportedScripts();
-        Assertions.fail("The test case is a prototype.");
+    public void testClearImportedScripts() throws Exception {
+        LOG.entering(CLASS, "testClearImportedScripts");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.clearImportedScripts)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testClearImportedScripts");
     }
 
     @Test    @Ignore
-    public void testAddCookie() {
-        System.out.println("addCookie");
-        String cookie = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.addCookie(cookie);
-        Assertions.fail("The test case is a prototype.");
+    public void testAddCookie() throws Exception {
+        LOG.entering(CLASS, "testAddCookie");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.addCookie)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testAddCookie");
     }
 
     @Test    @Ignore
-    public void testDeleteAllCookies() {
-        System.out.println("deleteAllCookies");
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.deleteAllCookies();
-        Assertions.fail("The test case is a prototype.");
+    public void testDeleteAllCookies() throws Exception {
+        LOG.entering(CLASS, "testDeleteAllCookies");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.deleteAllCookies)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testDeleteAllCookies");
     }
 
     @Test    @Ignore
-    public void testDeleteCookie() {
-        System.out.println("deleteCookie");
-        String name = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.deleteCookie(name);
-        Assertions.fail("The test case is a prototype.");
+    public void testDeleteCookie() throws Exception {
+        LOG.entering(CLASS, "testDeleteCookie");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.deleteCookie)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testDeleteCookie");
     }
 
     @Test    @Ignore
-    public void testGetCookies() {
-        System.out.println("getCookies");
-        MarionetteImpl instance = new MarionetteImpl();
-        List<String> expResult = null;
-       // List<String> result = instance.getCookies();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testGetCookies() throws Exception {
+        LOG.entering(CLASS, "testGetCookies");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getCookies)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetCookies");
     }
 
     @Test    @Ignore
-    public void testTakeScreenshot_List() {
-        System.out.println("takeScreenshot");
-        List<String> elementIds = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.takeScreenshot(elementIds);
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testTakeScreenshot_List() throws Exception {
+        LOG.entering(CLASS, "testTakeScreenshot_List");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.takeScreenshot_List)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testTakeScreenshot_List");
     }
 
     @Test    @Ignore
-    public void testGetScreenOrientation() {
-        System.out.println("getScreenOrientation");
-        MarionetteImpl instance = new MarionetteImpl();
-        Marionette.Orientation expResult = null;
-        //Marionette.Orientation result = instance.getScreenOrientation();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testGetScreenOrientation() throws Exception {
+        LOG.entering(CLASS, "testGetScreenOrientation");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getScreenOrientation)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetScreenOrientation");
     }
 
     @Test    @Ignore
-    public void testSetScreenOrientation() {
-        System.out.println("setScreenOrientation");
-        Marionette.Orientation orientation = null;
-        MarionetteImpl instance = new MarionetteImpl();
-        instance.setScreenOrientation(orientation);
-        Assertions.fail("The test case is a prototype.");
+    public void testSetScreenOrientation() throws Exception {
+        LOG.entering(CLASS, "testSetScreenOrientation");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.setScreenOrientation)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testSetScreenOrientation");
     }
 
     @Test    @Ignore
-    public void testGetWindowSize() {
-        System.out.println("getWindowSize");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.getWindowSize();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testGetWindowSize() throws Exception {
+        LOG.entering(CLASS, "testGetWindowSize");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.getWindowSize)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testGetWindowSize");
     }
 
     @Test    @Ignore
-    public void testSetWindowSize() {
-        System.out.println("setWindowSize");
-        String size = "";
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.setWindowSize(size);
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testSetWindowSize() throws Exception {
+        LOG.entering(CLASS, "testSetWindowSize");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.setWindowSize)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testSetWindowSize");
     }
 
     @Test    @Ignore
-    public void testMaximizeWindow() {
-        System.out.println("maximizeWindow");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.maximizeWindow();
-        
-        Assertions.fail("The test case is a prototype.");
+    public void testMaximizeWindow() throws Exception {
+        LOG.entering(CLASS, "testMaximizeWindow");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.maximizeWindow)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testMaximizeWindow");
     }
 
     @Test    @Ignore
-    public void testFullscreen() {
-        System.out.println("testFullscreen");
-        MarionetteImpl instance = new MarionetteImpl();
-        String expResult = "";
-        //String result = instance.fullscreen();
-        
-        Assertions.fail("The test case is a prototype.");
-    }*/
+    public void testFullscreen() throws Exception {
+        LOG.entering(CLASS, "testFullscreen");
+        LOG.info(
+            MarionetteFactory.getAsync(HOST, PORT)
+            .thenCompose(c -> (client = c).newSession())
+            .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
+            .thenCompose(s -> client.fullscreen)
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        );
+        LOG.exiting(CLASS, "testFullscreen");
+    }
 }

@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -103,7 +104,7 @@ public class MarionetteUtil {
     }
     
     public static JsonValue toJsonValue(JsonArray json){
-        return get(json).asJsonObject().get("value");
+        return Optional.ofNullable(get(json).asJsonObject().get("value")).orElse(JsonValue.NULL);
     }
     
     public static boolean toBooleanValue(JsonArray json){

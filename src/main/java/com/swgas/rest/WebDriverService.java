@@ -1109,6 +1109,138 @@ public class WebDriverService {
         }
     }
 
+    //Dismiss Alert
+    @POST
+    @Path("/session/{session_id}/alert/dismiss")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String dismissAlert(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "dismissAlert", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .dismissDialog()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "dismissAlert", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "dismissAlert", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
+    }
+
+    //Accept Alert
+    @POST
+    @Path("/session/{session_id}/alert/accept")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String acceptAlert(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "acceptAlert", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .acceptDialog()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "acceptAlert", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "acceptAlert", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
+    }
+
+    //Get Alert Text
+    @GET
+    @Path("/session/{session_id}/alert/text")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAlertText(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "getAlertText", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .getTextFromDialog()
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(s -> MarionetteUtil.createResult("text", s))
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getAlertText", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getAlertText", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
+    }
+
+    //Send Alert Text
+    @POST
+    @Path("/session/{session_id}/alert/text")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String setAlertText(@PathParam("session_id") String sessionId, @FormParam("text") String text) {
+        LOG.entering(CLASS, "setAlertText", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .sendKeysToDialog(text)
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "setAlertText", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "setAlertText", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
+    }
+
+    //Take Screenshot
+    @GET
+    @Path("/session/{session_id}/screenshot")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getScreenshot(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "getScreenshot", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .takeScreenshot()
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(s -> MarionetteUtil.createResult("screenshot", s))            
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getScreenshot", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getScreenshot", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
+    }
+
+    //Take Element Screenshot
+    @GET
+    @Path("/session/{session_id}/element/{element_id}/screenshot")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getElementScreenshot(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId) {
+        LOG.entering(CLASS, "getScreenshot", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .takeScreenshot(elementId)
+            .thenApply(MarionetteUtil::toStringValue)
+            .thenApply(s -> MarionetteUtil.createResult("screenshot", s))            
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "getScreenshot", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "getScreenshot", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
+    }
+
     //Perform Actions
     @POST
     @Path("/session/{session_id}/actions")
@@ -1136,54 +1268,20 @@ public class WebDriverService {
     @Path("/session/{session_id}/actions")
     @Produces(MediaType.APPLICATION_JSON)
     public String releaseActions(@PathParam("session_id") String sessionId) {
-        return "??";
-    }
-
-    //Dismiss Alert
-    @POST
-    @Path("/session/{session_id}/alert/dismiss")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String dismissAlert(@PathParam("session_id") String sessionId) {
-        return "??";
-    }
-
-    //Accept Alert
-    @POST
-    @Path("/session/{session_id}/alert/accept")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String acceptAlert(@PathParam("session_id") String sessionId) {
-        return "??";
-    }
-
-    //Get Alert Text
-    @GET
-    @Path("/session/{session_id}/alert/text")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getAlertText(@PathParam("session_id") String sessionId) {
-        return "??";
-    }
-
-    //Send Alert Text
-    @POST
-    @Path("/session/{session_id}/alert/text")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String setAlertText(@PathParam("session_id") String sessionId) {
-        return "??";
-    }
-
-    //Take Screenshot
-    @GET
-    @Path("/session/{session_id}/screenshot")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getScreenshot(@PathParam("session_id") String sessionId) {
-        return "??";
-    }
-
-    //Take Element Screenshot
-    @GET
-    @Path("/session/{session_id}/element/{element_id}/screenshot")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getElementScreenshot(@PathParam("session_id") String sessionId) {
-        return "??";
+        LOG.entering(CLASS, "releaseActions", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .releaseActions()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "releaseActions", result);
+            return result;
+        //FIXME return http error
+        } catch(InterruptedException | ExecutionException | TimeoutException e){
+            LOG.throwing(CLASS, "releaseActions", e);
+            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+        }
     }
 }

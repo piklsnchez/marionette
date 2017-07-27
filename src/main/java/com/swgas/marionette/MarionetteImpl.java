@@ -273,7 +273,7 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<JsonArray> sendKeysToDialog(String text) {
-        String command = String.format("[0, %d, \"%s\", {\"value\": \"%s\"}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
+        String command = String.format("[0, %d, \"%s\", {\"text\": \"%s\"}]", messageId++, Command.sendKeysToDialog.getCommand(), text);
         return writeAsync(command);
     }
 
@@ -378,8 +378,26 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
+    public CompletableFuture<JsonArray> switchToFrame() {
+        String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\"}]", messageId++, Command.switchToFrame.getCommand());
+        return writeAsync(command);
+    }
+
+    @Override
     public CompletableFuture<JsonArray> switchToFrame(String id) {
         String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": %s}]", messageId++, Command.switchToFrame.getCommand(), null == id ? "null" : "\""+id+"\"");
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> switchToFrame(int id) {
+        String command = String.format("[0, %d, \"%s\", {\"focus\": \"true\", \"id\": %d}]", messageId++, Command.switchToFrame.getCommand(), id);
+        return writeAsync(command);
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> switchToShadowRoot() {
+        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.switchToShadowRoot.getCommand());
         return writeAsync(command);
     }
 
@@ -555,9 +573,9 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> takeScreenshot(List<String> elementIds) {
-        String command = String.format("[0, %d, \"%s\", {\"id\": null, \"highlights\": %s, \"full\": true}]"
-        , messageId++, Command.takeScreenshot.getCommand(), elementIds.stream().collect(Collectors.joining("\", \"", "[\"", "\"]")));
+    public CompletableFuture<JsonArray> takeScreenshot(String elementId) {
+        String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"highlights\": null, \"full\": true, \"scroll\": true}]"
+        , messageId++, Command.takeScreenshot.getCommand(), elementId);
         return writeAsync(command);
     }
 
@@ -605,6 +623,11 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<JsonArray> performActions() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public CompletableFuture<JsonArray> releaseActions() {
         throw new NotImplementedException();
     }
     

@@ -90,7 +90,10 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  switchToWindow              (String id);
     public CompletableFuture<JsonArray>  getActiveFrame              ();
     public CompletableFuture<JsonArray>  switchToParentFrame         ();
-    public CompletableFuture<JsonArray>  switchToFrame               (String element);
+    public CompletableFuture<JsonArray>  switchToFrame               ();
+    public CompletableFuture<JsonArray>  switchToFrame               (String id);
+    public CompletableFuture<JsonArray>  switchToFrame               (int id);
+    public CompletableFuture<JsonArray>  switchToShadowRoot          ();
     public CompletableFuture<JsonArray>  switchToShadowRoot          (String element);
     public CompletableFuture<JsonArray>  getCurrentUrl               ();
     public CompletableFuture<JsonArray>  getWindowType               ();
@@ -117,7 +120,7 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  deleteCookie                (String name);
     public CompletableFuture<JsonArray>  getCookies                  ();
     public CompletableFuture<JsonArray>  takeScreenshot              ();
-    public CompletableFuture<JsonArray>  takeScreenshot              (List<String> elements);
+    public CompletableFuture<JsonArray>  takeScreenshot              (String element);
     public CompletableFuture<JsonArray>  getScreenOrientation        ();
     public CompletableFuture<JsonArray>  setScreenOrientation        (Orientation orientation);
     public CompletableFuture<JsonArray>  getWindowRect               ();
@@ -126,4 +129,5 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  maximizeWindow              ();
     public CompletableFuture<JsonArray>  fullscreen                  ();
     public CompletableFuture<JsonArray>  performActions              ();
+    public CompletableFuture<JsonArray>  releaseActions              ();
 }

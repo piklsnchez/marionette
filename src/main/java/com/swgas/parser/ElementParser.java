@@ -8,6 +8,13 @@ import javax.json.JsonValue;
 
 public class ElementParser implements MarionetteParser<String> {
 
+    /**
+     * 
+     * @param json
+     * @return
+     * @deprecated Use MarionetteUtil::toElement
+     */
+    @Deprecated(forRemoval = true)
     @Override
     public String parseFrom(JsonArray json) {
         JsonValue[] tuple = getTuple(json);
