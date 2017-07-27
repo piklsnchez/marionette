@@ -5,19 +5,28 @@ import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteImpl;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URI;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import jdk.incubator.http.HttpClient;
+import jdk.incubator.http.HttpRequest;
+import jdk.incubator.http.HttpResponse;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -25,47 +34,69 @@ import org.junit.jupiter.api.Test;
 public class WebDriverServiceTest {
     private static final String CLASS = WebDriverServiceTest.class.getName();
     private static final Logger LOG   = Logger.getLogger(CLASS);
-    
+    private static final URI BASE_URI = URI.create("http://localhost:8080/wd");
+    private static       Server server;
+    private              String sessionId;
     private WebDriverService instance;
     
     public WebDriverServiceTest() {
     }
     
+    @BeforeAll
+    public void beforeAll(){
+        LOG.entering(CLASS, "berforeAll");
+        server = new Server();
+        LOG.entering(CLASS, "beforeAll", server);
+    }
+    
+    @AfterAll
+    public void afterAll(){
+        server.close();
+    }
+    
+    private static HttpResponse<String> GET(URI uri){
+        try{
+            return HttpClient.newHttpClient().send(HttpRequest.newBuilder(uri).GET().build(), HttpResponse.BodyHandler.asString());
+        } catch(IOException | InterruptedException e){
+            LOG.logp(Level.WARNING, CLASS, "GET", e.toString(), e);
+            return null;
+        }
+    }
+    
+    private static HttpResponse<String> DELETE(URI uri, String body){
+        try{
+            return HttpClient.newHttpClient().send(HttpRequest.newBuilder(uri).DELETE(HttpRequest.BodyProcessor.fromString(body)).build(), HttpResponse.BodyHandler.asString());
+        } catch(IOException | InterruptedException e){
+            LOG.logp(Level.WARNING, CLASS, "DELETE", e.toString(), e);
+            return null;
+        }
+    }
+    
     @BeforeEach
-    public void beforeEach(){
+    public void beforeEach() throws Exception {
         LOG.entering(CLASS, "beforeEach");
-        instance = new WebDriverService();
-        LOG.exiting(CLASS, "beforeEach");
+        try{
+            sessionId = GET(BASE_URI.resolve("session")).body();
+            //FIXME get rid of this            
+            //instance = new WebDriverService();
+            LOG.exiting(CLASS, "beforeEach");
+        } catch(Exception e){
+            LOG.throwing(CLASS, "beforeEach", e);
+            throw e;
+        }
     }
     
     @AfterEach
     public void afterEach() {
         LOG.entering(CLASS, "afterEach");
-        try{
-            Field sessionsField = instance.getClass().getDeclaredField("SESSIONS");
-            sessionsField.setAccessible(true);
-            Map<String, Session> sessions = (HashMap<String, Session>) sessionsField.get(null);
-            new ArrayList<>(sessions.keySet())
-            .forEach(s -> {
-                try{
-                    JsonObject result = MarionetteUtil.parseJsonObject(instance.deleteSession(s));
-                    LOG.info(String.format("deleting session: %s result: %s", s, result));
-                } catch(Exception e){
-                    ((MarionetteImpl)sessions.get(s).getClient()).shutdown();
-                    return;
-                }
-            });
-        } catch(Exception e){            
-            LOG.throwing(CLASS, "afterEach", e);
-            
-        }
+        DELETE(BASE_URI.resolve("session").resolve(sessionId), "");
         LOG.exiting(CLASS, "afterEach");
     }
 
     /**
      * Test of newSession method, of class WebDriverService.
      */
-    @Test
+    @Test @Disabled("runs anyway")
     public void testNewSession() {
         LOG.entering(CLASS, "testNewSession");
         try{
