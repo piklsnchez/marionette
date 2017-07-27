@@ -192,16 +192,9 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> sendKeysToElement(String elementId, String text) {        
-        /*JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();        
-        text.codePoints().forEachOrdered(c -> arrayBuilder.add(new String(Character.toChars(c))));*/
+    public CompletableFuture<JsonArray> sendKeysToElement(String elementId, String text) {
         String command = String.format("[0, %d, \"%s\", {\"id\": \"%s\", \"text\": \"%s\"}]"
-        , messageId++, Command.sendKeysToElement.getCommand(), elementId, /*text.codePoints()
-        .collect(
-            Json::createArrayBuilder
-            , (builder, item) -> builder.add(new String(Character.toChars(item)))
-            , (a,b)->{}
-        ).build().toString()*/text);
+        , messageId++, Command.sendKeysToElement.getCommand(), elementId, text);
         return writeAsync(command);
     }
 
@@ -523,20 +516,6 @@ public class MarionetteImpl implements Marionette {
     @Override
     public CompletableFuture<JsonArray> getLogs() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getLogs.getCommand());
-        return writeAsync(command);
-        //.thenApply(MarionetteParser.ARRAY::parseFrom)
-        //.thenApply(a -> a.stream().map(MarionetteParser.STRING::parseFrom).collect(Collectors.toList()));
-    }
-
-    @Override
-    public CompletableFuture<JsonArray> importScript(String script) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\"}]", messageId++, Command.importScript.getCommand(), script);
-        return writeAsync(command);
-    }
-
-    @Override
-    public CompletableFuture<JsonArray> clearImportedScripts() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.clearImportedScripts.getCommand());
         return writeAsync(command);
     }
 

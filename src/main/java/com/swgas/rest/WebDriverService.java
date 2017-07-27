@@ -1,14 +1,11 @@
 package com.swgas.rest;
 
-import com.swgas.exception.NotImplementedException;
 import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteFactory;
 import com.swgas.util.MarionetteUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
@@ -22,14 +19,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonValue;
-import static javax.json.JsonValue.ValueType.FALSE;
-import static javax.json.JsonValue.ValueType.TRUE;
-import static javax.json.JsonValue.ValueType.ARRAY;
-import static javax.json.JsonValue.ValueType.NULL;
-import static javax.json.JsonValue.ValueType.NUMBER;
-import static javax.json.JsonValue.ValueType.OBJECT;
-import static javax.json.JsonValue.ValueType.STRING;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -37,7 +26,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 
 @Path("/ws")

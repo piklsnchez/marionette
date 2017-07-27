@@ -113,8 +113,6 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  getActiveElement            ();
     public CompletableFuture<JsonArray>  log                         (LogLevel level, String message);
     public CompletableFuture<JsonArray>  getLogs                     ();
-    public CompletableFuture<JsonArray>  importScript                (String script);
-    public CompletableFuture<JsonArray>  clearImportedScripts        ();
     public CompletableFuture<JsonArray>  addCookie                   (String cookie);
     public CompletableFuture<JsonArray>  deleteAllCookies            ();
     public CompletableFuture<JsonArray>  deleteCookie                (String name);

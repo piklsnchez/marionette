@@ -138,7 +138,15 @@ public class MarionetteUtil {
     }
     
     public static JsonArray toArray(JsonArray json){
-        return get(json).asJsonArray();
+        LOG.entering(CLASS, "toArray", json);
+        try{
+            JsonArray result = get(json).asJsonArray();
+            LOG.exiting(CLASS, "toArray", result);
+            return result;
+        } catch(Exception e){
+            LOG.throwing(CLASS, "toArray", e);
+            throw e;
+        }
     }
     
     public static Rectangle2D toRectangle(JsonArray json){
