@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -41,6 +42,7 @@ public class WebDriverService {
     @POST
     @Path("/session")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String newSession() {
         LOG.entering(CLASS, "newSession");
         try{
@@ -57,7 +59,7 @@ public class WebDriverService {
             session.setSessionId(sessionId);
             
             SESSIONS.put(sessionId, session);
-            String result = MarionetteUtil.createResult("sessionId", sessionId);
+            String result = MarionetteUtil.createJson("sessionId", sessionId);
             LOG.exiting(CLASS, "newSession", result);
             return result;
             //FIXME return http error
@@ -71,6 +73,7 @@ public class WebDriverService {
     @DELETE
     @Path("/session/{session_id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String deleteSession(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "deleteSession", sessionId);
         Session session = SESSIONS.get(sessionId);
@@ -113,6 +116,7 @@ public class WebDriverService {
     @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String getStatus() {
         throw new RuntimeException("Not yet implemented");
     }
@@ -121,6 +125,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String getTimeouts(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "getTimeouts", sessionId);
         try{
@@ -143,12 +148,14 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setTimeouts(@PathParam("session_id") String sessionId, @FormParam("timeout") Marionette.Timeout timeout, @FormParam("duration") String duration) {
-        LOG.entering(CLASS, "setTimeouts", Stream.of(sessionId, timeout, duration).toArray());
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String setTimeouts(@PathParam("session_id") String sessionId, String body){
+        LOG.entering(CLASS, "setTimeouts", Stream.of(sessionId, body).toArray());
         try {
+            JsonObject json = MarionetteUtil.parseJsonObject(body);
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .setTimeouts(timeout, Duration.parse(duration))
+            .setTimeouts(Marionette.Timeout.valueOf(json.getString("timeout")), Duration.parse(json.getString("duration")))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
@@ -165,17 +172,13 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/url")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setUrl(@PathParam("session_id") String sessionId, @FormParam("url") String url) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String setUrl(@PathParam("session_id") String sessionId, String url) {
         LOG.entering(CLASS, "setUrl", Stream.of(sessionId, url).toArray());
-        if(!SESSIONS.containsKey(sessionId)){
-            RuntimeException e = new RuntimeException("No such session");
-            LOG.throwing(CLASS, "setUrl", e);
-            throw e;
-        }
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .get(url)
+            .get(MarionetteUtil.parseJsonObject(url).getString("url"))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
@@ -192,6 +195,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/url")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String getUrl(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "getUrl", sessionId);
         try{
@@ -199,7 +203,7 @@ public class WebDriverService {
             .getClient()
             .getCurrentUrl()
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(u -> MarionetteUtil.createResult("url", u))
+            .thenApply(u -> MarionetteUtil.createJson("url", u))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getUrl", result);
             return result;
@@ -214,6 +218,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/back")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String back(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "back", sessionId);
         try{
@@ -236,6 +241,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/forward")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String forward(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "forward", sessionId);
         try{
@@ -258,6 +264,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/refresh")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String refresh(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "refresh", sessionId);
         try{
@@ -280,6 +287,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/title")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String getTitle(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "getTitle", sessionId);
         try{
@@ -287,7 +295,7 @@ public class WebDriverService {
             .getClient()
             .getTitle()
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(v -> MarionetteUtil.createResult("title", v))
+            .thenApply(v -> MarionetteUtil.createJson("title", v))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getTitle", sessionId);
             return result;
@@ -302,6 +310,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/window")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String getWindow(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "getWindow", sessionId);
         try{
@@ -309,7 +318,7 @@ public class WebDriverService {
             .getClient()
             .getWindowHandle()
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(v -> MarionetteUtil.createResult("window", v))
+            .thenApply(v -> MarionetteUtil.createJson("window", v))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getWindow", sessionId);
             return result;
@@ -324,6 +333,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/window")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String setWindow(@PathParam("session_id") String sessionId, @FormParam("window") String window) {
         LOG.entering(CLASS, "setWindow", Stream.of(sessionId, window).toArray());
         try{
@@ -351,6 +361,7 @@ public class WebDriverService {
     @DELETE
     @Path("/session/{session_id}/window")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String closeWindow(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "closeWindow", sessionId);
         try{
@@ -568,7 +579,7 @@ public class WebDriverService {
             .getClient()
             .getActiveElement()
             .thenApply(MarionetteUtil::toElement)
-            .thenApply(e -> MarionetteUtil.createResult("element", e))
+            .thenApply(e -> MarionetteUtil.createJson("element", e))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getActiveElement", result);
             return result;
@@ -590,7 +601,7 @@ public class WebDriverService {
             .getClient()
             .findElement(using, value)
             .thenApply(MarionetteUtil::toElement)
-            .thenApply(e -> MarionetteUtil.createResult("element", e))
+            .thenApply(e -> MarionetteUtil.createJson("element", e))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElement", result);
             return result;
@@ -635,7 +646,7 @@ public class WebDriverService {
             .getClient()
             .findElementFromElement(using, value, elementId)
             .thenApply(MarionetteUtil::toElement)
-            .thenApply(e -> MarionetteUtil.createResult("element", e))
+            .thenApply(e -> MarionetteUtil.createJson("element", e))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElementFromElement", result);
             return result;
@@ -703,7 +714,7 @@ public class WebDriverService {
             .getClient()
             .getElementAttribute(elementId, name)
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(n -> MarionetteUtil.createResult("attribute", n))
+            .thenApply(n -> MarionetteUtil.createJson("attribute", n))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementAttribute", result);
             return result;
@@ -725,7 +736,7 @@ public class WebDriverService {
             .getClient()
             .getElementProperty(elementId, name)
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(n -> MarionetteUtil.createResult("property", n))
+            .thenApply(n -> MarionetteUtil.createJson("property", n))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementProperty", result);
             return result;
@@ -747,7 +758,7 @@ public class WebDriverService {
             .getClient()
             .getElementCssProperty(elementId, property)
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(n -> MarionetteUtil.createResult("css", n))
+            .thenApply(n -> MarionetteUtil.createJson("css", n))
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementCss", result);
@@ -770,7 +781,7 @@ public class WebDriverService {
             .getClient()
             .getElementText(elementId)
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(n -> MarionetteUtil.createResult("text", n))
+            .thenApply(n -> MarionetteUtil.createJson("text", n))
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementText", result);
@@ -793,7 +804,7 @@ public class WebDriverService {
             .getClient()
             .getElementTagName(elementId)
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(n -> MarionetteUtil.createResult("tag", n))
+            .thenApply(n -> MarionetteUtil.createJson("tag", n))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementTagName", result);
             return result;
@@ -926,7 +937,7 @@ public class WebDriverService {
             .getClient()
             .getPageSource()
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(s -> MarionetteUtil.createResult("source", s))
+            .thenApply(s -> MarionetteUtil.createJson("source", s))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getPageSource", result);
             return result;
@@ -1077,7 +1088,7 @@ public class WebDriverService {
 
     //Delete All Cookies
     @DELETE
-    @Path("/session/{session id)/cookie")
+    @Path("/session/{session_id}/cookie")
     @Produces(MediaType.APPLICATION_JSON)
     public String deleteAllCookies(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "deleteAllCookies", sessionId);
@@ -1152,7 +1163,7 @@ public class WebDriverService {
             .getClient()
             .getTextFromDialog()
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(s -> MarionetteUtil.createResult("text", s))
+            .thenApply(s -> MarionetteUtil.createJson("text", s))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getAlertText", result);
             return result;
@@ -1196,7 +1207,7 @@ public class WebDriverService {
             .getClient()
             .takeScreenshot()
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(s -> MarionetteUtil.createResult("screenshot", s))            
+            .thenApply(s -> MarionetteUtil.createJson("screenshot", s))            
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getScreenshot", result);
             return result;
@@ -1218,7 +1229,7 @@ public class WebDriverService {
             .getClient()
             .takeScreenshot(elementId)
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(s -> MarionetteUtil.createResult("screenshot", s))            
+            .thenApply(s -> MarionetteUtil.createJson("screenshot", s))            
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getScreenshot", result);
             return result;

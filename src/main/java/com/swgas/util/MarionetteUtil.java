@@ -38,7 +38,7 @@ public class MarionetteUtil {
         return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("width", 0), value.getInt("height", 0));
     }
     
-    public static String createResult(String key, String value){
+    public static String createJson(String key, String value){
         return Json.createObjectBuilder().add(key, value).build().toString();
     }
     
