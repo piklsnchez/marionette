@@ -334,12 +334,12 @@ public class WebDriverService {
     @Path("/session/{session_id}/window")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String setWindow(@PathParam("session_id") String sessionId, @FormParam("window") String window) {
+    public String setWindow(@PathParam("session_id") String sessionId, String window) {
         LOG.entering(CLASS, "setWindow", Stream.of(sessionId, window).toArray());
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .switchToWindow(window)
+            .switchToWindow(MarionetteUtil.parseJsonObject(window).getString("window"))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);

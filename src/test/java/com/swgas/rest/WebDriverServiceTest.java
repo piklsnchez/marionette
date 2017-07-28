@@ -5,7 +5,6 @@ import com.swgas.marionette.Marionette;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -134,6 +133,10 @@ public class WebDriverServiceTest {
             , Arrays.stream(WebDriverService.class.getDeclaredMethods()).filter(m -> Objects.equals(m.getName(), method)).findFirst().get().getAnnotation(Path.class).value()
         )).build(params);
     }
+    
+    private void setUrl(String url){
+        POST(getUri("setUrl", sessionId), MarionetteUtil.createJson("url",url));
+    }
 
     /**
      * Test of newSession method, of class WebDriverService.
@@ -245,7 +248,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testGetUrl");
         try{
             String url = "https://myaccountdev.swgas.com/";
-            POST(getUri("setUrl", sessionId), MarionetteUtil.createJson("url", url));
+            setUrl(url);
             String result = MarionetteUtil.parseJsonObject(GET(getUri("getUrl", sessionId)).body()).getString("url");
             Assertions.assertTrue(Objects.equals(url, result), String.format("\"%s\" should match \"%s\"", result, url));
             LOG.exiting(CLASS, "testGetUrl", result);
@@ -264,8 +267,8 @@ public class WebDriverServiceTest {
         try{
             String url       = "https://myaccountdev.swgas.com/agency";
             String expResult = "https://myaccountdev.swgas.com/";
-            POST(getUri("setUrl", sessionId), MarionetteUtil.createJson("url", expResult));            
-            POST(getUri("setUrl", sessionId), MarionetteUtil.createJson("url", url));
+            setUrl(expResult);
+            setUrl(url);
             POST(getUri("back", sessionId), "");
             String result = MarionetteUtil.parseJsonObject(GET(getUri("getUrl", sessionId)).body()).getString("url");
             Assertions.assertTrue(Objects.equals(expResult, result), String.format("%s should match %s", result, expResult));
@@ -279,18 +282,17 @@ public class WebDriverServiceTest {
     /**
      * Test of forward method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testForward() {
         LOG.entering(CLASS, "testForward");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
             String url       = "https://myaccountdev.swgas.com/agency";
             String expResult = "https://myaccountdev.swgas.com/";
-            instance.setUrl(sessionId, url);
-            instance.setUrl(sessionId, expResult);
-            instance.back(sessionId);
-            LOG.info(instance.forward(sessionId));
-            String result = MarionetteUtil.parseJsonObject(instance.getUrl(sessionId)).getString("url");
+            setUrl(url);
+            setUrl(expResult);
+            POST(getUri("back", sessionId), "");
+            POST(getUri("forward", sessionId), "");
+            String result = MarionetteUtil.parseJsonObject(GET(getUri("getUrl", sessionId)).body()).getString("url");
             Assertions.assertTrue(Objects.equals(expResult, result), String.format("%s should match %s", result, expResult));
             LOG.exiting(CLASS, "testForward", result);
         } catch(Exception e){
@@ -302,12 +304,11 @@ public class WebDriverServiceTest {
     /**
      * Test of refresh method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testRefresh() {
         LOG.entering(CLASS, "testRefresh");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            String result    = instance.refresh(sessionId);
+            String result = POST(getUri("refresh", sessionId), "").body();
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testRefresh", result);
         } catch(Exception e){
@@ -319,14 +320,13 @@ public class WebDriverServiceTest {
     /**
      * Test of getTitle method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetTitle() {
         LOG.entering(CLASS, "testGetTitle");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
             String expResult = "Southwest Gas - MyAccount Home";
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String result = MarionetteUtil.parseJsonObject(instance.getTitle(sessionId)).getString("title");
+            setUrl("https://myaccountdev.swgas.com/");
+            String result = MarionetteUtil.parseJsonObject(GET(getUri("getTitle", sessionId)).body()).getString("title");
             Assertions.assertTrue(Objects.equals(result, expResult), String.format("%s should match %s", result, expResult));
             LOG.exiting(CLASS, "testGetTitle", result);
         } catch(Exception e){
@@ -338,12 +338,11 @@ public class WebDriverServiceTest {
     /**
      * Test of getWindow method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetWindow() {
         LOG.entering(CLASS, "testGetWindow");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            String result    = MarionetteUtil.parseJsonObject(instance.getWindow(sessionId)).getString("window");
+            String result    = MarionetteUtil.parseJsonObject(GET(getUri("getWindow", sessionId)).body()).getString("window");
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testGetWindow", result);
         } catch(Exception e){
@@ -355,13 +354,12 @@ public class WebDriverServiceTest {
     /**
      * Test of setWindow method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSetWindow() {
         LOG.entering(CLASS, "testSetWindow");
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            String expResult  = MarionetteUtil.parseJsonObject(instance.getWindow(sessionId)).getString("window");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.setWindow(sessionId, expResult));
+            String expResult  = MarionetteUtil.parseJsonObject(GET(getUri("getWindow", sessionId)).body()).getString("window");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setWindow", sessionId), MarionetteUtil.createJson("window", expResult)).body());
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testSetWindow", result);
         } catch(Exception e){

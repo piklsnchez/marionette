@@ -31,7 +31,7 @@ public class MarionetteUtil {
     
     public static JsonArray parseJsonArray(String json){
         return Json.createReader(new StringReader(json)).readArray();
-    }    
+    }
     
     public static Rectangle2D parseRectangle(String json){
         JsonObject value = Json.createReader(new StringReader(json)).readObject();
