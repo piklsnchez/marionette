@@ -18,11 +18,11 @@ public class Session {
     }
     
     public Session(String sessionId, Process proc, Marionette client){
-        LOG.entering(CLASS, "<init>", Stream.of(sessionId, proc, client).toArray());
+        //LOG.entering(CLASS, "<init>", Stream.of(sessionId, proc, client).toArray());
         this.sessionId = sessionId;
         this.proc      = proc;
         this.client    = client;
-        LOG.exiting(CLASS, "<init>", this);
+        //LOG.exiting(CLASS, "<init>", this);
     }
 
     /**
@@ -36,9 +36,9 @@ public class Session {
      * @param sessionId the sessionId to set
      */
     public void setSessionId(String sessionId) {
-        LOG.entering(CLASS, "setSessionId", sessionId);
+        //LOG.entering(CLASS, "setSessionId", sessionId);
         this.sessionId = sessionId;
-        LOG.exiting(CLASS, "setSessionId");
+        //LOG.exiting(CLASS, "setSessionId");
     }
 
     /**
@@ -52,9 +52,9 @@ public class Session {
      * @param proc the proc to set
      */
     public void setProc(Process proc) {
-        LOG.entering(CLASS, "setProc", proc);
+        //LOG.entering(CLASS, "setProc", proc);
         this.proc = proc;
-        LOG.exiting(CLASS, "setProc");
+        //LOG.exiting(CLASS, "setProc");
     }
 
     /**
@@ -68,9 +68,9 @@ public class Session {
      * @param client the client to set
      */
     public void setClient(Marionette client) {
-        LOG.entering(CLASS, "setClient", client);
+        //LOG.entering(CLASS, "setClient", client);
         this.client = client;
-        LOG.exiting(CLASS, "setClient");
+        //LOG.exiting(CLASS, "setClient");
     }
     
     @Override

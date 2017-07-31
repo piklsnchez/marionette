@@ -415,19 +415,20 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/frame")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setFrame(@PathParam("session_id") String sessionId, @FormParam("id") String id) {
-        LOG.entering(CLASS, "setFrame", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String setFrame(@PathParam("session_id") String sessionId, String id) {
+        LOG.entering(CLASS, "setFrame", Stream.of(sessionId, id).toArray());
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .switchToFrame(id)
+            .switchToFrame(MarionetteUtil.parseJsonObject(id).getString("id", null))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "setFrame", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "setFrame", e);
             throw new RuntimeException(e);
         }
@@ -481,7 +482,8 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/window/rect")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setWindowRect(@PathParam("session_id") String sessionId, @FormParam("rect") String rect) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String setWindowRect(@PathParam("session_id") String sessionId, String rect) {
         LOG.entering(CLASS, "setWindowRect", sessionId);
         try{
             String result = SESSIONS.get(sessionId)
@@ -594,19 +596,21 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElement(@PathParam("session_id") String sessionId, @FormParam("using") Marionette.SearchMethod using, @FormParam("value") String value) {
-        LOG.entering(CLASS, "findElement", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String findElement(@PathParam("session_id") String sessionId, String json){
+        LOG.entering(CLASS, "findElement", Stream.of(sessionId, json).toArray());
+        JsonObject find = MarionetteUtil.parseJsonObject(json);
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .findElement(using, value)
+            .findElement(Marionette.SearchMethod.valueOf(find.getString("using")), find.getString("value"))
             .thenApply(MarionetteUtil::toElement)
             .thenApply(e -> MarionetteUtil.createJson("element", e))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElement", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "findElement", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
@@ -616,12 +620,14 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/elements")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElements(@PathParam("session_id") String sessionId, @FormParam("using") Marionette.SearchMethod using, @FormParam("value") String value) {
-        LOG.entering(CLASS, "findElements", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String findElements(@PathParam("session_id") String sessionId, String json) {
+        LOG.entering(CLASS, "findElements", Stream.of(sessionId, json).toArray());
+        JsonObject find = MarionetteUtil.parseJsonObject(json);
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .findElements(using, value)
+            .findElements(Marionette.SearchMethod.valueOf(find.getString("using")), find.getString("value"))
             .thenApply(MarionetteUtil::toElements)
             .thenApply(e -> Json.createArrayBuilder(e).build())
             .thenApply(Objects::toString)
@@ -629,7 +635,7 @@ public class WebDriverService {
             LOG.exiting(CLASS, "findElements", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "findElements", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
@@ -639,12 +645,14 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/element")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElementFromElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, @FormParam("using") Marionette.SearchMethod using, @FormParam("value") String value) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String findElementFromElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, String json) {
         LOG.entering(CLASS, "findElementFromElement", sessionId);
+        JsonObject find = MarionetteUtil.parseJsonObject(json);
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .findElementFromElement(using, value, elementId)
+            .findElementFromElement(Marionette.SearchMethod.valueOf(find.getString("using")), find.getString("value"), elementId)
             .thenApply(MarionetteUtil::toElement)
             .thenApply(e -> MarionetteUtil.createJson("element", e))
             .get(TIMEOUT, TimeUnit.SECONDS);
@@ -661,21 +669,23 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/elements")
     @Produces(MediaType.APPLICATION_JSON)
-    public String findElementsFromElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, @FormParam("using") Marionette.SearchMethod using, @FormParam("value") String value) {
-        LOG.entering(CLASS, "findElements", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String findElementsFromElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, String json) {
+        LOG.entering(CLASS, "findElementsFromElement", sessionId);
+        JsonObject find = MarionetteUtil.parseJsonObject(json);
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .findElementsFromElement(using, value, elementId)
+            .findElementsFromElement(Marionette.SearchMethod.valueOf(find.getString("using")), find.getString("value"), elementId)
             .thenApply(MarionetteUtil::toElements)
             .thenApply(e -> Json.createArrayBuilder(e).build())
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
-            LOG.exiting(CLASS, "findElements", result);
+            LOG.exiting(CLASS, "findElementsFromElement", result);
             return result;
         //FIXME return http error
         } catch(InterruptedException | ExecutionException | TimeoutException e){
-            LOG.throwing(CLASS, "findElements", e);
+            LOG.throwing(CLASS, "findElementsFromElement", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
     }
@@ -908,19 +918,20 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/element/{element_id}/value")
     @Produces(MediaType.APPLICATION_JSON)
-    public String sendKeysToElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, @FormParam("keys") String keys) {
-        LOG.entering(CLASS, "sendKeysToElement", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String sendKeysToElement(@PathParam("session_id") String sessionId, @PathParam("element_id") String elementId, String json) {
+        LOG.entering(CLASS, "sendKeysToElement", Stream.of(sessionId, elementId, json).toArray());
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .sendKeysToElement(elementId, keys)
+            .sendKeysToElement(elementId, MarionetteUtil.parseJsonObject(json).getString("keys"))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "sendKeysToElement", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "sendKeysToElement", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
@@ -942,7 +953,7 @@ public class WebDriverService {
             LOG.exiting(CLASS, "getPageSource", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getPageSource", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
@@ -952,12 +963,14 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/execute/sync")
     @Produces(MediaType.APPLICATION_JSON)
-    public String executeScript(@PathParam("session_id") String sessionId, @FormParam("script") String script, @FormParam("args") String args) {
-        LOG.entering(CLASS, "executeScript", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String executeScript(@PathParam("session_id") String sessionId, String json) {
+        LOG.entering(CLASS, "executeScript", Stream.of(sessionId, json).toArray());
+        JsonObject script = MarionetteUtil.parseJsonObject(json);
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .executeScript(script, args, null, null)
+            .executeScript(script.getString("script"), script.getString("args"), null, null)
             .thenApply(MarionetteUtil::toJsonValue)
             .thenApply(r -> Json.createObjectBuilder().add("return", r).build())
             .thenApply(Objects::toString)
@@ -975,12 +988,14 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/execute/async")
     @Produces(MediaType.APPLICATION_JSON)
-    public String executeScriptAsync(@PathParam("session_id") String sessionId, @FormParam("script") String script, @FormParam("args") String args) {
-        LOG.entering(CLASS, "executeScriptAsync", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String executeScriptAsync(@PathParam("session_id") String sessionId, String json) {
+        LOG.entering(CLASS, "executeScriptAsync", Stream.of(sessionId, json).toArray());
+        JsonObject script = MarionetteUtil.parseJsonObject(json);
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .executeAsyncScript(script, args, null, null, null)
+            .executeAsyncScript(script.getString("script"), script.getString("args"), null, null, null)
             .thenApply(MarionetteUtil::toJsonValue)
             .thenApply(r -> Json.createObjectBuilder().add("return", r).build())
             .thenApply(Objects::toString)
@@ -1046,6 +1061,7 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/cookie")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public String addCookie(@PathParam("session_id") String sessionId, String cookie) {
         LOG.entering(CLASS, "addCookie", sessionId);
         try{
@@ -1058,7 +1074,7 @@ public class WebDriverService {
             LOG.exiting(CLASS, "addCookie", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "addCookie", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
@@ -1068,8 +1084,8 @@ public class WebDriverService {
     @DELETE
     @Path("/session/{session_id}/cookie/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String deleteCookie(@PathParam("session_id") String sessionId, @FormParam("cookie") String cookie) {
-        LOG.entering(CLASS, "deleteCookie", sessionId);
+    public String deleteCookie(@PathParam("session_id") String sessionId, @PathParam("name") String cookie) {
+        LOG.entering(CLASS, "deleteCookie", Stream.of(sessionId, cookie).toArray());
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
@@ -1080,7 +1096,7 @@ public class WebDriverService {
             LOG.exiting(CLASS, "deleteCookie", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "deleteCookie", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
@@ -1178,12 +1194,13 @@ public class WebDriverService {
     @POST
     @Path("/session/{session_id}/alert/text")
     @Produces(MediaType.APPLICATION_JSON)
-    public String setAlertText(@PathParam("session_id") String sessionId, @FormParam("text") String text) {
-        LOG.entering(CLASS, "setAlertText", sessionId);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String setAlertText(@PathParam("session_id") String sessionId, String json) {
+        LOG.entering(CLASS, "setAlertText", Stream.of(sessionId, json).toArray());
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .sendKeysToDialog(text)
+            .sendKeysToDialog(MarionetteUtil.parseJsonObject(json).getString("text"))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
@@ -1256,7 +1273,7 @@ public class WebDriverService {
             LOG.exiting(CLASS, "performActions", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "performActions", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }
@@ -1278,7 +1295,7 @@ public class WebDriverService {
             LOG.exiting(CLASS, "releaseActions", result);
             return result;
         //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "releaseActions", e);
             throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
         }

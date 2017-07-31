@@ -96,7 +96,8 @@ public class WebDriverServiceTest {
             result = HttpClient.newHttpClient().send(
                 HttpRequest.newBuilder(uri)
                 .version(HttpClient.Version.HTTP_1_1)
-                .headers("Accept","application/json","Content-Type","application/json")
+                .headers("Accept",      "application/json"
+                        ,"Content-Type","application/json")
                 .POST(HttpRequest.BodyProcessor.fromString(body))
                 .build()
                 , HttpResponse.BodyHandler.asString()
@@ -372,13 +373,12 @@ public class WebDriverServiceTest {
      * Test of closeWindow method, of class WebDriverService.
      * webservice returns array
      */
-    @Test @Disabled
+    @Test
     public void testCloseWindow() {
         LOG.entering(CLASS, "testCloseWindow");
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String result = instance.closeWindow(sessionId);
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonArray result = MarionetteUtil.parseJsonArray(DELETE(getUri("closeWindow", sessionId), "").body());
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testCloseWindow", result);            
         } catch(Exception e){
@@ -391,12 +391,11 @@ public class WebDriverServiceTest {
      * Test of getWindows method, of class WebDriverService.
      * webservice returns array
      */
-    @Test @Disabled
+    @Test
     public void testGetWindows() {
         LOG.entering(CLASS, "testGetWindows");
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonArray result  = MarionetteUtil.parseJsonArray(instance.getWindows(sessionId));
+            JsonArray result  = MarionetteUtil.parseJsonArray(GET(getUri("getWindows", sessionId)).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testGetWindows", result);
         } catch(Exception e){
@@ -408,12 +407,11 @@ public class WebDriverServiceTest {
     /**
      * Test of setFrame method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSetFrame() {
         LOG.entering(CLASS, "testSetFrame");
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.setFrame(sessionId, null));
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setFrame", sessionId), Json.createObjectBuilder().addNull("id").build().toString()).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testSetFrame", result);
         } catch(Exception e){
@@ -425,12 +423,11 @@ public class WebDriverServiceTest {
     /**
      * Test of parentFrame method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testParentFrame() {
         LOG.entering(CLASS, "testParentFrame");
         try{        
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.setParentFrame(sessionId));
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setParentFrame", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testSetFrame", result);
         } catch(Exception e){
@@ -442,12 +439,11 @@ public class WebDriverServiceTest {
     /**
      * Test of getWindowRect method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetWindowRect() {
         LOG.entering(CLASS, "testGetWindowRect");
-        try{        
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            Rectangle2D result = MarionetteUtil.parseRectangle(instance.getWindowRect(sessionId));
+        try{
+            Rectangle2D result = MarionetteUtil.parseRectangle(GET(getUri("getWindowRect", sessionId)).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testGetWindowRect", result);
         } catch(Exception e){
@@ -459,13 +455,12 @@ public class WebDriverServiceTest {
     /**
      * Test of setWindowRect method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSetWindowRect() {
         LOG.entering(CLASS, "testSetWindowRect");
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.setWindowRect(sessionId
-                , Json.createObjectBuilder().add("x",0).add("y",0).add("width",100).add("height",100).build().toString())
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setWindowRect", sessionId)
+                , Json.createObjectBuilder().add("x",0).add("y",0).add("width",100).add("height",100).build().toString()).body()
             );
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testSetWindowRect", result);
@@ -498,12 +493,11 @@ public class WebDriverServiceTest {
     /**
      * Test of maximizeWindow method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testMaximizeWindow() {
         LOG.entering(CLASS, "testMaximizeWindow");        
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.maximizeWindow(sessionId));
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("maximizeWindow", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testMaximizeWindow", result);
         } catch(Exception e){
@@ -532,12 +526,11 @@ public class WebDriverServiceTest {
     /**
      * Test of getActiveElement method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetActiveElement() {
         LOG.entering(CLASS, "testGetActiveElement");
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getActiveElement(sessionId));
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getActiveElement", sessionId)).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testGetActiveElement", result);
         } catch(Exception e){
@@ -549,13 +542,15 @@ public class WebDriverServiceTest {
     /**
      * Test of findElement method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testFindElement() {
         LOG.entering(CLASS, "testFindElement");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "body"));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(
+                getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
+            ).body());
             Assertions.assertTrue(!result.getString("element").isEmpty());
             LOG.exiting(CLASS, "testFindElement", result);
         } catch(Exception e){
@@ -567,13 +562,15 @@ public class WebDriverServiceTest {
     /**
      * Test of findElements method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testFindElements() {
         LOG.entering(CLASS, "testFindElements");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonArray result = MarionetteUtil.parseJsonArray(instance.findElements(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "body"));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonArray result = MarionetteUtil.parseJsonArray(POST(
+                getUri("findElements", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
+            ).body());
             Assertions.assertTrue(!result.getString(0).isEmpty());
             LOG.exiting(CLASS, "testFindElements", result);
         } catch(Exception e){
@@ -585,15 +582,20 @@ public class WebDriverServiceTest {
     /**
      * Test of findElementFromElement method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testFindElementFromElement() {
         LOG.entering(CLASS, "testFindElementFromElement");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "body"));
-            Assertions.assertTrue(!result.getString("element").isEmpty());
-            result = MarionetteUtil.parseJsonObject(instance.findElementFromElement(sessionId, result.getString("element"), Marionette.SearchMethod.ID, "menu_myaccount"));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(
+                getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
+            ).body());
+            Assertions.assertTrue(!result.getString("element", "").isEmpty(), String.format("result: %s", result));
+            result = MarionetteUtil.parseJsonObject(POST(
+                getUri("findElementFromElement" ,sessionId, result.getString("element"))
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body());
             Assertions.assertTrue(!result.getString("element").isEmpty());
             LOG.exiting(CLASS, "testFindElementFromElement", result);
         } catch(Exception e){
@@ -605,15 +607,20 @@ public class WebDriverServiceTest {
     /**
      * Test of findElementsFromElement method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testFindElementsFromElement() {
         LOG.entering(CLASS, "testFindElementsFromElement");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "body"));
-            Assertions.assertTrue(!result.getString("element").isEmpty());
-            JsonArray elements = MarionetteUtil.parseJsonArray(instance.findElementsFromElement(sessionId, result.getString("element"), Marionette.SearchMethod.ID, "menu_myaccount"));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(
+                getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
+            ).body());
+            Assertions.assertTrue(!result.getString("element", "").isEmpty(), String.format("result: %s", result));
+            JsonArray elements = MarionetteUtil.parseJsonArray(POST(
+                getUri("findElementsFromElement", sessionId, result.getString("element"))
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body());
             Assertions.assertTrue(!elements.getString(0).isEmpty());
             LOG.exiting(CLASS, "testFindElementsFromElement", elements);
         } catch(Exception e){
@@ -625,14 +632,15 @@ public class WebDriverServiceTest {
     /**
      * Test of isElementSelected method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testIsElementSelected() {
         LOG.entering(CLASS, "testIsElementSelected");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.isElementSelected(sessionId, elementId));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("isElementSelected", sessionId, elementId)).body());
             Assertions.assertTrue(!result.getBoolean("selected"));
             LOG.exiting(CLASS, "testIsElementSelected", result);
         } catch(Exception e){
@@ -644,14 +652,15 @@ public class WebDriverServiceTest {
     /**
      * Test of getElementAttribute method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementAttribute() {
         LOG.entering(CLASS, "testGetElementAttribute");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getElementAttribute(sessionId, elementId, "id"));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getElementAttribute", sessionId, elementId, "id")).body());
             Assertions.assertTrue(Objects.equals("menu_myaccount", result.getString("attribute")));
             LOG.exiting(CLASS, "testGetElementAttribute", result);
         } catch(Exception e){
@@ -663,14 +672,15 @@ public class WebDriverServiceTest {
     /**
      * Test of getElementProperty method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementProperty() {
         LOG.entering(CLASS, "testGetElementProperty");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getElementProperty(sessionId, elementId, "id"));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getElementProperty", sessionId, elementId, "id")).body());
             Assertions.assertTrue(Objects.equals("menu_myaccount", result.getString("property")));
             LOG.exiting(CLASS, "testGetElementProperty", result);
         } catch(Exception e){
@@ -682,14 +692,15 @@ public class WebDriverServiceTest {
     /**
      * Test of getElementCss method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementCss() {
         LOG.entering(CLASS, "testGetElementCss");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getElementCssProperty(sessionId, elementId, "width"));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getElementCssProperty", sessionId, elementId, "width")).body());
             Assertions.assertTrue(null != result.getString("css"));
             LOG.exiting(CLASS, "testGetElementCss", result);
         } catch(Exception e){
@@ -701,14 +712,15 @@ public class WebDriverServiceTest {
     /**
      * Test of getElementText method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementText() {
         LOG.entering(CLASS, "testGetElementText");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getElementText(sessionId, elementId));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getElementText", sessionId, elementId)).body());
             Assertions.assertTrue(null != result.getString("text"));
             LOG.exiting(CLASS, "testGetElementText", result);
         } catch(Exception e){
@@ -720,14 +732,15 @@ public class WebDriverServiceTest {
     /**
      * Test of getElementTagName method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementTagName() {
         LOG.entering(CLASS, "testGetElementTagName");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getElementTagName(sessionId, elementId));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getElementTagName", sessionId, elementId)).body());
             Assertions.assertTrue(null != result.getString("tag"));
             LOG.exiting(CLASS, "testGetElementTagName", result);
         } catch(Exception e){
@@ -739,14 +752,15 @@ public class WebDriverServiceTest {
     /**
      * Test of getElementDimension method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementRect() {
         LOG.entering(CLASS, "testGetElementRect");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId  = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            Rectangle2D result = MarionetteUtil.parseRectangle(instance.getElementRect(sessionId, elementId));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId  = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            Rectangle2D result = MarionetteUtil.parseRectangle(GET(getUri("getElementRect", sessionId, elementId)).body());
             Assertions.assertTrue(result.getWidth() > 0.0d, String.format("width(%f) should be greater than zero", result.getWidth()));
             LOG.exiting(CLASS, "testGetElementRect", result);
         } catch(Exception e){
@@ -758,14 +772,15 @@ public class WebDriverServiceTest {
     /**
      * Test of isElementEnabled method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testIsElementEnabled() {
         LOG.entering(CLASS, "testIsElementEnabled");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId  = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.isElementEnabled(sessionId, elementId));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId  = MarionetteUtil.parseJsonObject(POST(getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("isElementEnabled", sessionId, elementId)).body());
             Assertions.assertTrue(result.getBoolean("enabled"));
             LOG.exiting(CLASS, "testIsElementEnabled", result);
         } catch(Exception e){
@@ -777,14 +792,16 @@ public class WebDriverServiceTest {
     /**
      * Test of clickElement method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testClickElement() {
         LOG.entering(CLASS, "testClickElement");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId  = MarionetteUtil.parseJsonArray(instance.findElements(sessionId, Marionette.SearchMethod.ID, "menu_myaccount")).getString(1);
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.clickElement(sessionId, elementId));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId  = MarionetteUtil.parseJsonArray(POST(
+                getUri("findElements", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
+            ).body()).getString(1);
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("clickElement", sessionId, elementId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testClickElement", result);
         } catch(Exception e){
@@ -796,14 +813,16 @@ public class WebDriverServiceTest {
     /**
      * Test of clearElement method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testClearElement() {
         LOG.entering(CLASS, "testClearElement");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId  = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "input[name='username']")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.clearElement(sessionId, elementId));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId  = MarionetteUtil.parseJsonObject(POST(
+                getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "input[name='username']").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("clearElement", sessionId, elementId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testClearElement", result);
         } catch(Exception e){
@@ -815,14 +834,19 @@ public class WebDriverServiceTest {
     /**
      * Test of sendKeysToElement method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSendKeysToElement() {
         LOG.entering(CLASS, "testSendKeysToElement");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String elementId  = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "input[name='username']")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.sendKeysToElement(sessionId, elementId, "userName"));
+            setUrl("https://myaccountdev.swgas.com/");
+            String elementId  = MarionetteUtil.parseJsonObject(POST(
+                getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "input[name='username']").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(
+                getUri("sendKeysToElement", sessionId, elementId)
+                , MarionetteUtil.createJson("keys", "userName")
+            ).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testSendKeysToElement", result);
         } catch(Exception e){
@@ -834,13 +858,12 @@ public class WebDriverServiceTest {
     /**
      * Test of getPageSource method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetPageSource() {
         LOG.entering(CLASS, "testGetPageSource");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/maintenance/");
-            String result = MarionetteUtil.parseJsonObject(instance.getPageSource(sessionId)).getString("source");
+            setUrl("https://myaccountdev.swgas.com/maintenance/");
+            String result = MarionetteUtil.parseJsonObject(GET(getUri("getPageSource", sessionId)).body()).getString("source");
             Assertions.assertTrue(!result.isEmpty());
             LOG.exiting(CLASS, "testGetPageSource", result);
         } catch(Exception e){
@@ -852,13 +875,15 @@ public class WebDriverServiceTest {
     /**
      * Test of executeScript method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testExecuteScript() {
         LOG.entering(CLASS, "testExecuteScript");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.executeScript(sessionId, "return document.querySelector('#menu_myaccount')", "[]"));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(
+                getUri("executeScript", sessionId)
+                , Json.createObjectBuilder().add("script", "return document.querySelector('#menu_myaccount')").add("args", "[]").build().toString()
+            ).body());
             Assertions.assertTrue(null != result.get("return"));
             LOG.exiting(CLASS, "testExecuteScript", result);
         } catch(Exception e){
@@ -876,7 +901,10 @@ public class WebDriverServiceTest {
         try{
             String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
             instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.executeScriptAsync(sessionId, "setTimeout(function(){return 1;}, 500);", "[]"));
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(
+                getUri("executeScriptAsync", sessionId)
+                , Json.createObjectBuilder().add("script", "setTimeout(function(){return 1;}, 500);").add("args", "[]").build().toString()
+            ).body());
             Assertions.assertTrue(null != result.get("return"));
             LOG.exiting(CLASS, "testExecuteScriptAsync", result);
         } catch(Exception e){
@@ -888,13 +916,12 @@ public class WebDriverServiceTest {
     /**
      * Test of getCookies method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetCookies() {
         LOG.entering(CLASS, "testGetCookies");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonArray result = MarionetteUtil.parseJsonArray(instance.getCookies(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonArray result = MarionetteUtil.parseJsonArray(GET(getUri("getCookies", sessionId)).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testGetCookies", result);
         } catch(Exception e){
@@ -906,13 +933,12 @@ public class WebDriverServiceTest {
     /**
      * Test of getCookie method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetCookie() {
         LOG.entering(CLASS, "testGetCookie");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getCookie(sessionId, "cookieName"));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getCookie", sessionId, "cookieName")).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testGetCookie", result);
         } catch(Exception e){
@@ -924,7 +950,7 @@ public class WebDriverServiceTest {
     /**
      * Test of addCookie method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testAddCookie() {
         LOG.entering(CLASS, "testAddCookie");
         try{
@@ -935,9 +961,8 @@ public class WebDriverServiceTest {
             .add("domain", ".swgas.com")
             .add("expires", LocalDateTime.now().plusDays(5).toEpochSecond(ZoneOffset.UTC))
             .build().toString();
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.addCookie(sessionId, cookie));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("addCookie", sessionId), cookie).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testAddCookie", result);
         } catch(Exception e){
@@ -949,13 +974,12 @@ public class WebDriverServiceTest {
     /**
      * Test of deleteCookie method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testDeleteCookie() {
         LOG.entering(CLASS, "testDeleteCookie");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.deleteCookie(sessionId, "cookieName"));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(DELETE(getUri("deleteCookie", sessionId, "cookieName"), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testDeleteCookie", result);
         } catch(Exception e){
@@ -967,13 +991,12 @@ public class WebDriverServiceTest {
     /**
      * Test of testDeleteAllCookies method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testDeleteAllCookies() {
         LOG.entering(CLASS, "testDeleteAllCookies");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.deleteAllCookies(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(DELETE(getUri("deleteAllCookies", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testDeleteAllCookies", result);
         } catch(Exception e){
@@ -989,9 +1012,8 @@ public class WebDriverServiceTest {
     public void testPerformActions() {
         LOG.entering(CLASS, "testPerformActions");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.performActions(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("performActions", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testPerformActions", result);
         } catch(Exception e){
@@ -1005,10 +1027,10 @@ public class WebDriverServiceTest {
      */
     @Test @Disabled("Not Implemented")
     public void testReleaseActions() {
+        LOG.entering(CLASS, "testReleaseActions");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.releaseActions(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("releaseActions", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testReleaseActions", result);
         } catch(Exception e){
@@ -1020,13 +1042,13 @@ public class WebDriverServiceTest {
     /**
      * Test of dismissAlert method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testDismissAlert() {
+        LOG.entering(CLASS, "testDismissAlert");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            instance.executeScript(sessionId, "window.alert('alert');", "[]");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.dismissAlert(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", "window.alert('alert');").add("args", "[]").build().toString());
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("dismissAlert", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testDismissAlert", result);
         } catch(Exception e){
@@ -1038,13 +1060,13 @@ public class WebDriverServiceTest {
     /**
      * Test of acceptAlert method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testAcceptAlert() {
+        LOG.entering(CLASS, "testAcceptAlert");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            instance.executeScript(sessionId, "window.alert('alert');", "[]");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.acceptAlert(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", "window.alert('alert');").add("args", "[]").build().toString());
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("acceptAlert", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testAcceptAlert", result);
         } catch(Exception e){
@@ -1056,14 +1078,14 @@ public class WebDriverServiceTest {
     /**
      * Test of getAlertText method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetAlertText() {
+        LOG.entering(CLASS, "testGetAlertText");
         String expected = "alert";
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            instance.executeScript(sessionId, String.format("window.alert('%s');", expected), "[]");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getAlertText(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", String.format("window.alert('%s');", expected)).add("args", "[]").build().toString());
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getAlertText", sessionId)).body());
             Assertions.assertTrue(Objects.equals(expected, result.getString("text")), String.format("result should be %s but was %s", expected, result.getString("text")));
             LOG.exiting(CLASS, "testGetAlertText", result);
         } catch(Exception e){
@@ -1075,14 +1097,14 @@ public class WebDriverServiceTest {
     /**
      * Test of setAlertText method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testSetAlertText() {
+        LOG.entering(CLASS, "testSetAlertText");
         String expected = "trela";
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            instance.executeScript(sessionId, "window.prompt('alert');", "[]");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.setAlertText(sessionId, expected));
+            setUrl("https://myaccountdev.swgas.com/");
+            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", "window.prompt('alert');").add("args", "[]").build().toString());
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setAlertText", sessionId), MarionetteUtil.createJson("text", expected)).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testSetAlertText", result);
         } catch(Exception e){
@@ -1094,12 +1116,12 @@ public class WebDriverServiceTest {
     /**
      * Test of getScreenshot method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetScreenshot() {
+        LOG.entering(CLASS, "testGetScreenshot");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getScreenshot(sessionId));
+            setUrl("https://myaccountdev.swgas.com/");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getScreenshot", sessionId)).body());
             Assertions.assertTrue(!result.getString("screenshot","").isEmpty());
             LOG.exiting(CLASS, "testGetScreenshot", result);
         } catch(Exception e){
@@ -1111,13 +1133,16 @@ public class WebDriverServiceTest {
     /**
      * Test of getElementScreenshot method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetElementScreenshot() {
+        LOG.entering(CLASS, "testGetElementScreenshot");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
-            String element = MarionetteUtil.parseJsonObject(instance.findElement(sessionId, Marionette.SearchMethod.CSS_SELECTOR, "#sticky-menu #menu_myaccount")).getString("element");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.getElementScreenshot(sessionId, element));
+            setUrl("https://myaccountdev.swgas.com/");
+            String element = MarionetteUtil.parseJsonObject(POST(
+                getUri("findElement", sessionId)
+                , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "#sticky-menu #menu_myaccount").build().toString()
+            ).body()).getString("element");
+            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getElementScreenshot", sessionId, element)).body());
             Assertions.assertTrue(!result.getString("screenshot","").isEmpty());
             LOG.exiting(CLASS, "testGetElementScreenshot", result);
         } catch(Exception e){
