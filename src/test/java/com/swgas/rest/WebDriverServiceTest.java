@@ -17,6 +17,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.ws.rs.Path;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.UriBuilder;
 import jdk.incubator.http.HttpClient;
 import jdk.incubator.http.HttpRequest;
@@ -30,12 +31,11 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class WebDriverServiceTest {
-    private static final String CLASS = WebDriverServiceTest.class.getName();
-    private static final Logger LOG   = Logger.getLogger(CLASS);
+    private static final String CLASS    = WebDriverServiceTest.class.getName();
+    private static final Logger LOG      = Logger.getLogger(CLASS);
     private static final String BASE_URI = "http://localhost:8080";
     private static       Server server;
     private              String sessionId;
-    private WebDriverService instance;
     
     public WebDriverServiceTest() {
     }
@@ -55,8 +55,14 @@ public class WebDriverServiceTest {
     @BeforeEach
     public void beforeEach() throws Exception {
         LOG.entering(CLASS, "beforeEach");
-        try{            
-            sessionId = MarionetteUtil.parseJsonObject(POST(getUri("newSession"), "").body()).getString("sessionId");
+        try{
+            HttpResponse<String> response = POST(getUri("newSession"), "");
+            if(200 != response.statusCode()){
+                Exception e = new WebApplicationException(response.body(), response.statusCode());
+                LOG.throwing(CLASS, "beforeEach", e);
+                throw e;
+            }
+            sessionId = MarionetteUtil.parseJsonObject(response.body()).getString("sessionId");
             LOG.exiting(CLASS, "beforeEach");
         } catch(Exception e){
             LOG.throwing(CLASS, "beforeEach", e);
@@ -67,7 +73,11 @@ public class WebDriverServiceTest {
     @AfterEach
     public void afterEach() {
         LOG.entering(CLASS, "afterEach");
-        DELETE(getUri("deleteSession", sessionId), "");
+        if(null != sessionId){
+            DELETE(getUri("deleteSession", sessionId), "");
+        } else {
+            LOG.warning("SessionId is null");
+        }
         LOG.exiting(CLASS, "afterEach");
     }
     
@@ -178,7 +188,7 @@ public class WebDriverServiceTest {
     public void testGetStatus() {
         LOG.entering(CLASS, "testGetStatus");
         String expResult = "";
-        String result = instance.getStatus();
+        String result = MarionetteUtil.parseJsonObject(GET(getUri("getStatus", sessionId)).body()).getString("status");
         Assertions.assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         Assertions.fail("The test case is a prototype.");
@@ -478,8 +488,7 @@ public class WebDriverServiceTest {
     public void testMinimizeWindow() {
         LOG.entering(CLASS, "testMinimizeWindow");        
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.minimizeWindow(sessionId));
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("minimizeWindow", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testMinimizeWindow", result);
         } catch(NotImplementedException e){            
@@ -513,8 +522,7 @@ public class WebDriverServiceTest {
     public void testFullscreen() {
         LOG.entering(CLASS, "testFullscreen");        
         try{
-            String sessionId  = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            JsonObject result = MarionetteUtil.parseJsonObject(instance.fullscreen(sessionId));
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("fullscreen", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testFullscreen", result);
         } catch(Exception e){
@@ -899,8 +907,7 @@ public class WebDriverServiceTest {
     public void testExecuteScriptAsync() {
         LOG.entering(CLASS, "testExecuteScriptAsync");
         try{
-            String sessionId = MarionetteUtil.parseJsonObject(instance.newSession()).getString("sessionId");
-            instance.setUrl(sessionId, "https://myaccountdev.swgas.com/");
+            setUrl("https://myaccountdev.swgas.com/");
             JsonObject result = MarionetteUtil.parseJsonObject(POST(
                 getUri("executeScriptAsync", sessionId)
                 , Json.createObjectBuilder().add("script", "setTimeout(function(){return 1;}, 500);").add("args", "[]").build().toString()

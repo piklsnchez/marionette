@@ -1,10 +1,13 @@
 package com.swgas.rest;
 
+import com.swgas.exception.InvalidSessionIdException;
+import com.swgas.exception.SessionNotCreatedException;
+import com.swgas.exception.UnknownErrorException;
 import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteFactory;
+import com.swgas.model.Status;
 import com.swgas.util.MarionetteUtil;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
@@ -15,13 +18,13 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -45,9 +48,10 @@ public class WebDriverService {
     @Consumes(MediaType.APPLICATION_JSON)
     public String newSession() {
         LOG.entering(CLASS, "newSession");
+        Process proc = null;
         try{
             ProcessBuilder procBuilder = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
-            Process proc = procBuilder.start();
+            proc = procBuilder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             while(reader.lines().map(line -> {LOG.info(line);return line;}).noneMatch(line -> line.contains("Listening"))){}
             Session session = new Session();
@@ -62,10 +66,16 @@ public class WebDriverService {
             String result = MarionetteUtil.createJson("sessionId", sessionId);
             LOG.exiting(CLASS, "newSession", result);
             return result;
-            //FIXME return http error
-        } catch(IOException | InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "newSession", e);
-            throw new RuntimeException(e);
+            if(null != proc){
+                try{
+                    proc.destroy();
+                } catch(Exception _e){
+                    LOG.logp(Level.WARNING, CLASS, "newSession", e.getMessage(), _e);
+                }
+            }
+            throw new SessionNotCreatedException(e);
         }
     }
 
@@ -80,7 +90,7 @@ public class WebDriverService {
         String result = "";
         //no such session
         if(null == session){
-            RuntimeException e = new RuntimeException("No such session");
+            InvalidSessionIdException e = new InvalidSessionIdException(sessionId, new NullPointerException(String.format("No active session with is (%s)", sessionId)));
             LOG.throwing(CLASS, "deleteSession", e);
             throw e;
         }        
@@ -101,11 +111,13 @@ public class WebDriverService {
                 
                 session.getProc().destroy();
                 SESSIONS.remove(sessionId);
-                //FIXME return http error
-            } catch(InterruptedException | ExecutionException | TimeoutException e){
+            } catch(TimeoutException e){
                 LOG.throwing(CLASS, "deleteSession", e);
-                Throwable t = e instanceof ExecutionException ? e.getCause() : e;                
-                throw t instanceof RuntimeException ? (RuntimeException)t : new RuntimeException(t);
+                throw new com.swgas.exception.TimeoutException(e);
+            } catch(Exception e){
+                LOG.throwing(CLASS, "deleteSession", e);
+                throw new UnknownErrorException(e instanceof ExecutionException ? e.getCause() : e);
+                
             }
         }
         LOG.exiting(CLASS, "deleteSession", result);
@@ -118,7 +130,15 @@ public class WebDriverService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String getStatus() {
-        throw new RuntimeException("Not yet implemented");
+        LOG.entering(CLASS, "status");
+        try{
+            boolean ready = true;
+            String message = SESSIONS.keySet().stream().reduce("", (a,b ) -> String.format("%s\n%s", a, b));
+            return new Status(ready, message).toString();
+        } catch(Exception e){
+            LOG.throwing(CLASS, "status", e);
+            throw new UnknownErrorException(e);
+        }
     }
 
     //Get Timeouts
