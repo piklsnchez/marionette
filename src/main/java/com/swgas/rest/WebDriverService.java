@@ -1,16 +1,23 @@
 package com.swgas.rest;
 
 import com.swgas.exception.InvalidSessionIdException;
+import com.swgas.exception.MarionetteException;
+import com.swgas.exception.NoSuchWindowException;
 import com.swgas.exception.SessionNotCreatedException;
 import com.swgas.exception.UnknownErrorException;
 import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteFactory;
+import com.swgas.model.JsonError;
 import com.swgas.model.Status;
+import com.swgas.model.Timeouts;
 import com.swgas.util.MarionetteUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +37,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
 @Path("/ws")
@@ -116,8 +124,7 @@ public class WebDriverService {
                 throw new com.swgas.exception.TimeoutException(e);
             } catch(Exception e){
                 LOG.throwing(CLASS, "deleteSession", e);
-                throw new UnknownErrorException(e instanceof ExecutionException ? e.getCause() : e);
-                
+                throw new UnknownErrorException(e instanceof ExecutionException ? e.getCause() : e);                
             }
         }
         LOG.exiting(CLASS, "deleteSession", result);
@@ -141,7 +148,11 @@ public class WebDriverService {
         }
     }
 
-    //Get Timeouts
+    /**
+     * NONCONFORMAT: A string representation of this duration using ISO-8601 seconds based representation, such as PT8H6M12.345S.
+     * @param sessionId
+     * @return 
+     */
     @GET
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
@@ -153,38 +164,45 @@ public class WebDriverService {
             .getClient()
             .getTimeouts()
             .thenApply(MarionetteUtil::toObject)
+            .thenApply(t -> new Timeouts(
+                  Duration.of(t.getInt("script",   0), ChronoUnit.MILLIS)
+                , Duration.of(t.getInt("pageLoad", 0), ChronoUnit.MILLIS)
+                , Duration.of(t.getInt("impicit",  0), ChronoUnit.MILLIS)
+            ).toJson())
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getTimeouts", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException | DateTimeParseException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getTimeouts", e);
-            throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
-    //Set Timeouts
+    /**
+     * NONCONFORMANT: A string representation of this duration using ISO-8601 seconds based representation, such as PT8H6M12.345S.
+     * @param sessionId
+     * @param timeouts
+     * @return 
+     */
     @POST
     @Path("/session/{session_id}/timeouts")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String setTimeouts(@PathParam("session_id") String sessionId, String body){
-        LOG.entering(CLASS, "setTimeouts", Stream.of(sessionId, body).toArray());
+    public String setTimeouts(@PathParam("session_id") String sessionId, String timeouts){
+        LOG.entering(CLASS, "setTimeouts", Stream.of(sessionId, timeouts).toArray());
         try {
-            JsonObject json = MarionetteUtil.parseJsonObject(body);
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .setTimeouts(Marionette.Timeout.valueOf(json.getString("timeout")), Duration.parse(json.getString("duration")))
+            .setTimeouts(new Timeouts().fromJson(timeouts))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "setTimeouts", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException | IllegalArgumentException | DateTimeParseException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "setTimeouts", e);
-            throw e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -196,18 +214,19 @@ public class WebDriverService {
     public String setUrl(@PathParam("session_id") String sessionId, String url) {
         LOG.entering(CLASS, "setUrl", Stream.of(sessionId, url).toArray());
         try{
+            //TODO: user prompt
             String result = SESSIONS.get(sessionId)
             .getClient()
             .get(MarionetteUtil.parseJsonObject(url).getString("url"))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
-            LOG.exiting(CLASS, "setTimeouts", result);
+            LOG.exiting(CLASS, "setUrl", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
-            LOG.throwing(CLASS, "setTimeouts", e);
-            throw new RuntimeException(e);
+            //TODO: invalid argument
+        } catch(Exception e){
+            LOG.throwing(CLASS, "setUrl", e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -227,10 +246,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getUrl", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getUrl", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -242,6 +260,7 @@ public class WebDriverService {
     public String back(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "back", sessionId);
         try{
+            //TODO: handle user prompts
             String result = SESSIONS.get(sessionId)
             .getClient()
             .goBack()
@@ -250,10 +269,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "back", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "back", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -273,10 +291,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "forward", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "forward", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -296,10 +313,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "refresh", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "refresh", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -311,6 +327,7 @@ public class WebDriverService {
     public String getTitle(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "getTitle", sessionId);
         try{
+            //TODO: handle user prompts
             String result = SESSIONS.get(sessionId)
             .getClient()
             .getTitle()
@@ -319,10 +336,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getTitle", sessionId);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getTitle", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -338,14 +354,13 @@ public class WebDriverService {
             .getClient()
             .getWindowHandle()
             .thenApply(MarionetteUtil::toStringValue)
-            .thenApply(v -> MarionetteUtil.createJson("window", v))
+            .thenApply(v -> MarionetteUtil.createJson("handle", v))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getWindow", sessionId);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getWindow", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -359,16 +374,15 @@ public class WebDriverService {
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .switchToWindow(MarionetteUtil.parseJsonObject(window).getString("window"))
+            .switchToWindow(MarionetteUtil.parseJsonObject(window).getString("handle"))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "setWindow", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "setWindow", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -393,13 +407,13 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "closeWindow", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "closeWindow", e);
+            WebApplicationException _e = MarionetteUtil.castException(e);
             if(e instanceof TimeoutException){
                 SESSIONS.get(sessionId).getProc().destroy();
             }
-            throw new RuntimeException(e);
+            throw _e;
         }
     }
 
@@ -424,10 +438,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getWindows", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getWindows", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -447,10 +460,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "setFrame", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "setFrame", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -469,10 +481,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "setParentFrame", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "setParentFrame", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -491,10 +502,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getWindowRect", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getWindowRect", e);
-            throw new RuntimeException(e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -514,35 +524,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "setWindowRect", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "setWindowRect", e);
-            if(e instanceof TimeoutException){
-                SESSIONS.get(sessionId).getProc().destroy();
-            }
-            throw new RuntimeException(e);
-        }
-    }
-
-    //Minimize Window
-    @POST
-    @Path("/session/{session_id}/window/minimize")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String minimizeWindow(@PathParam("session_id") String sessionId) {
-        LOG.entering(CLASS, "minimizeWindow", sessionId);
-        try{
-            String result = SESSIONS.get(sessionId)
-            .getClient()
-            .minimizeWindow()
-            .thenApply(MarionetteUtil::toObject)
-            .thenApply(Objects::toString)
-            .get(TIMEOUT, TimeUnit.SECONDS);
-            LOG.exiting(CLASS, "minimizeWindow", result);
-            return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
-            LOG.throwing(CLASS, "minimizeWindow", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -561,10 +545,30 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "maximizeWindow", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "maximizeWindow", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
+        }
+    }
+
+    //Minimize Window
+    @POST
+    @Path("/session/{session_id}/window/minimize")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String minimizeWindow(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "minimizeWindow", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .minimizeWindow()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "minimizeWindow", result);
+            return result;
+        } catch(Exception e){
+            LOG.throwing(CLASS, "minimizeWindow", e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -583,10 +587,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "fullscreen", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "fullscreen", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 

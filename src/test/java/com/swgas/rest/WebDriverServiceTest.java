@@ -2,12 +2,16 @@ package com.swgas.rest;
 
 import com.swgas.exception.NotImplementedException;
 import com.swgas.marionette.Marionette;
+import com.swgas.model.Status;
+import com.swgas.model.Timeouts;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -184,15 +188,17 @@ public class WebDriverServiceTest {
     /**
      * Test of getStatus method, of class WebDriverService.
      */
-    @Test @Disabled
+    @Test
     public void testGetStatus() {
         LOG.entering(CLASS, "testGetStatus");
-        String expResult = "";
-        String result = MarionetteUtil.parseJsonObject(GET(getUri("getStatus", sessionId)).body()).getString("status");
-        Assertions.assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        Assertions.fail("The test case is a prototype.");
+        try{
+            Status status = new Status().fromJson(GET(getUri("getStatus", sessionId)).body());
+            Assertions.assertTrue(null != status);
         LOG.exiting(CLASS, "testGetStatus");
+        } catch(Exception e){
+            LOG.throwing(CLASS, "testGetStatus", e);
+            throw e;
+        }
     }
 
     /**
@@ -200,12 +206,12 @@ public class WebDriverServiceTest {
      * RETURN {"implicit":0,"pageLoad":300000,"script":30000}
      */
     @Test
-    public void testGetTimeouts() throws Exception{
+    public void testGetTimeouts() throws Exception {
         LOG.entering(CLASS, "testGetTimeouts");
         try{
-            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getTimeouts", sessionId)).body());
-            Assertions.assertTrue(Stream.of("implicit", "pageLoad", "script").allMatch(result::containsKey), String.format("result:(%s) should contain \"implicit\", \"pageLoad\", \"script\"", result));
-            LOG.exiting(CLASS, "testGetTimeouts", result);
+            Timeouts timeouts = new Timeouts().fromJson(GET(getUri("getTimeouts", sessionId)).body());
+            Assertions.assertTrue(null != timeouts);
+            LOG.exiting(CLASS, "testGetTimeouts", timeouts);
         } catch(Exception e){
             LOG.throwing(CLASS, "testGetTimeouts", e);
             throw e;
@@ -220,10 +226,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testSetTimeouts");
         try{
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setTimeouts", sessionId)
-                , Json.createObjectBuilder()
-                .add("timeout", Marionette.Timeout.SCRIPT.name())
-                .add("duration", "PT0.01S")
-                .build().toString()
+                , new Timeouts(Duration.of(30, ChronoUnit.SECONDS), Duration.ZERO, Duration.ZERO).toJson()
             ).body());
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testSetTimeouts", result);
@@ -353,7 +356,7 @@ public class WebDriverServiceTest {
     public void testGetWindow() {
         LOG.entering(CLASS, "testGetWindow");
         try{
-            String result    = MarionetteUtil.parseJsonObject(GET(getUri("getWindow", sessionId)).body()).getString("window");
+            String result = MarionetteUtil.parseJsonObject(GET(getUri("getWindow", sessionId)).body()).getString("handle");
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testGetWindow", result);
         } catch(Exception e){
@@ -369,8 +372,8 @@ public class WebDriverServiceTest {
     public void testSetWindow() {
         LOG.entering(CLASS, "testSetWindow");
         try{
-            String expResult  = MarionetteUtil.parseJsonObject(GET(getUri("getWindow", sessionId)).body()).getString("window");
-            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setWindow", sessionId), MarionetteUtil.createJson("window", expResult)).body());
+            String expResult  = MarionetteUtil.parseJsonObject(GET(getUri("getWindow", sessionId)).body()).getString("handle");
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setWindow", sessionId), MarionetteUtil.createJson("handle", expResult)).body());
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testSetWindow", result);
         } catch(Exception e){

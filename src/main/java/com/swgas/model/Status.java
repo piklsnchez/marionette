@@ -1,10 +1,15 @@
 package com.swgas.model;
 
 import javax.json.Json;
+import com.swgas.rest.Jsonable;
+import java.io.StringReader;
+import javax.json.JsonObject;
 
-public class Status {
+public class Status implements Jsonable<Status> {
     private boolean ready;
     private String message;
+    
+    public Status(){}
     
     public Status(boolean ready, String message){
         this.ready   = ready;
@@ -40,11 +45,24 @@ public class Status {
     }
     
     @Override
+    public String toJson(){
+        return toString();
+    }
+    
+    @Override
+    public Status fromJson(String json){
+        JsonObject _json = Json.createReader(new StringReader(json)).readObject();
+        this.ready       = _json.getBoolean("ready");
+        this.message     = _json.getString("message");
+        return this;
+    }
+    
+    @Override
     public String toString(){
         return Json.createObjectBuilder()
-            .add("ready",   ready)
-            .add("message", message)
-            .build()
-            .toString();
+        .add("ready",   ready)
+        .add("message", message)
+        .build()
+        .toString();
     }
 }

@@ -2,10 +2,12 @@ package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
 import com.swgas.exception.NotImplementedException;
+import com.swgas.model.Timeouts;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
@@ -420,13 +422,12 @@ public class MarionetteImpl implements Marionette {
 
     /**
      * 
-     * @param timeout i.e. ("script", "implicit", "page load")
-     * @param ms time in milliseconds
+     * @param com.swgas.model.Timeouts
      * @return 
      */
     @Override
-    public CompletableFuture<JsonArray> setTimeouts(Timeout timeout, Duration ms) {
-        String command = String.format("[0, %d, \"%s\", {\"%s\": %d}]", messageId++, Command.setTimeouts.getCommand(), timeout, ms.toMillis());
+    public CompletableFuture<JsonArray> setTimeouts(Timeouts timeouts) {
+        String command = String.format("[0, %d, \"%s\", %s]", messageId++, Command.setTimeouts.getCommand(), timeouts.toWebDriverString());
         return writeAsync(command);
     }
     

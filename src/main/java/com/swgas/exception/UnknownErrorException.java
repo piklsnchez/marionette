@@ -16,4 +16,12 @@ public class UnknownErrorException extends WebApplicationException {
             )
         ).build());
     }
+    
+    public UnknownErrorException(Throwable t, JsonError error){
+        super(t.getMessage(), t, Response.status(500).entity(error).build());
+    }
+    
+    public UnknownErrorException(JsonError error){
+        super(Response.status(500).entity(error).build());
+    }
 }

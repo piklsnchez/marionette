@@ -1,7 +1,12 @@
 package com.swgas.util;
 
+import com.swgas.exception.InvalidArgumentException;
 import com.swgas.exception.MarionetteException;
+import com.swgas.exception.NoSuchWindowException;
+import com.swgas.exception.UnknownErrorException;
+import com.swgas.exception.UnsupportedOperationException;
 import com.swgas.marionette.Marionette;
+import com.swgas.model.JsonError;
 import java.awt.geom.Rectangle2D;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
@@ -11,6 +16,8 @@ import java.nio.charset.CharsetDecoder;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.json.Json;
@@ -18,6 +25,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.ws.rs.WebApplicationException;
 
 public class MarionetteUtil {
     private static final String CLASS = MarionetteUtil.class.getName();
@@ -91,10 +99,8 @@ public class MarionetteUtil {
     private static JsonValue get(JsonArray json){
         JsonValue[] tuple = getTuple(json);
         if(tuple[0].getValueType() != JsonValue.ValueType.NULL){
-            throw new MarionetteException(String.format("%s: %s"
-                    , tuple[0].asJsonObject().getString("error")
-                    , tuple[0].asJsonObject().getString("message"))
-                , new Throwable(tuple[0].asJsonObject().getString("stacktrace")));
+            JsonError error = new JsonError().fromJson(tuple[0].toString());
+            throw new MarionetteException(error);
         }
         return tuple[1];
     }
@@ -152,5 +158,25 @@ public class MarionetteUtil {
     public static Rectangle2D toRectangle(JsonArray json){
         JsonObject value = get(json).asJsonObject();
         return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("w", 0), value.getInt("h", 0));
+    }
+    
+    public static WebApplicationException castException(Exception e){
+        if(e instanceof MarionetteException){
+            JsonError error = ((MarionetteException) e).getJsonError();
+            switch(error.getError()){
+                case "invalid argument":
+                    return new InvalidArgumentException(error);
+                case "no such window":
+                    return new NoSuchWindowException(error);
+                case "unsuppoerted operation":
+                    return new UnsupportedOperationException(error);
+                default:
+                    return new UnknownErrorException(e, error);
+            }
+        } else if(e instanceof TimeoutException){
+            return new com.swgas.exception.TimeoutException(e);
+        } else {
+            return new UnknownErrorException(e instanceof ExecutionException ? e.getCause() : e);                
+        }
     }
 }

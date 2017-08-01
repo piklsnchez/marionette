@@ -1,5 +1,6 @@
 package com.swgas.marionette;
 
+import com.swgas.model.Timeouts;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -746,7 +747,7 @@ public class MarionetteImplTest {
             MarionetteFactory.getAsync(HOST, PORT)
             .thenCompose(c -> (client = c).newSession())
             .thenCompose(s -> client.get("https://myaccountdev.swgas.com/"))
-            .thenCompose(s -> client.setTimeouts(Marionette.Timeout.SCRIPT, Duration.ZERO))
+            .thenCompose(s -> client.setTimeouts(new Timeouts(Duration.ZERO, Duration.ZERO, Duration.ZERO)))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS)

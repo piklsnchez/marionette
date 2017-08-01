@@ -1,11 +1,16 @@
 package com.swgas.model;
 
+import com.swgas.rest.Jsonable;
+import java.io.StringReader;
 import javax.json.Json;
+import javax.json.JsonObject;
 
-public class JsonError {
+public class JsonError implements Jsonable<JsonError>{
     private String error;
     private String message;
     private String stacktrace;
+    
+    public JsonError(){}
     
     public JsonError(String error, String message, String stacktrace){
         this.error      = error;
@@ -56,11 +61,25 @@ public class JsonError {
     }
     
     @Override
+    public String toJson(){
+        return toString();
+    }
+    
+    @Override
+    public JsonError fromJson(String json){
+        JsonObject _json = Json.createReader(new StringReader(json)).readObject();
+        this.error       = _json.getString("error");
+        this.message     = _json.getString("message");
+        this.stacktrace  = _json.getString("stacktrace");
+        return this;
+    }
+    
+    @Override
     public String toString(){
         return Json.createObjectBuilder()
-            .add("error", getError())
-            .add("message", getMessage())
-            .add("stacktrace", getStacktrace())
+            .add("error",      error)
+            .add("message",    message)
+            .add("stacktrace", stacktrace)
             .build().toString();
     }
 }

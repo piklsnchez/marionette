@@ -1,5 +1,6 @@
 package com.swgas.marionette;
 
+import com.swgas.model.Timeouts;
 import java.awt.geom.Rectangle2D;
 import java.time.Duration;
 import java.util.List;
@@ -98,7 +99,7 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  getCurrentUrl               ();
     public CompletableFuture<JsonArray>  getWindowType               ();
     public CompletableFuture<JsonArray>  get                         (String url);
-    public CompletableFuture<JsonArray>  setTimeouts                 (Timeout timeout, Duration ms);
+    public CompletableFuture<JsonArray>  setTimeouts                 (Timeouts timeouts);
     public CompletableFuture<JsonArray>  getTimeouts                 ();
     public CompletableFuture<JsonArray>  goBack                      ();
     public CompletableFuture<JsonArray>  goForward                   ();
