@@ -7,10 +7,10 @@ import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.channels.InterruptedByTimeoutException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +56,7 @@ public class MarionetteImpl implements Marionette {
     private CompletableFuture<JsonArray> readAsync(){
         CompletableFuture<JsonArray> ret = new CompletableFuture<>();
         ByteBuffer buf = ByteBuffer.allocateDirect(8);
-        channel.read(buf, TIMEOUT/2, TimeUnit.SECONDS, ret, new CompletionHandler<Integer, CompletableFuture<JsonArray>>() {
+        channel.read(buf, TIMEOUT, TimeUnit.SECONDS, ret, new CompletionHandler<Integer, CompletableFuture<JsonArray>>() {
             @Override
             public void completed(Integer len, CompletableFuture<JsonArray> future) {
                 buf.flip();
@@ -92,6 +92,9 @@ public class MarionetteImpl implements Marionette {
                     @Override
                     public void failed(Throwable e, CompletableFuture future) {
                         LOG.throwing(this.getClass().getName(), "failed", e);
+                        if(e instanceof InterruptedByTimeoutException){
+                            shutdown();
+                        }
                         future.completeExceptionally(e);
                     }
                 });
@@ -99,6 +102,9 @@ public class MarionetteImpl implements Marionette {
             @Override
             public void failed(Throwable e, CompletableFuture future) {
                 LOG.throwing(this.getClass().getName(), "failed", e);
+                if(e instanceof InterruptedByTimeoutException){
+                    shutdown();
+                }
                 future.completeExceptionally(e);
             }
         });

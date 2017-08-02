@@ -91,8 +91,8 @@ public class MarionetteUtil {
     }
     
     private static JsonValue[] getTuple(JsonArray json){
-        JsonValue error    = json.get(2);
-        JsonValue success  = json.get(3);
+        JsonValue error   = json.get(2);
+        JsonValue success = json.get(3);
         return new JsonValue[]{error, success};
     }
     
@@ -161,6 +161,7 @@ public class MarionetteUtil {
     }
     
     public static WebApplicationException castException(Exception e){
+        e = e.getCause() instanceof MarionetteException ? (MarionetteException)e.getCause() : e;
         if(e instanceof MarionetteException){
             JsonError error = ((MarionetteException) e).getJsonError();
             switch(error.getError()){
@@ -168,7 +169,8 @@ public class MarionetteUtil {
                     return new InvalidArgumentException(error);
                 case "no such window":
                     return new NoSuchWindowException(error);
-                case "unsuppoerted operation":
+                case "unsupported operation":
+                case "unknown command":
                     return new UnsupportedOperationException(error);
                 default:
                     return new UnknownErrorException(e, error);
@@ -176,7 +178,7 @@ public class MarionetteUtil {
         } else if(e instanceof TimeoutException){
             return new com.swgas.exception.TimeoutException(e);
         } else {
-            return new UnknownErrorException(e instanceof ExecutionException ? e.getCause() : e);                
+            return new UnknownErrorException(e);                
         }
     }
 }

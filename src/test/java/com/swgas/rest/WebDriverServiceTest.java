@@ -487,7 +487,7 @@ public class WebDriverServiceTest {
      * Test of minimizeWindow method, of class WebDriverService.
      * Not Implemented in Marionette
      */
-    @Test @Disabled("Not Yet Implemented")
+    @Test //@Disabled("Not Yet Implemented")
     public void testMinimizeWindow() {
         LOG.entering(CLASS, "testMinimizeWindow");        
         try{
@@ -521,7 +521,7 @@ public class WebDriverServiceTest {
     /**
      * Test of fullscreen method, of class WebDriverService.
      */
-    @Test @Disabled("Not Yet Implemented")
+    @Test //@Disabled("Not Yet Implemented")
     public void testFullscreen() {
         LOG.entering(CLASS, "testFullscreen");        
         try{
