@@ -39,7 +39,10 @@ public class WebElement implements Jsonable<WebElement> {
     @Override
     public WebElement fromJson(String json){
         JsonObject _json = Json.createReader(new StringReader(json)).readObject();
-        this.id = _json.getString(KEY);
+        this.id = _json.getString(KEY, null);
+        if(null == id){
+            id = _json.getString("element", null);
+        }
         return this;
     }
     

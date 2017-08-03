@@ -15,4 +15,7 @@ public class NoSuchFrameException extends WebApplicationException {
             , Arrays.stream(t.getStackTrace()).map(Objects::toString).reduce("", (a, b) -> String.format("%s\n%s", a, b))
         )).build());
     }
+    public NoSuchFrameException(JsonError error){
+        super(Response.status(400).entity(error).build());
+    }
 }

@@ -1,23 +1,17 @@
 package com.swgas.rest;
 
 import com.swgas.exception.InvalidSessionIdException;
-import com.swgas.exception.MarionetteException;
-import com.swgas.exception.NoSuchWindowException;
 import com.swgas.exception.SessionNotCreatedException;
 import com.swgas.exception.UnknownErrorException;
 import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteFactory;
-import com.swgas.model.JsonError;
 import com.swgas.model.Status;
 import com.swgas.model.Timeouts;
 import com.swgas.util.MarionetteUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
-import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -604,14 +598,13 @@ public class WebDriverService {
             .getClient()
             .getActiveElement()
             .thenApply(MarionetteUtil::toElement)
-            .thenApply(e -> MarionetteUtil.createJson("element", e))
+            .thenApply(e -> MarionetteUtil.createJson("element", e.getId()))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getActiveElement", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getActiveElement", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -628,14 +621,13 @@ public class WebDriverService {
             .getClient()
             .findElement(Marionette.SearchMethod.valueOf(find.getString("using")), find.getString("value"))
             .thenApply(MarionetteUtil::toElement)
-            .thenApply(e -> MarionetteUtil.createJson("element", e))
+            .thenApply(e -> MarionetteUtil.createJson("element", e.getId()))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElement", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "findElement", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -657,10 +649,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElements", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "findElements", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -677,14 +668,13 @@ public class WebDriverService {
             .getClient()
             .findElementFromElement(Marionette.SearchMethod.valueOf(find.getString("using")), find.getString("value"), elementId)
             .thenApply(MarionetteUtil::toElement)
-            .thenApply(e -> MarionetteUtil.createJson("element", e))
+            .thenApply(e -> MarionetteUtil.createJson("element", e.getId()))
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElementFromElement", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "findElementFromElement", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -706,10 +696,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "findElementsFromElement", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "findElementsFromElement", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -729,10 +718,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "isElementSelected", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "isElementSelected", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -751,10 +739,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementAttribute", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getElementAttribute", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -773,10 +760,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementProperty", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getElementProperty", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -796,10 +782,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementCss", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getElementCss", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -819,10 +804,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementText", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getElementText", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -841,10 +825,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementTagName", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getElementTagName", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -863,10 +846,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getElementRect", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getElementRect", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -886,10 +868,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "isElementEnabled", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "isElementEnabled", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -908,10 +889,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "clickElement", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "clickElement", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -930,10 +910,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "clearElement", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "clearElement", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -953,10 +932,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "sendKeysToElement", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "sendKeysToElement", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -975,10 +953,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getPageSource", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "getPageSource", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1000,10 +977,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "executeScript", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "executeScript", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1025,10 +1001,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "executeScriptAsync", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "executeScriptAsync", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1047,10 +1022,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getCookies", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getCookies", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1073,10 +1047,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getCookie", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getCookie", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1096,10 +1069,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "addCookie", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "addCookie", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1118,10 +1090,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "deleteCookie", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "deleteCookie", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1140,10 +1111,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "deleteAllCookies", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "deleteAllCookies", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1162,10 +1132,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "dismissAlert", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "dismissAlert", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1184,10 +1153,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "acceptAlert", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "acceptAlert", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1206,10 +1174,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getAlertText", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getAlertText", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1229,10 +1196,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "setAlertText", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "setAlertText", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1251,10 +1217,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getScreenshot", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getScreenshot", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1273,10 +1238,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getScreenshot", result);
             return result;
-        //FIXME return http error
-        } catch(InterruptedException | ExecutionException | TimeoutException e){
+        } catch(Exception e){
             LOG.throwing(CLASS, "getScreenshot", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1295,10 +1259,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "performActions", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "performActions", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 
@@ -1317,10 +1280,9 @@ public class WebDriverService {
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "releaseActions", result);
             return result;
-        //FIXME return http error
         } catch(Exception e){
             LOG.throwing(CLASS, "releaseActions", e);
-            throw new RuntimeException(e instanceof ExecutionException ? e.getCause() : e);
+            throw MarionetteUtil.castException(e);
         }
     }
 }
