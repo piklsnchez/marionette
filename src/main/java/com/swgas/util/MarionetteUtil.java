@@ -4,7 +4,9 @@ import com.swgas.exception.ElementClickInterceptedException;
 import com.swgas.exception.ElementNotInteractableException;
 import com.swgas.exception.ElementNotSelectableException;
 import com.swgas.exception.InvalidArgumentException;
+import com.swgas.exception.JavascriptErrorException;
 import com.swgas.exception.MarionetteException;
+import com.swgas.exception.NoSuchCookieException;
 import com.swgas.exception.NoSuchElementException;
 import com.swgas.exception.NoSuchFrameException;
 import com.swgas.exception.NoSuchWindowException;
@@ -180,6 +182,8 @@ public class MarionetteUtil {
                     return new NoSuchFrameException(error);
                 case "no such element":
                     return new NoSuchElementException(error);
+                case "no such cookie":
+                    return new NoSuchCookieException(error);
                 case "stale element reference":
                     return new StaleElementException(error);
                 case "element not interactable":
@@ -188,6 +192,8 @@ public class MarionetteUtil {
                     return new ElementClickInterceptedException(error);
                 case "element not selectable":
                     return new ElementNotSelectableException(error);
+                case "javascript error":
+                    return new JavascriptErrorException(error);
                 case "unsupported operation":
                 case "unknown command":
                     return new UnsupportedOperationException(error);

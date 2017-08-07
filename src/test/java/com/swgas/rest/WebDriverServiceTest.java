@@ -2,6 +2,7 @@ package com.swgas.rest;
 
 import com.swgas.exception.NotImplementedException;
 import com.swgas.marionette.Marionette;
+import com.swgas.model.Cookie;
 import com.swgas.model.Status;
 import com.swgas.model.Timeouts;
 import com.swgas.model.WebElement;
@@ -14,13 +15,16 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.UriBuilder;
@@ -894,7 +898,7 @@ public class WebDriverServiceTest {
             setUrl("https://myaccountdev.swgas.com/");
             JsonObject result = MarionetteUtil.parseJsonObject(POST(
                 getUri("executeScript", sessionId)
-                , Json.createObjectBuilder().add("script", "return document.querySelector('#menu_myaccount')").add("args", "[]").build().toString()
+                , Json.createObjectBuilder().add("script", "return document.querySelector('#menu_myaccount')").add("args", JsonValue.EMPTY_JSON_ARRAY).build().toString()
             ).body());
             Assertions.assertTrue(null != result.get("return"));
             LOG.exiting(CLASS, "testExecuteScript", result);
@@ -931,9 +935,16 @@ public class WebDriverServiceTest {
     public void testGetCookies() {
         LOG.entering(CLASS, "testGetCookies");
         try{
+            Cookie cookie = new Cookie("cookieName1", "cookieValue", "/", ".swgas.com", true, true, LocalDateTime.now().plusDays(5));
             setUrl("https://myaccountdev.swgas.com/");
-            JsonArray result = MarionetteUtil.parseJsonArray(GET(getUri("getCookies", sessionId)).body());
-            Assertions.assertTrue(null != result);
+            POST(getUri("addCookie", sessionId), cookie.toJson());
+            cookie.setName("cookieName2");
+            POST(getUri("addCookie", sessionId), cookie.toJson());            
+            List<Cookie> result = MarionetteUtil.parseJsonArray(GET(getUri("getCookies", sessionId)).body())
+            .stream()
+            .map(c -> new Cookie().fromJson(c.toString()))
+            .collect(Collectors.toList());
+            Assertions.assertTrue("cookieName1".equals(result.get(0).getName()));
             LOG.exiting(CLASS, "testGetCookies", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testGetCookies", e);
@@ -948,9 +959,15 @@ public class WebDriverServiceTest {
     public void testGetCookie() {
         LOG.entering(CLASS, "testGetCookie");
         try{
+            Cookie cookie = new Cookie("cookieName", "cookieValue", "/", ".swgas.com", false, false, LocalDateTime.now().plusDays(5));
             setUrl("https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getCookie", sessionId, "cookieName")).body());
-            Assertions.assertTrue(null != result);
+            POST(getUri("addCookie", sessionId), cookie.toJson());
+            Cookie result = new Cookie().fromJson(GET(getUri("getCookie", sessionId, "cookieName")).body());
+            Assertions.assertTrue("cookieName".equals(result.getName()));
+            DELETE(getUri("deleteCookie", sessionId, "cookieName"), "");
+            LOG.info(
+                GET(getUri("getCookie", sessionId, "cookieName")).body()
+            );
             LOG.exiting(CLASS, "testGetCookie", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testGetCookie", e);
@@ -965,15 +982,9 @@ public class WebDriverServiceTest {
     public void testAddCookie() {
         LOG.entering(CLASS, "testAddCookie");
         try{
-            String cookie = Json.createObjectBuilder()
-            .add("name", "cookieName")
-            .add("value", "cookieValue")
-            .add("path", "/")
-            .add("domain", ".swgas.com")
-            .add("expires", LocalDateTime.now().plusDays(5).toEpochSecond(ZoneOffset.UTC))
-            .build().toString();
+            Cookie cookie = new Cookie("cookieName", "cookieValue", "/", ".swgas.com", false, false, LocalDateTime.now().plusDays(5));
             setUrl("https://myaccountdev.swgas.com/");
-            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("addCookie", sessionId), cookie).body());
+            JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("addCookie", sessionId), cookie.toJson()).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testAddCookie", result);
         } catch(Exception e){
@@ -1058,7 +1069,12 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testDismissAlert");
         try{
             setUrl("https://myaccountdev.swgas.com/");
-            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", "window.alert('alert');").add("args", "[]").build().toString());
+            POST(getUri("executeScript", sessionId)
+                , Json.createObjectBuilder()
+                .add("script", "window.alert('alert');")
+                .add("args", JsonValue.EMPTY_JSON_ARRAY)
+                .build().toString()
+            );
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("dismissAlert", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testDismissAlert", result);
@@ -1076,7 +1092,12 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testAcceptAlert");
         try{
             setUrl("https://myaccountdev.swgas.com/");
-            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", "window.alert('alert');").add("args", "[]").build().toString());
+            POST(getUri("executeScript", sessionId)
+                , Json.createObjectBuilder()
+                .add("script", "window.alert('alert');")
+                .add("args", JsonValue.EMPTY_JSON_ARRAY)
+                .build().toString()
+            );
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("acceptAlert", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testAcceptAlert", result);
@@ -1095,7 +1116,12 @@ public class WebDriverServiceTest {
         String expected = "alert";
         try{
             setUrl("https://myaccountdev.swgas.com/");
-            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", String.format("window.alert('%s');", expected)).add("args", "[]").build().toString());
+            POST(getUri("executeScript", sessionId)
+                , Json.createObjectBuilder()
+                .add("script", String.format("window.alert('%s');", expected))
+                .add("args", JsonValue.EMPTY_JSON_ARRAY)
+                .build().toString()
+            );
             JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getAlertText", sessionId)).body());
             Assertions.assertTrue(Objects.equals(expected, result.getString("text")), String.format("result should be %s but was %s", expected, result.getString("text")));
             LOG.exiting(CLASS, "testGetAlertText", result);
@@ -1114,7 +1140,12 @@ public class WebDriverServiceTest {
         String expected = "trela";
         try{
             setUrl("https://myaccountdev.swgas.com/");
-            POST(getUri("executeScript", sessionId), Json.createObjectBuilder().add("script", "window.prompt('alert');").add("args", "[]").build().toString());
+            POST(getUri("executeScript", sessionId)
+                , Json.createObjectBuilder()
+                .add("script", "window.prompt('alert');")
+                .add("args", JsonValue.EMPTY_JSON_ARRAY)
+                .build().toString()
+            );
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("setAlertText", sessionId), MarionetteUtil.createJson("text", expected)).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testSetAlertText", result);

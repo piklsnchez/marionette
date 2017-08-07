@@ -1,10 +1,12 @@
 package com.swgas.rest;
 
 import com.swgas.exception.InvalidSessionIdException;
+import com.swgas.exception.NoSuchCookieException;
 import com.swgas.exception.SessionNotCreatedException;
 import com.swgas.exception.UnknownErrorException;
 import com.swgas.marionette.Marionette;
 import com.swgas.marionette.MarionetteFactory;
+import com.swgas.model.JsonError;
 import com.swgas.model.Status;
 import com.swgas.model.Timeouts;
 import com.swgas.util.MarionetteUtil;
@@ -970,7 +972,7 @@ public class WebDriverService {
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
-            .executeScript(script.getString("script"), script.getString("args"), null, null)
+            .executeScript(script.getString("script"), script.getJsonArray("args").toString(), null, null)
             .thenApply(MarionetteUtil::toJsonValue)
             .thenApply(r -> Json.createObjectBuilder().add("return", r).build())
             .thenApply(Objects::toString)
@@ -1041,7 +1043,7 @@ public class WebDriverService {
             .thenApply(MarionetteUtil::toArray)
             .thenApply(array -> array.stream()
                 .filter(cookie -> Objects.equals(name, cookie.asJsonObject().getString("name")))
-                .findFirst().orElse(JsonObject.EMPTY_JSON_OBJECT)
+                .findFirst().orElseThrow(()-> new NoSuchCookieException(new JsonError("no such cookie", String.format("cookie named \"%s\" does not exist", name), "")))
             )
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);

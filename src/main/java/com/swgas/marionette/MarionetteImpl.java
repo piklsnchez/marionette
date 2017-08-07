@@ -548,8 +548,6 @@ public class MarionetteImpl implements Marionette {
     public CompletableFuture<JsonArray> getCookies() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getCookies.getCommand());
         return writeAsync(command);
-        //.thenApply(MarionetteParser.ARRAY::parseFrom)
-        //.thenApply(a -> a.stream().map(obj -> Objects.toString(obj, "")).collect(Collectors.toList()));
     }
 
     @Override
