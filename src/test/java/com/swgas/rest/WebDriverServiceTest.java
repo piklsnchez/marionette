@@ -1030,15 +1030,14 @@ public class WebDriverServiceTest {
     /**
      * Test of performActions method, of class WebDriverService.
      */
-    @Test @Disabled("Not Implemented")
+    @Test
     public void testPerformActions() {
         LOG.entering(CLASS, "testPerformActions");
         try{
             setUrl("https://myaccountdev.swgas.com/");
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("performActions", sessionId), "").body());
-            Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testPerformActions", result);
-        } catch(Exception e){
+        } catch(Exception e){            
             LOG.throwing(CLASS, "testPerformActions", e);
             throw e;
         }

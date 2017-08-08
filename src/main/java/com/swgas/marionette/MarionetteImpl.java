@@ -607,12 +607,12 @@ public class MarionetteImpl implements Marionette {
 
     @Override
     public CompletableFuture<JsonArray> performActions() {
-        throw new NotImplementedException();
+        throw new com.swgas.exception.UnsupportedOperationException();
     }
 
     @Override
     public CompletableFuture<JsonArray> releaseActions() {
-        throw new NotImplementedException();
+        throw new com.swgas.exception.UnsupportedOperationException();
     }
     
     @Override

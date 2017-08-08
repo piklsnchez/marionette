@@ -1119,6 +1119,48 @@ public class WebDriverService {
         }
     }
 
+    //Perform Actions
+    @POST
+    @Path("/session/{session_id}/actions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String performActions(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "performActions", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .performActions()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "performActions", result);
+            return result;
+        } catch(Exception e){
+            LOG.throwing(CLASS, "performActions", e);
+            throw MarionetteUtil.castException(e);
+        }
+    }
+
+    //Release Actions
+    @DELETE
+    @Path("/session/{session_id}/actions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String releaseActions(@PathParam("session_id") String sessionId) {
+        LOG.entering(CLASS, "releaseActions", sessionId);
+        try{
+            String result = SESSIONS.get(sessionId)
+            .getClient()
+            .releaseActions()
+            .thenApply(MarionetteUtil::toObject)
+            .thenApply(Objects::toString)
+            .get(TIMEOUT, TimeUnit.SECONDS);
+            LOG.exiting(CLASS, "releaseActions", result);
+            return result;
+        } catch(Exception e){
+            LOG.throwing(CLASS, "releaseActions", e);
+            throw MarionetteUtil.castException(e);
+        }
+    }
+
     //Dismiss Alert
     @POST
     @Path("/session/{session_id}/alert/dismiss")
@@ -1242,48 +1284,6 @@ public class WebDriverService {
             return result;
         } catch(Exception e){
             LOG.throwing(CLASS, "getScreenshot", e);
-            throw MarionetteUtil.castException(e);
-        }
-    }
-
-    //Perform Actions
-    @POST
-    @Path("/session/{session_id}/actions")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String performActions(@PathParam("session_id") String sessionId) {
-        LOG.entering(CLASS, "performActions", sessionId);
-        try{
-            String result = SESSIONS.get(sessionId)
-            .getClient()
-            .performActions()
-            .thenApply(MarionetteUtil::toObject)
-            .thenApply(Objects::toString)
-            .get(TIMEOUT, TimeUnit.SECONDS);
-            LOG.exiting(CLASS, "performActions", result);
-            return result;
-        } catch(Exception e){
-            LOG.throwing(CLASS, "performActions", e);
-            throw MarionetteUtil.castException(e);
-        }
-    }
-
-    //Release Actions
-    @DELETE
-    @Path("/session/{session_id}/actions")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String releaseActions(@PathParam("session_id") String sessionId) {
-        LOG.entering(CLASS, "releaseActions", sessionId);
-        try{
-            String result = SESSIONS.get(sessionId)
-            .getClient()
-            .releaseActions()
-            .thenApply(MarionetteUtil::toObject)
-            .thenApply(Objects::toString)
-            .get(TIMEOUT, TimeUnit.SECONDS);
-            LOG.exiting(CLASS, "releaseActions", result);
-            return result;
-        } catch(Exception e){
-            LOG.throwing(CLASS, "releaseActions", e);
             throw MarionetteUtil.castException(e);
         }
     }
