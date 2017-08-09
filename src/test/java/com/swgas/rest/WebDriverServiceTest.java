@@ -1046,7 +1046,7 @@ public class WebDriverServiceTest {
     /**
      * Test of releaseActions method, of class WebDriverService.
      */
-    @Test @Disabled("Not Implemented")
+    @Test
     public void testReleaseActions() {
         LOG.entering(CLASS, "testReleaseActions");
         try{

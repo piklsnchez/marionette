@@ -6,11 +6,14 @@ import com.swgas.exception.ElementNotSelectableException;
 import com.swgas.exception.InvalidArgumentException;
 import com.swgas.exception.JavascriptErrorException;
 import com.swgas.exception.MarionetteException;
+import com.swgas.exception.NoSuchAlertException;
 import com.swgas.exception.NoSuchCookieException;
 import com.swgas.exception.NoSuchElementException;
 import com.swgas.exception.NoSuchFrameException;
 import com.swgas.exception.NoSuchWindowException;
 import com.swgas.exception.StaleElementException;
+import com.swgas.exception.UnableToCaptureScreenException;
+import com.swgas.exception.UnexpectedAlertOpenException;
 import com.swgas.exception.UnknownErrorException;
 import com.swgas.exception.UnsupportedOperationException;
 import com.swgas.marionette.Marionette;
@@ -25,7 +28,6 @@ import java.nio.charset.CharsetDecoder;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -180,6 +182,8 @@ public class MarionetteUtil {
                     return new NoSuchWindowException(error);
                 case "no such frame":
                     return new NoSuchFrameException(error);
+                case "no such alert":
+                    return new NoSuchAlertException(error);
                 case "no such element":
                     return new NoSuchElementException(error);
                 case "no such cookie":
@@ -192,6 +196,10 @@ public class MarionetteUtil {
                     return new ElementClickInterceptedException(error);
                 case "element not selectable":
                     return new ElementNotSelectableException(error);
+                case "unexpected alert open":
+                    return new UnexpectedAlertOpenException(error);
+                case "unable to capture screen":
+                    return new UnableToCaptureScreenException(error);
                 case "javascript error":
                     return new JavascriptErrorException(error);
                 case "unsupported operation":
