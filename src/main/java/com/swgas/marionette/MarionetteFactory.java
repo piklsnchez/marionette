@@ -1,14 +1,25 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
+import com.swgas.exception.UnknownErrorException;
+import com.swgas.rest.Session;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class MarionetteFactory {    
+public class MarionetteFactory {
+    private static final String CLASS = MarionetteFactory.class.getName();
+    private static final Logger LOG = Logger.getLogger(CLASS);
+    private static final Pattern PATTERN = Pattern.compile("Listening on port (\\d+)");
+    
     public static CompletableFuture<Marionette> getAsync(String host, int port){
         CompletableFuture<Marionette> ret = new CompletableFuture<>();
         try{
@@ -17,6 +28,44 @@ public class MarionetteFactory {
                 @Override
                 public void completed(Void result, CompletableFuture future) {
                     future.complete(new MarionetteImpl(channel));                    
+                }
+                @Override
+                public void failed(Throwable e, CompletableFuture future) {
+                    future.completeExceptionally(new MarionetteException((e.getCause() instanceof ConnectException) ? e.getCause() : e));
+                }            
+            });
+        } catch(IOException e){
+            throw new MarionetteException(e);
+        }
+        return ret;
+    }
+    
+    public static CompletableFuture<Session> createSession(){
+        CompletableFuture<Session> ret = new CompletableFuture<>();
+        try{
+            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
+            Process proc = procBuilder.start();
+            int port = new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
+            .mapToInt(
+                line -> {
+                    LOG.info(line);
+                    Matcher match = PATTERN.matcher(line);
+                    if(match.find()){
+                        String _port = match.group(1);
+                        LOG.info(_port);
+                        if(_port.codePoints().allMatch(Character::isDigit)){
+                            return Integer.parseInt(_port, 10);
+                        }
+                    }
+                    return 0;
+                }
+            ).filter(p -> p > 0)
+            .findFirst().orElseThrow(UnknownErrorException::new);
+            AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
+            channel.connect(new InetSocketAddress("localhost", port), ret, new CompletionHandler<Void, CompletableFuture>(){
+                @Override
+                public void completed(Void result, CompletableFuture future) {                    
+                    future.complete(new Session(null, proc, new MarionetteImpl(channel)));
                 }
                 @Override
                 public void failed(Throwable e, CompletableFuture future) {

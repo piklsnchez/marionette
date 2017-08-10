@@ -1,6 +1,8 @@
 package com.swgas.rest;
 
-public interface Jsonable<T> {
+import java.io.Serializable;
+
+public interface Jsonable<T> extends Serializable{
     public String toJson();
     public T      fromJson(String json);
 }

@@ -1,7 +1,6 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
-import com.swgas.exception.NotImplementedException;
 import com.swgas.model.Timeouts;
 import com.swgas.util.MarionetteUtil;
 import java.awt.geom.Rectangle2D;

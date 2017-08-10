@@ -10,9 +10,6 @@ import com.swgas.model.JsonError;
 import com.swgas.model.Status;
 import com.swgas.model.Timeouts;
 import com.swgas.util.MarionetteUtil;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -22,11 +19,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -42,10 +36,9 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/ws")
 public class WebDriverService {
-    private static final String CLASS   = WebDriverService.class.getName();
-    private static final Logger LOG     = Logger.getLogger(CLASS);
-    private static final String HOST    = "localhost";
-    private static final int    TIMEOUT = 20;
+    private static final String CLASS    = WebDriverService.class.getName();
+    private static final Logger LOG      = Logger.getLogger(CLASS);
+    private static final int    TIMEOUT  = 20;
     private static final Map<String, Session> SESSIONS = new HashMap<>();
     
     //New Session
@@ -55,32 +48,15 @@ public class WebDriverService {
     @Consumes(MediaType.APPLICATION_JSON)
     public String newSession() {
         LOG.entering(CLASS, "newSession");
-        Pattern pattern = Pattern.compile("Listening on port (\\d+)");
-        Process proc = null;
+        
+        Session session = new Session();
         try{
-            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
-            proc = procBuilder.start();
-            int port = new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
-            .mapToInt(
-                line -> {
-                    LOG.info(line);
-                    Matcher match = pattern.matcher(line);
-                    if(match.find()){
-                        String _port = match.group(1);
-                        LOG.info(_port);
-                        if(_port.codePoints().allMatch(Character::isDigit)){
-                            return Integer.parseInt(_port, 10);
-                        }
-                    }
-                    return 0;
-                }
-            ).filter(p -> p > 0)
-            .findFirst().orElseThrow(UnknownErrorException::new);
-            Session session = new Session();
-            session.setProc(proc);
-            String sessionId = MarionetteFactory.getAsync(HOST, port)
-            .thenCompose(c -> {session.setClient(c); return c.newSession();})
-            .thenApply(MarionetteUtil::toSession)
+            String sessionId = MarionetteFactory.createSession()
+            .thenCompose(s -> {
+                session.setProc(s.getProc());
+                session.setClient(s.getClient());
+                return s.getClient().newSession();
+            }).thenApply(MarionetteUtil::toSession)
             .get(TIMEOUT, TimeUnit.SECONDS);
             session.setSessionId(sessionId);
             
@@ -90,9 +66,9 @@ public class WebDriverService {
             return result;
         } catch(Exception e){
             LOG.throwing(CLASS, "newSession", e);
-            if(null != proc){
+            if(null != session.getProc()){
                 try{
-                    proc.destroy();
+                    session.getProc().destroy();
                 } catch(Exception _e){
                     LOG.logp(Level.WARNING, CLASS, "newSession", e.getMessage(), _e);
                 }
