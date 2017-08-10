@@ -10,14 +10,16 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MarionetteFactory {
-    private static final String CLASS = MarionetteFactory.class.getName();
-    private static final Logger LOG = Logger.getLogger(CLASS);
+    private static final String CLASS    = MarionetteFactory.class.getName();
+    private static final Logger LOG      = Logger.getLogger(CLASS);
     private static final Pattern PATTERN = Pattern.compile("Listening on port (\\d+)");
     
     public static CompletableFuture<Marionette> getAsync(String host, int port){
@@ -43,8 +45,11 @@ public class MarionetteFactory {
     public static CompletableFuture<Session> createSession(){
         CompletableFuture<Session> ret = new CompletableFuture<>();
         try{
-            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "--marionette", "-P", "marionette", "--new-instance");
+            Path profileDirectory = Files.createTempDirectory("marionette");
+            Files.newBufferedWriter(profileDirectory.resolve("user.js")).append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator()).close();
+            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "--marionette", "--profile", profileDirectory.toString(), "--new-instance");
             Process proc = procBuilder.start();
+            LOG.info(proc.info().commandLine().orElse(""));
             int port = new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
             .mapToInt(
                 line -> {
@@ -64,8 +69,10 @@ public class MarionetteFactory {
             AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
             channel.connect(new InetSocketAddress("localhost", port), ret, new CompletionHandler<Void, CompletableFuture>(){
                 @Override
-                public void completed(Void result, CompletableFuture future) {                    
-                    future.complete(new Session(null, proc, new MarionetteImpl(channel)));
+                public void completed(Void result, CompletableFuture future) {
+                    Session session = new Session(null, proc, new MarionetteImpl(channel), profileDirectory);
+                    proc.onExit().thenRun(() -> session.close());
+                    future.complete(session);
                 }
                 @Override
                 public void failed(Throwable e, CompletableFuture future) {

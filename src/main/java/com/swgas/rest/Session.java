@@ -1,27 +1,40 @@
 package com.swgas.rest;
 
 import com.swgas.marionette.Marionette;
+import java.io.Closeable;
+import java.io.IOException;
+import java.lang.ref.Cleaner;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.logging.Level;
 
-public class Session {
-    private static final String CLASS = Session.class.getName();
-    private static final Logger LOG = Logger.getLogger(CLASS);
+public class Session implements Closeable{
+    private static final String CLASS    = Session.class.getName();
+    private static final Logger LOG      = Logger.getLogger(CLASS);
+    private static final Cleaner CLEANER = Cleaner.create();
             
     private String     sessionId;
     private Process    proc;
     private Marionette client;
+    private Path       profileDirectory;
 
     public Session(){
-        this(null, null, null);
+        this(null, null, null, null);
     }
     
-    public Session(String sessionId, Process proc, Marionette client){
+    public Session(String sessionId, Process proc, Marionette client, Path profileDirectory){
+        CLEANER.register(this, this::close);
         //LOG.entering(CLASS, "<init>", Stream.of(sessionId, proc, client).toArray());
-        this.sessionId = sessionId;
-        this.proc      = proc;
-        this.client    = client;
+        this.sessionId        = sessionId;
+        this.proc             = proc;
+        this.client           = client;
+        this.profileDirectory = profileDirectory;
         //LOG.exiting(CLASS, "<init>", this);
     }
 
@@ -73,8 +86,44 @@ public class Session {
         //LOG.exiting(CLASS, "setClient");
     }
     
+    public Path getProfileDirectory(){
+        return profileDirectory;
+    }
+    
+    public void setProfileDirectory(Path profileDirectory){
+        this.profileDirectory = profileDirectory;
+    }
+    
     @Override
     public String toString(){
         return Stream.of(sessionId, proc, client).map(a -> Objects.toString(a, "\u2400")).reduce("", (a,b) -> String.format("%s|%s",a,b));
+    }
+    
+    @Override
+    public void close(){
+        LOG.entering(CLASS, "close");
+        try{
+            Files.walkFileTree(profileDirectory, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException{
+                    if (e == null) {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    } else {
+                        // directory iteration failed
+                        LOG.warning(e.toString());
+                        return FileVisitResult.CONTINUE;
+                    }
+                }
+            });
+            LOG.exiting(CLASS, "close");
+        } catch(Exception e){
+            LOG.logp(Level.WARNING, CLASS, "close", e.toString(), e);
+        }
     }
 }

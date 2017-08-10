@@ -84,41 +84,33 @@ public class WebDriverService {
     @Consumes(MediaType.APPLICATION_JSON)
     public String deleteSession(@PathParam("session_id") String sessionId) {
         LOG.entering(CLASS, "deleteSession", sessionId);
-        Session session = SESSIONS.get(sessionId);
-        String result = "";
-        //no such session
-        if(null == session){
-            InvalidSessionIdException e = new InvalidSessionIdException(sessionId, new NullPointerException(String.format("No active session with is (%s)", sessionId)));
-            LOG.throwing(CLASS, "deleteSession", e);
-            throw e;
-        }        
-        if(session.getProc() != null){
-            try{
-                //this causes error
-                /*result = session.getClient()
-                .deleteSession()
-                .thenApply(MarionetteUtil::parseToObject)
-                .thenApply(Objects::toString)
-                .get(TIMEOUT, TimeUnit.SECONDS);*/
-                
+        try(Session session = SESSIONS.get(sessionId)){
+            String result = "";
+            //no such session
+            if(null == session){
+                InvalidSessionIdException e = new InvalidSessionIdException(sessionId, new NullPointerException(String.format("No active session with is (%s)", sessionId)));
+                LOG.throwing(CLASS, "deleteSession", e);
+                throw e;
+            }        
+            if(session.getProc() != null){
                 result = session.getClient()
                 .quitApplication(Collections.singletonList("eForceQuit"))
                 .thenApply(MarionetteUtil::toObject)
                 .thenApply(Objects::toString)
                 .get(TIMEOUT, TimeUnit.SECONDS);
-                
+
                 session.getProc().destroy();
                 SESSIONS.remove(sessionId);
-            } catch(TimeoutException e){
-                LOG.throwing(CLASS, "deleteSession", e);
-                throw new com.swgas.exception.TimeoutException(e);
-            } catch(Exception e){
-                LOG.throwing(CLASS, "deleteSession", e);
-                throw new UnknownErrorException(e instanceof ExecutionException ? e.getCause() : e);                
             }
+            LOG.exiting(CLASS, "deleteSession", result);
+            return result;
+        } catch(TimeoutException e){
+            LOG.throwing(CLASS, "deleteSession", e);
+            throw new com.swgas.exception.TimeoutException(e);
+        } catch(Exception e){
+            LOG.throwing(CLASS, "deleteSession", e);
+            throw new UnknownErrorException(e instanceof ExecutionException ? e.getCause() : e);                
         }
-        LOG.exiting(CLASS, "deleteSession", result);
-        return result;
     }
 
     //Status
