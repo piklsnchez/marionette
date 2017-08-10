@@ -7,6 +7,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 public class UnknownErrorException extends WebApplicationException {
+    public UnknownErrorException(){
+        super();
+    }
     public UnknownErrorException(Throwable t){
         super(t.getMessage(), t, Response.status(500).entity(
             new JsonError(
