@@ -49,19 +49,16 @@ public class WebDriverService {
     public String newSession() {
         LOG.entering(CLASS, "newSession");
         
-        Session session = new Session();
+        Session session = null;
         try{
-            String sessionId = MarionetteFactory.createSession()
-            .thenCompose(s -> {
-                session.setProc(s.getProc());
-                session.setClient(s.getClient());
-                return s.getClient().newSession();
-            }).thenApply(MarionetteUtil::toSession)
-            .get(TIMEOUT, TimeUnit.SECONDS);
-            session.setSessionId(sessionId);
-            
-            SESSIONS.put(sessionId, session);
-            String result = MarionetteUtil.createJson("sessionId", sessionId);
+            session = MarionetteFactory.createSession().get(TIMEOUT, TimeUnit.SECONDS);
+            session.setSessionId(
+                session.getClient().newSession()
+                .thenApply(MarionetteUtil::toSession)
+                .get(TIMEOUT, TimeUnit.SECONDS)
+            );            
+            SESSIONS.put(session.getSessionId(), session);
+            String result = MarionetteUtil.createJson("sessionId", session.getSessionId());
             LOG.exiting(CLASS, "newSession", result);
             return result;
         } catch(Exception e){

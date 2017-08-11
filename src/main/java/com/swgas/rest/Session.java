@@ -96,31 +96,33 @@ public class Session implements Closeable{
     
     @Override
     public String toString(){
-        return Stream.of(sessionId, proc, client).map(a -> Objects.toString(a, "\u2400")).reduce("", (a,b) -> String.format("%s|%s",a,b));
+        return Stream.of(sessionId, proc, client).map(a -> Objects.toString(a, /*null*/"\u2400")).reduce("", (a,b) -> String.format("%s|%s",a,b));
     }
     
     @Override
     public void close(){
         LOG.entering(CLASS, "close");
         try{
-            Files.walkFileTree(profileDirectory, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException{
-                    if (e == null) {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    } else {
-                        // directory iteration failed
-                        LOG.warning(e.toString());
+            if(null != profileDirectory && Files.exists(profileDirectory)){
+                Files.walkFileTree(profileDirectory, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
                         return FileVisitResult.CONTINUE;
                     }
-                }
-            });
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException{
+                        if (e == null) {
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        } else {
+                            // directory iteration failed
+                            LOG.warning(e.toString());
+                            return FileVisitResult.CONTINUE;
+                        }
+                    }
+                });
+            }
             LOG.exiting(CLASS, "close");
         } catch(Exception e){
             LOG.logp(Level.WARNING, CLASS, "close", e.toString(), e);

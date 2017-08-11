@@ -943,7 +943,7 @@ public class WebDriverServiceTest {
             .stream()
             .map(c -> new Cookie().fromJson(c.toString()))
             .collect(Collectors.toList());
-            Assertions.assertTrue("cookieName1".equals(result.get(0).getName()));
+            Assertions.assertTrue(result.stream().anyMatch(c -> Objects.equals("cookieName1", c.getName())));
             LOG.exiting(CLASS, "testGetCookies", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testGetCookies", e);
