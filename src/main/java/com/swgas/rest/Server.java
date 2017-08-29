@@ -30,6 +30,7 @@ public class Server implements AutoCloseable {
         }
     }
     
+    @Override
     public void close(){
         LOG.finest(String.format("Shutting down server: %s", server.getListener(LISTENER_NAME)));
         server.shutdownNow();

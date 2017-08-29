@@ -56,7 +56,7 @@ public class WebDriverService {
                 session.getClient().newSession()
                 .thenApply(MarionetteUtil::toSession)
                 .get(TIMEOUT, TimeUnit.SECONDS)
-            );            
+            );
             SESSIONS.put(session.getSessionId(), session);
             String result = MarionetteUtil.createJson("sessionId", session.getSessionId());
             LOG.exiting(CLASS, "newSession", result);
