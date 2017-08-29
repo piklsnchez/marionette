@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 public class WebDriverServiceTest {
     private static final String CLASS    = WebDriverServiceTest.class.getName();
     private static final Logger LOG      = Logger.getLogger(CLASS);
-    private static final String BASE_URI = "http://localhost:8080";
+    private static final String BASE_URI = "http://localhost:8008";
     private static       Server server;
     private              String sessionId;
     

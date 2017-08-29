@@ -13,7 +13,7 @@ public class Server implements AutoCloseable {
     private HttpServer server;
 
     public Server(){
-        this("http://localhost:8080/");
+        this("http://localhost:8008/");
     }
     
     public Server(String uri) {
