@@ -13,7 +13,7 @@ public class Server implements AutoCloseable {
     private HttpServer server;
 
     public Server(){
-        this("http://127.0.0.1:8008/");
+        this("http://0.0.0.0:8008/");
     }
     
     public Server(String uri) {
