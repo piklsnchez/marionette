@@ -46,7 +46,7 @@ public class MarionetteImplTest {
             );
         } catch(Exception e){
             LOG.throwing(CLASS, "beforeEach", e);
-            if(null != session.getProc()){
+            if(null != session && session.getProc() != null){
                 try{
                     session.getProc().destroy();
                 } catch(Exception _e){
@@ -59,7 +59,7 @@ public class MarionetteImplTest {
     @AfterEach
     private void afterEach() throws Exception {        
         try(Session s = session){
-            if(session.getProc() != null){
+            if(null != session && session.getProc() != null){
                 session.getClient()
                 .quitApplication(Collections.singletonList("eForceQuit"))
                 .thenApply(MarionetteUtil::toObject)
