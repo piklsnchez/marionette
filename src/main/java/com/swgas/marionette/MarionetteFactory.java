@@ -12,7 +12,13 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,22 +56,23 @@ public class MarionetteFactory {
             ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
             Process proc = procBuilder.start();
             LOG.info(proc.info().commandLine().orElse(""));
-            int port = new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
-            .mapToInt(
-                line -> {
-                    LOG.info(line);
-                    Matcher match = PATTERN.matcher(line);
-                    if(match.find()){
-                        String _port = match.group(1);
-                        LOG.info(_port);
-                        if(_port.codePoints().allMatch(Character::isDigit)){
-                            return Integer.parseInt(_port, 10);
+            int port = CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
+                .mapToInt(
+                    line -> {
+                        LOG.info(line);
+                        Matcher match = PATTERN.matcher(line);
+                        if(match.find()){
+                            String _port = match.group(1);
+                            LOG.info(_port);
+                            if(_port.codePoints().allMatch(Character::isDigit)){
+                                return Integer.parseInt(_port, 10);
+                            }
                         }
+                        return 0;
                     }
-                    return 0;
-                }
-            ).filter(p -> p > 0)
-            .findFirst().orElseThrow(UnknownErrorException::new);
+                ).filter(p -> p > 0)
+                .findFirst().orElseThrow(UnknownErrorException::new)
+            ).get(10, TimeUnit.SECONDS);
             AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
             channel.connect(new InetSocketAddress("localhost", port), ret, new CompletionHandler<Void, CompletableFuture>(){
                 @Override
@@ -79,7 +86,7 @@ public class MarionetteFactory {
                     future.completeExceptionally(new MarionetteException((e.getCause() instanceof ConnectException) ? e.getCause() : e));
                 }            
             });
-        } catch(IOException e){
+        } catch(IOException | InterruptedException |ExecutionException | TimeoutException e){
             throw new MarionetteException(e);
         }
         return ret;
