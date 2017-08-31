@@ -47,7 +47,7 @@ public class MarionetteFactory {
         try{
             Path profileDirectory = Files.createTempDirectory("marionette");
             Files.newBufferedWriter(profileDirectory.resolve("user.js")).append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator()).close();
-            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "--profile", profileDirectory.toString(), "--new-instance");
+            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
             Process proc = procBuilder.start();
             LOG.info(proc.info().commandLine().orElse(""));
             int port = new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
