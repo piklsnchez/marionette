@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MarionetteFactory {
     private static final String CLASS    = MarionetteFactory.class.getName();
@@ -55,8 +56,13 @@ public class MarionetteFactory {
             Path profileDirectory = Files.createTempDirectory("marionette");
             Files.newBufferedWriter(profileDirectory.resolve("user.js")).append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator()).close();
             ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
+            LOG.info(procBuilder.command().stream().collect(Collectors.joining(" ")));
             Process proc = procBuilder.start();
-            LOG.info(String.format("%s: %s; %s", proc.info().command().orElse("missing command"), Arrays.toString(proc.info().arguments().orElse(new String[]{"missing", "args"})), proc.info()));
+            LOG.info(String.format("%s: %s; %s"
+                , proc.info().command().orElse("missing command")
+                , Arrays.toString(proc.info().arguments().orElse(new String[]{"missing", "args"}))
+                , proc.info())
+            );            
             int port = CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
                 .mapToInt(
                     line -> {
