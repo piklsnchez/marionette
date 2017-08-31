@@ -12,6 +12,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
@@ -55,7 +56,7 @@ public class MarionetteFactory {
             Files.newBufferedWriter(profileDirectory.resolve("user.js")).append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator()).close();
             ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
             Process proc = procBuilder.start();
-            LOG.info(String.format("%s: %s; %s", proc.info().command().orElse("missing command"), proc.info().arguments().orElse(new String[]{"missing", "args"}), proc.info()));
+            LOG.info(String.format("%s: %s; %s", proc.info().command().orElse("missing command"), Arrays.toString(proc.info().arguments().orElse(new String[]{"missing", "args"})), proc.info()));
             int port = CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
                 .mapToInt(
                     line -> {
