@@ -5,6 +5,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.util.Objects;
@@ -110,7 +111,7 @@ public class Session implements Closeable{
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                         try{
                             Files.delete(file);
-                        } catch(AccessDeniedException e){
+                        } catch(FileSystemException e){
                             LOG.warning(e.toString());
                         }
                         return FileVisitResult.CONTINUE;
