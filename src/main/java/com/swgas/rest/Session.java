@@ -4,6 +4,7 @@ import com.swgas.marionette.Marionette;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.util.Objects;
@@ -107,7 +108,11 @@ public class Session implements Closeable{
                 Files.walkFileTree(profileDirectory, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        Files.delete(file);
+                        try{
+                            Files.delete(file);
+                        } catch(AccessDeniedException e){
+                            LOG.warning(e.toString());
+                        }
                         return FileVisitResult.CONTINUE;
                     }
                     @Override
