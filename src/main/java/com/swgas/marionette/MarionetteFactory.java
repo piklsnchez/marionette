@@ -12,18 +12,14 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class MarionetteFactory {
     private static final String CLASS    = MarionetteFactory.class.getName();
@@ -57,24 +53,31 @@ public class MarionetteFactory {
             Files.newBufferedWriter(profileDirectory.resolve("user.js")).append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator()).close();
             ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
             Process proc = procBuilder.start();
-            LOG.info(""+proc.info());
-            int port = CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
-                .mapToInt(
-                    line -> {
-                        LOG.info(line);
-                        Matcher match = PATTERN.matcher(line);
-                        if(match.find()){
-                            String _port = match.group(1);
-                            LOG.info(_port);
-                            if(_port.codePoints().allMatch(Character::isDigit)){
-                                return Integer.parseInt(_port, 10);
+            LOG.info(Objects.toString(proc.info(), "no proc"));
+            int port;
+            try{
+                port = CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
+                    .mapToInt(
+                        line -> {
+                            LOG.info(line);
+                            Matcher match = PATTERN.matcher(line);
+                            if(match.find()){
+                                String _port = match.group(1);
+                                LOG.info(_port);
+                                if(_port.codePoints().allMatch(Character::isDigit)){
+                                    return Integer.parseInt(_port, 10);
+                                }
                             }
+                            return 0;
                         }
-                        return 0;
-                    }
-                ).filter(p -> p > 0)
-                .findFirst().orElseThrow(UnknownErrorException::new)
-            ).get(10, TimeUnit.SECONDS);
+                    ).filter(p -> p > 0)
+                    .findFirst().orElseThrow(UnknownErrorException::new)
+                ).get(10, TimeUnit.SECONDS);
+            } catch(TimeoutException e){
+                proc.destroy();
+                new Session(null, proc, null, profileDirectory).close();
+                throw e;
+            }
             AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
             channel.connect(new InetSocketAddress("localhost", port), ret, new CompletionHandler<Void, CompletableFuture>(){
                 @Override

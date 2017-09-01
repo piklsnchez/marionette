@@ -4,8 +4,6 @@ import com.swgas.marionette.Marionette;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
