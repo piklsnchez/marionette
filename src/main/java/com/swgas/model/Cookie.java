@@ -2,17 +2,22 @@ package com.swgas.model;
 
 import com.swgas.rest.Jsonable;
 import java.io.StringReader;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
 public class Cookie implements Jsonable<Cookie>{
+    private static String CLASS = Cookie.class.getName();
+    private static final Logger LOG = Logger.getLogger(CLASS);
+    
     private String        name;
     private String        value;
     private String        path;
@@ -141,15 +146,20 @@ public class Cookie implements Jsonable<Cookie>{
         JsonObject cookie = Json.createReader(new StringReader(json)).readObject();
         this.name     = cookie.getString("name");
         this.value    = cookie.getString("value");
-        this.path     = cookie.getString("path", "/");
-        this.domain   = cookie.getString("domain", "");
-        this.secure   = cookie.getBoolean("secure", false);
+        this.path     = cookie.getString("path",      "/");
+        this.domain   = cookie.getString("domain",    "");
+        this.secure   = cookie.getBoolean("secure",   false);
         this.httpOnly = cookie.getBoolean("httpOnly", false);
         JsonValue exp = cookie.get("expiry");
         if(null == exp || cookie.isNull("expiry")){
             this.expiry = LocalDateTime.now().plus(20, ChronoUnit.YEARS);
         } else {
-            this.expiry = LocalDateTime.ofEpochSecond(((JsonNumber)exp).longValue(), 0, ZoneOffset.UTC);
+            try{
+                this.expiry = LocalDateTime.ofEpochSecond(((JsonNumber)exp).longValue(), 0, ZoneOffset.UTC);
+            } catch(DateTimeException e){
+                this.expiry = LocalDateTime.MIN;
+                LOG.warning(e.toString());
+            }
         }
         return this;
     }
@@ -157,9 +167,9 @@ public class Cookie implements Jsonable<Cookie>{
     @Override
     public String toString(){
         return Json.createObjectBuilder()
-        .add("name",     Objects.toString(name, ""))
-        .add("value",    Objects.toString(value, ""))
-        .add("path",     Objects.toString(path, ""))
+        .add("name",     Objects.toString(name,   ""))
+        .add("value",    Objects.toString(value,  ""))
+        .add("path",     Objects.toString(path,   ""))
         .add("domain",   Objects.toString(domain, ""))
         .add("secure",   secure)
         .add("httpOnly", httpOnly)
