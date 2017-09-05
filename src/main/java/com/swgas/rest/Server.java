@@ -2,7 +2,9 @@ package com.swgas.rest;
 
 import java.net.URI;
 import java.util.logging.Logger;
+import javax.json.Json;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -19,7 +21,17 @@ public class Server implements AutoCloseable {
     public Server(String uri) {
         // create a resource config that scans for JAX-RS resources
         final ResourceConfig rc = new ResourceConfig().packages("com.swgas.rest");
-        server = GrizzlyHttpServerFactory.createHttpServer(URI.create(uri), rc);
+        server = GrizzlyHttpServerFactory.createHttpServer(URI.create(uri), rc, false);
+        server.getServerConfiguration().setDefaultErrorPageGenerator(
+            (Request request, int status, String reasonPhrase, String description, Throwable exception) -> 
+                Json.createObjectBuilder()
+                .add("request", request.toString())
+                .add("status", status)
+                .add("reasonPhrase", reasonPhrase)
+                .add("description", description)
+                .add("exception", exception.toString())
+                .build().toString()
+        );
         LOG.finest(String.format("Starting server: %s", server.getListener(LISTENER_NAME)));
     }
 
