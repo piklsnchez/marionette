@@ -761,19 +761,6 @@ public class MarionetteImplTest {
     }
 
     @Test
-    public void testGetLogs() throws Exception {
-        LOG.entering(CLASS, "testGetLogs");
-        LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
-            .thenCompose(s -> session.getClient().getLogs())
-            .thenApply(MarionetteUtil::toArray)
-            .thenApply(Objects::toString)
-            .get(TIMEOUT, TimeUnit.SECONDS)
-        );
-        LOG.exiting(CLASS, "testGetLogs");
-    }
-
-    @Test
     public void testAddCookie() throws Exception {
         LOG.entering(CLASS, "testAddCookie");
         LOG.info(

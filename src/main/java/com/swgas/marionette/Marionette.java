@@ -111,7 +111,6 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  findElementFromElement      (SearchMethod method, String value, String elementId);
     public CompletableFuture<JsonArray>  findElementsFromElement     (SearchMethod method, String value, String elementId);
     public CompletableFuture<JsonArray>  getActiveElement            ();
-    public CompletableFuture<JsonArray>  getLogs                     ();
     public CompletableFuture<JsonArray>  addCookie                   (String cookie);
     public CompletableFuture<JsonArray>  deleteAllCookies            ();
     public CompletableFuture<JsonArray>  deleteCookie                (String name);

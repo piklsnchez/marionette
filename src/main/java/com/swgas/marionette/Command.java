@@ -61,7 +61,6 @@ public enum Command {
     , findElement                 ("findElement")
     , findElements                ("findElements")
     , getActiveElement            ("getActiveElement")
-    , getLogs                     ("getLogs")
     , importScript                ("importScript")
     , clearImportedScripts        ("clearImportedScripts")
     , addCookie                   ("addCookie")

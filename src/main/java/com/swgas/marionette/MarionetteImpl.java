@@ -507,12 +507,6 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> getLogs() {
-        String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getLogs.getCommand());
-        return writeAsync(command);
-    }
-
-    @Override
     public CompletableFuture<JsonArray> addCookie(String cookie) {
         String command = String.format("[0, %d, \"%s\", {\"cookie\": %s}]", messageId++, Command.addCookie.getCommand(), cookie);
         return writeAsync(command);
