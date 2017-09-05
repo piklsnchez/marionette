@@ -461,13 +461,6 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> executeJsScript(String script, String args, Boolean async, Boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout) {
-        String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"async\": %s, \"newSandbox\": %s, \"scriptTimeout\": %s, \"inactivityTimeout\": %s, \"filename\": null, \"line\": null}]"
-        , messageId++, Command.executeJsScript.getCommand(), script.replace("\"", "\\\""), args, async, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis(), inactivityTimeout == null ? null : inactivityTimeout.toMillis());
-        return writeAsync(command);
-    }
-
-    @Override
     public CompletableFuture<JsonArray> executeScript(String script, String args, Boolean newSandbox, Duration scriptTimeout) {
         String command = String.format("[0, %d, \"%s\", {\"script\": \"%s\", \"args\": %s, \"newSandbox\": %s, \"sandbox\": \"default\", \"scriptTimeout\": %s, \"filename\": null, \"line\": null}]"
         , messageId++, Command.executeScript.getCommand(), script.replace("\"", "\\\""), args, newSandbox, scriptTimeout == null ? null : scriptTimeout.toMillis());

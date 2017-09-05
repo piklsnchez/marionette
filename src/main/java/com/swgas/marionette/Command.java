@@ -56,7 +56,6 @@ public enum Command {
     , goBack                      ("goBack")
     , goForward                   ("goForward")
     , refresh                     ("refresh")
-    , executeJsScript             ("executeJSScript")
     , executeScript               ("executeScript")
     , executeAsyncScript          ("executeAsyncScript")
     , findElement                 ("findElement")

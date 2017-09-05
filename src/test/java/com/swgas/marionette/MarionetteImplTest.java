@@ -711,18 +711,6 @@ public class MarionetteImplTest {
     }
 
     @Test
-    public void testExecuteJsScript() throws Exception {
-        LOG.entering(CLASS, "testExecuteJsScript");
-        LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
-            .thenCompose(s -> session.getClient().executeJsScript("return 'abc';", "[]", null, null, null, null))
-            .thenApply(MarionetteUtil::toStringValue)
-            .get(TIMEOUT, TimeUnit.SECONDS)
-        );
-        LOG.exiting(CLASS, "testExecuteJsScript");
-    }
-
-    @Test
     public void testExecuteScript() throws Exception {
         LOG.entering(CLASS, "testExecuteScript");
         LOG.info(

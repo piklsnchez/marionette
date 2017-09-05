@@ -104,7 +104,6 @@ public interface Marionette {
     public CompletableFuture<JsonArray>  goBack                      ();
     public CompletableFuture<JsonArray>  goForward                   ();
     public CompletableFuture<JsonArray>  refresh                     ();
-    public CompletableFuture<JsonArray>  executeJsScript             (String script, String args, Boolean async, Boolean newSandbox, Duration scriptTimeout, Duration inactivityTimeout);
     public CompletableFuture<JsonArray>  executeScript               (String script, String args, Boolean newSandbox, Duration scriptTimeout);
     public CompletableFuture<JsonArray>  executeAsyncScript          (String script, String args, Boolean newSandbox, Duration scriptTimeout, Boolean debug);
     public CompletableFuture<JsonArray>  findElement                 (SearchMethod method, String value);
