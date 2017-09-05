@@ -1,5 +1,6 @@
 package com.swgas.rest;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.logging.Logger;
 import javax.json.Json;
@@ -32,6 +33,12 @@ public class Server implements AutoCloseable {
                 .add("exception", exception.toString())
                 .build().toString()
         );
+        try{
+            server.start();
+        } catch(IOException e){
+            LOG.throwing(CLASS, "<init>", e);
+            throw new RuntimeException(e);
+        }
         LOG.finest(String.format("Starting server: %s", server.getListener(LISTENER_NAME)));
     }
 
