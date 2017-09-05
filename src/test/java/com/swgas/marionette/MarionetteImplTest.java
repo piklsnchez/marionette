@@ -19,7 +19,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.json.Json;
-import javax.json.JsonArray;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +54,7 @@ public class MarionetteImplTest {
                     LOG.logp(Level.WARNING, CLASS, "beforeEach", e.getMessage(), _e);
                 }
             }
+            throw new RuntimeException(e);
         }
     }
     
