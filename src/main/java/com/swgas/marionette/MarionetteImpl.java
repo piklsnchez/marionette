@@ -507,12 +507,6 @@ public class MarionetteImpl implements Marionette {
     }
 
     @Override
-    public CompletableFuture<JsonArray> log(LogLevel level, String message) {
-        String command = String.format("[0, %d, \"%s\", {\"level\": \"%s\", \"value\": \"%s\"}]", messageId++, Command.log.getCommand(), level, message);
-        return writeAsync(command);
-    }
-
-    @Override
     public CompletableFuture<JsonArray> getLogs() {
         String command = String.format("[0, %d, \"%s\", {}]", messageId++, Command.getLogs.getCommand());
         return writeAsync(command);

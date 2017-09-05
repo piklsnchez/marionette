@@ -761,19 +761,6 @@ public class MarionetteImplTest {
     }
 
     @Test
-    public void testLog() throws Exception {
-        LOG.entering(CLASS, "testLog");
-        LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
-            .thenCompose(s -> session.getClient().log(Marionette.LogLevel.DEBUG, "message"))
-            .thenApply(MarionetteUtil::toObject)
-            .thenApply(Objects::toString)
-            .get(TIMEOUT, TimeUnit.SECONDS)
-        );
-        LOG.exiting(CLASS, "testLog");
-    }
-
-    @Test
     public void testGetLogs() throws Exception {
         LOG.entering(CLASS, "testGetLogs");
         LOG.info(
