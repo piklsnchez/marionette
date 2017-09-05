@@ -59,7 +59,7 @@ public class MarionetteFactory {
                 port = CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
                     .mapToInt(
                         line -> {
-                            LOG.info(line);
+                            //LOG.info(line);
                             Matcher match = PATTERN.matcher(line);
                             if(match.find()){
                                 String _port = match.group(1);
