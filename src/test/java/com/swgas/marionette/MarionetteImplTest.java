@@ -822,7 +822,14 @@ public class MarionetteImplTest {
         LOG.entering(CLASS, "testDeleteCookie");
         LOG.info(
             session.getClient().get("https://myaccountdev.swgas.com/")
-            .thenCompose(s -> session.getClient().deleteCookie("cookieName"))
+            .thenCompose(s -> session.getClient().addCookie(Json.createObjectBuilder()
+                .add("name", "cookieName")
+                .add("value", "cookieValue")
+                .add("path", "/")
+                .add("domain", ".swgas.com")
+                .add("expires", LocalDateTime.now().plusDays(5).toEpochSecond(ZoneOffset.UTC))
+                .build().toString())
+            ).thenCompose(s -> session.getClient().deleteCookie("cookieName"))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS)
