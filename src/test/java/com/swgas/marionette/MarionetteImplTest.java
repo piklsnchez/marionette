@@ -1,5 +1,6 @@
 package com.swgas.marionette;
 
+import com.swgas.model.Cookie;
 import com.swgas.model.Timeouts;
 import com.swgas.rest.Session;
 import java.awt.Point;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.json.Json;
+import javax.json.JsonArray;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -782,16 +784,18 @@ public class MarionetteImplTest {
     @Test
     public void testDeleteCookie() throws Exception {
         LOG.entering(CLASS, "testDeleteCookie");
+        List<Cookie> cookies = MarionetteUtil.parseJsonArray(
+            session.getClient().get("https://myaccountdev.swgas.com/")
+            .thenCompose(s -> session.getClient().getCookies())
+            .thenApply(MarionetteUtil::toArray)
+            .thenApply(Objects::toString)        
+            .get(TIMEOUT, TimeUnit.SECONDS)
+        ).stream()
+        .map(c -> new Cookie().fromJson(c.toString()))
+        .collect(Collectors.toList());
         LOG.info(
             session.getClient().get("https://myaccountdev.swgas.com/")
-            .thenCompose(s -> session.getClient().addCookie(Json.createObjectBuilder()
-                .add("name", "cookieName")
-                .add("value", "cookieValue")
-                .add("path", "/")
-                .add("domain", ".swgas.com")
-                .add("expires", LocalDateTime.now().plusDays(5).toEpochSecond(ZoneOffset.UTC))
-                .build().toString())
-            ).thenCompose(s -> session.getClient().deleteCookie("cookieName"))
+            .thenCompose(s -> session.getClient().deleteCookie(cookies.get(0).getName()))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS)

@@ -133,6 +133,8 @@ public class Session implements Closeable{
                 });
             }
             LOG.exiting(CLASS, "close");
+        } catch(FileSystemException e){
+            LOG.warning(e.toString());
         } catch(Exception e){
             LOG.logp(Level.WARNING, CLASS, "close", e.toString(), e);
         }
