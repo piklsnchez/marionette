@@ -1,7 +1,9 @@
 package com.swgas.rest;
 
+import com.swgas.model.JsonError;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.json.Json;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -30,8 +32,9 @@ public class Server implements AutoCloseable {
                 .add("status", status)
                 .add("reasonPhrase", reasonPhrase)
                 .add("description", description)
-                .add("exception", exception.toString())
-                .build().toString()
+                .add("error", new JsonError(exception.toString(), exception.getMessage()
+                    , Arrays.stream(exception.getStackTrace()).reduce("", (s, st) -> String.join(System.lineSeparator(), s, ""+st), String::concat)).toJson()
+                ).build().toString()
         );
         try{
             server.start();
@@ -53,5 +56,10 @@ public class Server implements AutoCloseable {
     public void close(){
         LOG.finest(String.format("Shutting down server: %s", server.getListener(LISTENER_NAME)));
         server.shutdownNow();
+    }
+    
+    @Override
+    public String toString(){
+        return server.getListener(LISTENER_NAME).toString();
     }
 }

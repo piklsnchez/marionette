@@ -52,7 +52,7 @@ public class WebDriverServiceTest {
     public static void beforeAll(){
         LOG.entering(CLASS, "berforeAll");
         server = new Server();
-        LOG.entering(CLASS, "beforeAll", server);
+        LOG.exiting(CLASS, "beforeAll", server);
     }
     
     @AfterAll
