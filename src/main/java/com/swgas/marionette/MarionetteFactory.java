@@ -12,6 +12,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -53,7 +55,9 @@ public class MarionetteFactory {
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
             .append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator())
             .append("user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");").append(System.lineSeparator()).close();
-            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
+            List<String> commandList = Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
+            ProcessBuilder procBuilder = new ProcessBuilder(commandList);
+            procBuilder.command(commandList);
             Process proc = procBuilder.start();
             LOG.info(Objects.toString(proc.info(), "no proc"));
             int port;
