@@ -50,8 +50,10 @@ public class MarionetteFactory {
         CompletableFuture<Session> ret = new CompletableFuture<>();
         try{
             Path profileDirectory = Files.createTempDirectory("marionette");
-            Files.newBufferedWriter(profileDirectory.resolve("user.js")).append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator()).close();
-            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-safe-mode", "-profile", profileDirectory.toString(), "-new-instance");
+            Files.newBufferedWriter(profileDirectory.resolve("user.js"))
+            .append("user_pref(\"marionette.defaultPrefs.port\", 0);").append(System.lineSeparator())
+            .append("user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");").append(System.lineSeparator()).close();
+            ProcessBuilder procBuilder = new ProcessBuilder("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
             Process proc = procBuilder.start();
             LOG.info(Objects.toString(proc.info(), "no proc"));
             int port;
