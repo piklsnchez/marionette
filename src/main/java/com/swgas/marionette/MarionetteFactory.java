@@ -94,7 +94,7 @@ public class MarionetteFactory {
             Matcher match = PATTERN.matcher(output);
             if(match.find()){
                 String _port = match.group(1);
-                LOG.info(String.format("port: %d", _port));
+                LOG.info(String.format("port: %s", _port));
                 if(_port.codePoints().allMatch(Character::isDigit)){
                     return Integer.parseInt(_port, 10);
                 }
