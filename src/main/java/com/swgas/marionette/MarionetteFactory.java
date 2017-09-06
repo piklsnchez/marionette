@@ -59,7 +59,7 @@ public class MarionetteFactory {
             ProcessBuilder procBuilder = new ProcessBuilder(commandList);
             procBuilder.command(commandList);
             Process proc = procBuilder.start();
-            LOG.info(proc.info().commandLine().orElse("no proc"));
+            LOG.info(proc.info().toString());
             int port;
             try{
                 port = CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
