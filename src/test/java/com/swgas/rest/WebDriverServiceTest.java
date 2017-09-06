@@ -1030,6 +1030,7 @@ public class WebDriverServiceTest {
      * Test of performActions method, of class WebDriverService.
      */
     @Test
+    @Disabled(value = "Not Implimented")
     public void testPerformActions() {
         LOG.entering(CLASS, "testPerformActions");
         try{
@@ -1046,6 +1047,7 @@ public class WebDriverServiceTest {
      * Test of releaseActions method, of class WebDriverService.
      */
     @Test
+    @Disabled(value = "Not Implimented")
     public void testReleaseActions() {
         LOG.entering(CLASS, "testReleaseActions");
         try{

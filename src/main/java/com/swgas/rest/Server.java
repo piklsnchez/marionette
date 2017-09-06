@@ -33,7 +33,7 @@ public class Server implements AutoCloseable {
                 .add("reasonPhrase", reasonPhrase)
                 .add("description", description)
                 .add("error", new JsonError(exception.toString(), exception.getMessage()
-                    , Arrays.stream(exception.getStackTrace()).reduce("", (s, st) -> String.join(System.lineSeparator(), s, ""+st), String::concat)).toJson()
+                    , Arrays.stream(exception.getStackTrace()).reduce("", (s, st) -> String.join("  \n  ", s, ""+st), String::concat)).toJson()
                 ).build().toString()
         );
         try{
