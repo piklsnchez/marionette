@@ -92,7 +92,9 @@ public class MarionetteFactory {
         String output = "";
         byte[] buff = new byte[255];
         while(0 < in.read(buff)){
-            output += new String(buff);            
+            String stringBuff = new String(buff);
+            LOG.finest(stringBuff);
+            output += stringBuff;
             Matcher match = PATTERN.matcher(output);
             if(match.find()){
                 String _port = match.group(1);
