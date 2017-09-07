@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
@@ -88,6 +91,17 @@ public class MarionetteFactory {
     }
     
     private static int getPort(Process proc) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        Executors.newSingleThreadExecutor().submit(()-> {
+            BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            try{
+                String line;
+                while((line = err.readLine()) != null){
+                    LOG.severe(line);
+                }
+            } catch(IOException e){
+                LOG.severe(e.toString());
+            }
+        });
         InputStream in = proc.getInputStream();
         String output = "";
         byte[] buff = new byte[255];
