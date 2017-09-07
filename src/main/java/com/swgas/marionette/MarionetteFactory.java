@@ -5,6 +5,7 @@ import com.swgas.exception.UnknownErrorException;
 import com.swgas.rest.Session;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -87,9 +88,10 @@ public class MarionetteFactory {
     }
     
     private static int getPort(Process proc) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        InputStream in = proc.getInputStream();
         String output = "";
         byte[] buff = new byte[255];
-        while(0 < proc.getInputStream().read(buff)){
+        while(0 < in.read(buff)){
             output += new String(buff);            
             Matcher match = PATTERN.matcher(output);
             if(match.find()){
