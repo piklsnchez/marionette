@@ -105,8 +105,9 @@ public class MarionetteFactory {
         InputStream in = proc.getInputStream();
         String output = "";
         byte[] buff = new byte[255];
-        while(0 < in.read(buff)){
-            String stringBuff = new String(buff);
+        int read;
+        while(0 < (read = in.read(buff))){
+            String stringBuff = new String(buff, 0, read);
             LOG.finest(stringBuff);
             output += stringBuff;
             Matcher match = PATTERN.matcher(output);
