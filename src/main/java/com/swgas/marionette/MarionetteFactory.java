@@ -63,7 +63,8 @@ public class MarionetteFactory {
             .append("user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");").append(System.lineSeparator())
             .append("user_pref(\"extensions.blocklist.enabled\", false);").append(System.lineSeparator())
             .append("user_pref(\"extensions.blocklist.url\", \"\");").append(System.lineSeparator())
-            .append("user_pref(\"extensions.blocklist.detailsURL\", \"\");").append(System.lineSeparator())            
+            .append("user_pref(\"extensions.blocklist.detailsURL\", \"\");").append(System.lineSeparator())    
+            .append("user_pref(\"security.sandbox.content.level\", 0);").append(System.lineSeparator())
             .close();
             List<String> commandList = Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
             ProcessBuilder procBuilder = new ProcessBuilder(commandList);
