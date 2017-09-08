@@ -2,12 +2,12 @@ package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
 import com.swgas.exception.UnknownErrorException;
+import com.swgas.ocs.util.ZipUtils;
 import com.swgas.rest.Session;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -17,10 +17,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -57,23 +56,14 @@ public class MarionetteFactory {
         CompletableFuture<Session> ret = new CompletableFuture<>();
         Session session = new Session();
         try{
-            Path profileDirectory = Paths.get(System.getProperty("java.io.tmpdir"), "marionette");
-            //Path profileDirectory = Files.createTempDirectory("marionette");
+            Path profileDirectory = Paths.get(System.getProperty("java.io.tmpdir"), String.format("marionette%s", UUID.randomUUID().toString()));
+            ZipUtils.unZip(MarionetteFactory.class.getResourceAsStream("marionette.zip"), profileDirectory);
             session.setProfileDirectory(profileDirectory);
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
             .append("user_pref(\"marionette.defaultPrefs.port\", 0);")                     .append(System.lineSeparator())
             .append("user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");").append(System.lineSeparator())
-            .append("user_pref(\"extensions.blocklist.enabled\", false);")                 .append(System.lineSeparator())
-            .append("user_pref(\"extensions.blocklist.url\", \"\");")                      .append(System.lineSeparator())
-            .append("user_pref(\"extensions.blocklist.detailsURL\", \"\");")               .append(System.lineSeparator())    
-            .append("user_pref(\"security.sandbox.content.level\", 0);")                   .append(System.lineSeparator())    
-            .append("user_pref(\"media.gmp-gmpopenh264.enabled\", false);")                .append(System.lineSeparator())
-            .append("user_pref(\"media.gmp-manager.url\", \"http://localhost:8008\");")    .append(System.lineSeparator())
-            .close();
-            List<String> commandList = Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance");
-            ProcessBuilder procBuilder = new ProcessBuilder(commandList);
-            procBuilder.command(commandList);
-            Process proc = procBuilder.start();
+            .close();;
+            Process proc = new ProcessBuilder(Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance")).start();
             session.setProc(proc);
             LOG.info(proc.info().toString());
             int port = getPort(proc);
@@ -128,27 +118,6 @@ public class MarionetteFactory {
                 }
             }
         }
-        LOG.info(output);
         return 0;
-    }
-    
-    private static int getPortFancy(Process proc) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        return CompletableFuture.supplyAsync(() -> new BufferedReader(new InputStreamReader(proc.getInputStream())).lines()
-            .mapToInt(
-                line -> {
-                    //LOG.info(line);
-                    Matcher match = PATTERN.matcher(line);
-                    if(match.find()){
-                        String _port = match.group(1);
-                        LOG.info(_port);
-                        if(_port.codePoints().allMatch(Character::isDigit)){
-                            return Integer.parseInt(_port, 10);
-                        }
-                    }
-                    return 0;
-                }
-            ).filter(p -> p > 0)
-            .findFirst().orElseThrow(UnknownErrorException::new)
-        ).get(10, TimeUnit.SECONDS);
     }
 }

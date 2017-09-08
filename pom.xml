@@ -9,8 +9,8 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>OcsUtils</artifactId>
-            <version>1.7</version>
+            <artifactId>ocs-utils</artifactId>
+            <version>1.8</version>
         </dependency>
         <dependency>
             <groupId>javax.json</groupId>

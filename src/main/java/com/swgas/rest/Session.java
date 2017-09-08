@@ -102,7 +102,6 @@ public class Session implements Closeable{
     
     @Override
     public void close(){
-        if(1 == 1) return;
         LOG.entering(CLASS, "close");        
         try{
             if(null != profileDirectory && Files.exists(profileDirectory)){
