@@ -1,7 +1,6 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
-import com.swgas.exception.UnknownErrorException;
 import com.swgas.ocs.util.ZipUtils;
 import com.swgas.rest.Session;
 import java.io.BufferedReader;
@@ -16,12 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -53,11 +50,12 @@ public class MarionetteFactory {
     }
     
     public static CompletableFuture<Session> createSession(){
+        LOG.entering(CLASS, "createSession");
         CompletableFuture<Session> ret = new CompletableFuture<>();
         Session session = new Session();
         try{
             Path profileDirectory = Paths.get(System.getProperty("java.io.tmpdir"), String.format("marionette%s", UUID.randomUUID().toString()));
-            ZipUtils.unZip(MarionetteFactory.class.getResourceAsStream("marionette.zip"), profileDirectory);
+            ZipUtils.unZip(MarionetteFactory.class.getClassLoader().getResourceAsStream("marionette.zip"), profileDirectory);
             session.setProfileDirectory(profileDirectory);
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
             .append("user_pref(\"marionette.defaultPrefs.port\", 0);")                     .append(System.lineSeparator())
@@ -86,6 +84,7 @@ public class MarionetteFactory {
             }
             throw new MarionetteException(e);
         }
+        LOG.exiting(CLASS, "createSession", ret);
         return ret;
     }
     
