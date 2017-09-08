@@ -57,7 +57,7 @@ public class MarionetteFactory {
         CompletableFuture<Session> ret = new CompletableFuture<>();
         Session session = new Session();
         try{
-            Path profileDirectory = Paths.get("/tmp", "marionette9060624075692608878");
+            Path profileDirectory = Paths.get(System.getProperty("java.io.tmpdir"), "marionette9060624075692608878");
             //Path profileDirectory = Files.createTempDirectory("marionette");
             session.setProfileDirectory(profileDirectory);
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
