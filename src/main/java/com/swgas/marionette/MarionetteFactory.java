@@ -14,6 +14,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -56,7 +57,8 @@ public class MarionetteFactory {
         CompletableFuture<Session> ret = new CompletableFuture<>();
         Session session = new Session();
         try{
-            Path profileDirectory = Files.createTempDirectory("marionette");
+            Path profileDirectory = Paths.get("/tmp", "marionette9060624075692608878");
+            //Path profileDirectory = Files.createTempDirectory("marionette");
             session.setProfileDirectory(profileDirectory);
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
             .append("user_pref(\"marionette.defaultPrefs.port\", 0);")                     .append(System.lineSeparator())
