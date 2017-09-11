@@ -61,6 +61,9 @@ public class MarionetteFactory {
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
             .append("user_pref(\"marionette.defaultPrefs.port\", 0);")                     .append(System.lineSeparator())
             .append("user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");").append(System.lineSeparator())
+            .append("user_pref(\"datareporting.healthreport.uploadEnabled\", false);")     .append(System.lineSeparator())
+            .append("user_pref(\"datareporting.healthreport.service.enabled\", false);")   .append(System.lineSeparator())
+            .append("user_pref(\"datareporting.healthreport.service.firstRun\", false);")  .append(System.lineSeparator())
             .close();
             Process proc = new ProcessBuilder(Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance")).start();
             session.setProc(proc);
