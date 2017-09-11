@@ -38,6 +38,7 @@ public class MarionetteImplTest {
     
     @BeforeEach
     private void beforeEach() {
+        LOG.entering(CLASS, "beforeEach");
         try{
             session = MarionetteFactory.createSession().get(TIMEOUT, TimeUnit.SECONDS);
             session.setSessionId(
@@ -56,6 +57,7 @@ public class MarionetteImplTest {
             }
             throw new RuntimeException(e);
         }
+        LOG.exiting(CLASS, "beforeEach", session);
     }
     
     @AfterEach
