@@ -105,9 +105,9 @@ public class MarionetteFactory {
         byte[] buff = new byte[255];
         int read;
         while(0 < (read = in.read(buff))){
-            String stringBuff = new String(buff, 0, read);
-            LOG.finest(stringBuff);
-            output += stringBuff;
+            String stdOut = new String(buff, 0, read);
+            LOG.finest(stdOut);
+            output += stdOut;
             Matcher match = PATTERN.matcher(output);
             if(match.find()){
                 String _port = match.group(1);
@@ -117,6 +117,7 @@ public class MarionetteFactory {
                 }
             }
         }
+        LOG.warning(output);
         return 0;
     }
 }
