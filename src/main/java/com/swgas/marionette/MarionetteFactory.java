@@ -66,7 +66,7 @@ public class MarionetteFactory {
             LOG.info(proc.info().toString());
             int port = getPort(proc);
             AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
-            channel.connect(new InetSocketAddress(port), ret, new CompletionHandler<Void, CompletableFuture>(){
+            channel.connect(new InetSocketAddress("localhost", port), ret, new CompletionHandler<Void, CompletableFuture>(){
                 @Override
                 public void completed(Void result, CompletableFuture future) {
                     session.setClient(new MarionetteImpl(channel));
@@ -106,7 +106,6 @@ public class MarionetteFactory {
         int read;
         while(0 < (read = in.read(buff))){
             String stdOut = new String(buff, 0, read);
-            LOG.finest(stdOut);
             output += stdOut;
             Matcher match = PATTERN.matcher(output);
             if(match.find()){
