@@ -19,6 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -53,8 +54,8 @@ public class MarionetteFactory {
         LOG.entering(CLASS, "createSession");
         CompletableFuture<Session> ret = new CompletableFuture<>();
         Session session = new Session();
+        Path profileDirectory = Paths.get(System.getProperty("java.io.tmpdir"), String.format("marionette%s", UUID.randomUUID().toString()));
         try{
-            Path profileDirectory = Paths.get(System.getProperty("java.io.tmpdir"), String.format("marionette%s", UUID.randomUUID().toString()));
             ZipUtils.unZip(MarionetteFactory.class.getClassLoader().getResourceAsStream("marionette.zip"), profileDirectory);
             session.setProfileDirectory(profileDirectory);
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
@@ -79,7 +80,12 @@ public class MarionetteFactory {
                 }
             });
         } catch(IOException | InterruptedException | ExecutionException | TimeoutException e){
-            if(e instanceof TimeoutException){            
+            if(e instanceof TimeoutException){
+                try{
+                    LOG.warning(Files.lines(profileDirectory.resolve("prefs.js")).reduce(String::concat).orElse("?"));
+                } catch(IOException _e){
+                    LOG.warning(_e.toString());
+                }
                 session.getProc().destroy();
             }
             throw new MarionetteException(e);
@@ -100,23 +106,28 @@ public class MarionetteFactory {
                 LOG.severe(e.toString());
             }
         });
-        InputStream in = proc.getInputStream();
-        String output = "";
-        byte[] buff = new byte[255];
-        int read;
-        while(0 < (read = in.read(buff))){
-            String stdOut = new String(buff, 0, read);
-            output += stdOut;
-            Matcher match = PATTERN.matcher(output);
-            if(match.find()){
-                String _port = match.group(1);
-                LOG.info(String.format("port: %s", _port));
-                if(_port.codePoints().allMatch(Character::isDigit)){
-                    return Integer.parseInt(_port, 10);
+        InputStreamReader in = new InputStreamReader(proc.getInputStream());
+        StringBuilder output = new StringBuilder();
+        return CompletableFuture.supplyAsync(()-> {
+            char[] buff = new char[255];
+            int read;
+            try{
+                while(0 < (read = in.read(buff))){
+                    output.append(buff, 0, read);
+                    Matcher match = PATTERN.matcher(output);
+                    if(match.find()){
+                        String _port = match.group(1);
+                        LOG.info(String.format("port: %s", _port));
+                        if(_port.codePoints().allMatch(Character::isDigit)){
+                            return Integer.parseInt(_port, 10);
+                        }
+                    }
                 }
+            } catch(IOException e){
+                LOG.severe(e.toString());
             }
-        }
-        LOG.warning(output);
-        return 0;
+            LOG.warning(output.toString());
+            return 0;
+        }).get(9, TimeUnit.MINUTES);
     }
 }
