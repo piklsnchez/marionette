@@ -52,7 +52,7 @@ public class MarionetteImplTest {
                 try{
                     session.getProc().destroy();
                 } catch(Exception _e){
-                    LOG.logp(Level.WARNING, CLASS, "beforeEach", e.getMessage(), _e);
+                    LOG.logp(Level.WARNING, CLASS, "beforeEach", e.getMessage(), _e.fillInStackTrace());
                 }
             }
             throw new RuntimeException(e);
