@@ -61,7 +61,7 @@ public class MarionetteFactory {
             .append("user_pref(\"marionette.defaultPrefs.port\", 0);")                     .append(System.lineSeparator())
             .append("user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");").append(System.lineSeparator())
             .close();
-            Process proc = new ProcessBuilder(Arrays.asList("firefox", "-headless", "-marionette", "-profile", profileDirectory.toString(), "-new-instance")).start();
+            Process proc = new ProcessBuilder(Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance")).start();
             session.setProc(proc);
             LOG.info(proc.info().toString());
             int port = getPort(proc);
