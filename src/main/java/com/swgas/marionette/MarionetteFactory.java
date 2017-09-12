@@ -61,9 +61,16 @@ public class MarionetteFactory {
             Files.newBufferedWriter(profileDirectory.resolve("user.js"))
             .append("user_pref(\"marionette.defaultPrefs.port\", 0);")                     .append(System.lineSeparator())
             .append("user_pref(\"browser.startup.homepage_override.mstone\", \"ignore\");").append(System.lineSeparator())
+            .append("user_pref(\"browser.safebrowsing.downloads.remote.enabled\", false);").append(System.lineSeparator())
+            .append("user_pref(\"browser.search.geoip.url\", \"\");")                      .append(System.lineSeparator())
+            .append("user_pref(\"browser.selfsupport.url\", \"\");")                       .append(System.lineSeparator())
+            .append("user_pref(\"browser.aboutHomeSnippets.updateUrl\", \"\");")           .append(System.lineSeparator())
             .append("user_pref(\"datareporting.healthreport.uploadEnabled\", false);")     .append(System.lineSeparator())
             .append("user_pref(\"datareporting.healthreport.service.enabled\", false);")   .append(System.lineSeparator())
             .append("user_pref(\"datareporting.healthreport.service.firstRun\", false);")  .append(System.lineSeparator())
+            .append("user_pref(\"extensions.blocklist.enabled\", false);")                 .append(System.lineSeparator())
+            .append("user_pref(\"extensions.getAddons.cache.enabled\", false);")           .append(System.lineSeparator())
+            .append("user_pref(\"media.gmp-gmpopenh264.enabled\", false);")                .append(System.lineSeparator())
             .close();
             Process proc = new ProcessBuilder(Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance")).start();
             session.setProc(proc);
