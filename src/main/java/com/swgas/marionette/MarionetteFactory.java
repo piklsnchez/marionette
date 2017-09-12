@@ -70,6 +70,8 @@ public class MarionetteFactory {
             .append("user_pref(\"datareporting.healthreport.service.firstRun\", false);")  .append(System.lineSeparator())
             .append("user_pref(\"extensions.blocklist.enabled\", false);")                 .append(System.lineSeparator())
             .append("user_pref(\"extensions.getAddons.cache.enabled\", false);")           .append(System.lineSeparator())
+            .append("user_pref(\"media.gmp-provider.enabled\", false);")                   .append(System.lineSeparator())
+            .append("user_pref(\"media.gmp-manager.url\", \"\");")                         .append(System.lineSeparator())
             .append("user_pref(\"media.gmp-gmpopenh264.enabled\", false);")                .append(System.lineSeparator())
             .close();
             Process proc = new ProcessBuilder(Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance")).start();
