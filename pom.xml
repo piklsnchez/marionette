@@ -43,6 +43,11 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.0.0-RC3</version>
             <scope>test</scope>
+        </dependency>        
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-console-standalone</artifactId>
+            <version>1.0.0-RC3</version>
         </dependency>
         <!-- maven.java.net/promoted -->
         <dependency>
@@ -90,11 +95,6 @@
                     <argLine>--add-modules=jdk.incubator.httpclient</argLine>
                 </configuration>
                 <dependencies>
-                    <dependency>
-                        <groupId>org.junit.platform</groupId>
-                        <artifactId>junit-platform-console-standalone</artifactId>
-                        <version>1.0.0-RC3</version>
-                    </dependency>
                     <dependency>
                         <groupId>org.junit.platform</groupId>
                         <artifactId>junit-platform-surefire-provider</artifactId>
