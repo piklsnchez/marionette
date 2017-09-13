@@ -5,7 +5,6 @@ import com.swgas.ocs.util.ZipUtils;
 import com.swgas.rest.Session;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -80,7 +79,7 @@ public class MarionetteFactory {
             LOG.info(proc.info().toString());
             int port = getPort(proc);
             AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
-            channel.connect(new InetSocketAddress(InetAddress.getLocalHost(), port), ret, new CompletionHandler<Void, CompletableFuture>(){
+            channel.connect(new InetSocketAddress("localhost", port), ret, new CompletionHandler<Void, CompletableFuture>(){
                 @Override
                 public void completed(Void result, CompletableFuture future) {
                     session.setClient(new MarionetteImpl(channel));
