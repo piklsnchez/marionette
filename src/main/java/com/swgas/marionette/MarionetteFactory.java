@@ -108,6 +108,7 @@ public class MarionetteFactory {
     }
     
     private static int getPort(Process proc) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        LOG.entering(CLASS, "getPort", proc);
         Executors.newSingleThreadExecutor().submit(()-> {
             BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             try{
@@ -121,7 +122,7 @@ public class MarionetteFactory {
         });
         InputStreamReader in = new InputStreamReader(proc.getInputStream());
         StringBuilder output = new StringBuilder();
-        return CompletableFuture.supplyAsync(()-> {
+        int result = CompletableFuture.supplyAsync(()-> {
             char[] buff = new char[255];
             int read;
             try{
@@ -142,5 +143,7 @@ public class MarionetteFactory {
             LOG.warning(output.toString());
             return -1;
         }).get(9, TimeUnit.MINUTES);
+        LOG.exiting(CLASS, "getPort", result);
+        return result;
     }
 }
