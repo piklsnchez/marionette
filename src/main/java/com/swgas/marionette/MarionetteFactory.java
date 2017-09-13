@@ -140,7 +140,7 @@ public class MarionetteFactory {
                 LOG.severe(e.toString());
             }
             LOG.warning(output.toString());
-            return 0;
+            return -1;
         }).get(9, TimeUnit.MINUTES);
     }
 }
