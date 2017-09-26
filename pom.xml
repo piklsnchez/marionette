@@ -95,7 +95,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version><!-- 2.20 ClassNotFound ConsoleLogger -->
+                <version>2.19.1</version><!-- 2.20(.1) are broken until junit.jupiter.version 5.1 -->
                 <configuration>
                     <argLine>--add-modules=jdk.incubator.httpclient,java.xml.bind</argLine>
                 </configuration>

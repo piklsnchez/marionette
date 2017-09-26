@@ -52,11 +52,6 @@ public class WebDriverServiceTest {
     public static void beforeAll(){
         LOG.entering(CLASS, "berforeAll");
         try{
-            try{
-                String module = javax.annotation.Priority.class.getModule().toString();
-                String pack =   javax.annotation.Priority.class.getPackage().toString();
-                LOG.info(String.format("%s: %s", module, pack));
-            }catch(NoClassDefFoundError e){}
             server = new Server();
         } catch(Throwable e){
             LOG.throwing(CLASS, "beforeAll", e);

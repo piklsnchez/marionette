@@ -7,4 +7,4 @@ then
   echo "CLASSPATH: $CLASSPATH"
 fi
 mvn clean package assembly:single -U -DskipTests=true && \
-"$JAVA_HOME/bin/java" --add-modules jdk.incubator.httpclient,java.xml.bind,java.xml.ws -jar ~/.m2/repository/org/junit/platform/junit-platform-console-standalone/1.0.0/junit-platform-console-standalone-1.0.0.jar -classpath "$CLASSPATH" -m com.swgas.rest.WebDriverServiceTest#testGetTitle
+"$JAVA_HOME/bin/java" --add-modules jdk.incubator.httpclient,java.xml.bind -jar ~/.m2/repository/org/junit/platform/junit-platform-console-standalone/1.0.0/junit-platform-console-standalone-1.0.0.jar -classpath "$CLASSPATH" -m com.swgas.rest.WebDriverServiceTest#testGetTitle
