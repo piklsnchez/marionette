@@ -21,7 +21,7 @@
             <groupId>org.glassfish</groupId>
             <artifactId>javax.json</artifactId>
             <version>1.1</version>
-        </dependency>
+        </dependency>        
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-grizzly2-http</artifactId>
@@ -49,6 +49,11 @@
             <version>1.0.0</version>
         </dependency>
         <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <version>8.0</version>
@@ -69,7 +74,9 @@
                 <configuration>
                     <source>1.9</source>
                     <target>1.9</target>
-                    <compilerArgument>--add-modules=jdk.incubator.httpclient</compilerArgument>
+                    <compilerArgs>
+                        <arg>--add-modules</arg><arg>jdk.incubator.httpclient</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -88,9 +95,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20.1</version><!-- 2.20 ClassNotFound ConsoleLogger -->
+                <version>2.19.1</version><!-- 2.20 ClassNotFound ConsoleLogger -->
                 <configuration>
-                    <argLine>--add-modules=jdk.incubator.httpclient</argLine>
+                    <argLine>--add-modules=jdk.incubator.httpclient,java.xml.bind</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>
