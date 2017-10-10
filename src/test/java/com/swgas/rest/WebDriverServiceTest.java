@@ -42,6 +42,7 @@ public class WebDriverServiceTest {
     private static final String CLASS    = WebDriverServiceTest.class.getName();
     private static final Logger LOG      = Logger.getLogger(CLASS);
     private static final String BASE_URI = "http://localhost:8008";
+    private static final String URL      = "https://myaccountdev.swgas.com/";
     private static       Server server;
     private              String sessionId;
     
@@ -270,7 +271,7 @@ public class WebDriverServiceTest {
     public void testGetUrl() {
         LOG.entering(CLASS, "testGetUrl");
         try{
-            String url = "https://myaccountdev.swgas.com/";
+            String url = URL;
             setUrl(url);
             String result = MarionetteUtil.parseJsonObject(GET(getUri("getUrl", sessionId)).body()).getString("url");
             Assertions.assertTrue(Objects.equals(url, result), String.format("\"%s\" should match \"%s\"", result, url));
@@ -288,8 +289,8 @@ public class WebDriverServiceTest {
     public void testBack() {
         LOG.entering(CLASS, "testBack");
         try{
-            String url       = "https://myaccountdev.swgas.com/agency";
-            String expResult = "https://myaccountdev.swgas.com/";
+            String url       = String.format("%sagency", URL);
+            String expResult = URL;
             setUrl(expResult);
             setUrl(url);
             POST(getUri("back", sessionId), "");
@@ -309,8 +310,8 @@ public class WebDriverServiceTest {
     public void testForward() {
         LOG.entering(CLASS, "testForward");
         try{
-            String url       = "https://myaccountdev.swgas.com/agency";
-            String expResult = "https://myaccountdev.swgas.com/";
+            String url       = String.format("%sagency", URL);
+            String expResult = URL;
             setUrl(url);
             setUrl(expResult);
             POST(getUri("back", sessionId), "");
@@ -348,7 +349,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testGetTitle");
         try{
             String expResult = "Southwest Gas - MyAccount Home";
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String result = MarionetteUtil.parseJsonObject(GET(getUri("getTitle", sessionId)).body()).getString("title");
             Assertions.assertTrue(Objects.equals(result, expResult), String.format("%s should match %s", result, expResult));
             LOG.exiting(CLASS, "testGetTitle", result);
@@ -399,7 +400,7 @@ public class WebDriverServiceTest {
     public void testCloseWindow() {
         LOG.entering(CLASS, "testCloseWindow");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonArray result = MarionetteUtil.parseJsonArray(DELETE(getUri("closeWindow", sessionId), "").body());
             Assertions.assertTrue(null != result, "result should not be null");
             LOG.exiting(CLASS, "testCloseWindow", result);            
@@ -567,7 +568,7 @@ public class WebDriverServiceTest {
     public void testFindElement() {
         LOG.entering(CLASS, "testFindElement");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             WebElement element = new WebElement().fromJson(POST(
                 getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
@@ -587,7 +588,7 @@ public class WebDriverServiceTest {
     public void testFindElements() {
         LOG.entering(CLASS, "testFindElements");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonArray result = MarionetteUtil.parseJsonArray(POST(
                 getUri("findElements", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
@@ -607,7 +608,7 @@ public class WebDriverServiceTest {
     public void testFindElementFromElement() {
         LOG.entering(CLASS, "testFindElementFromElement");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             WebElement element = new WebElement().fromJson(POST(
                 getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
@@ -632,7 +633,7 @@ public class WebDriverServiceTest {
     public void testFindElementsFromElement() {
         LOG.entering(CLASS, "testFindElementsFromElement");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             WebElement element = new WebElement().fromJson(POST(
                 getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "body").build().toString()
@@ -657,7 +658,7 @@ public class WebDriverServiceTest {
     public void testIsElementSelected() {
         LOG.entering(CLASS, "testIsElementSelected");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             WebElement element = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body());
@@ -677,7 +678,7 @@ public class WebDriverServiceTest {
     public void testGetElementAttribute() {
         LOG.entering(CLASS, "testGetElementAttribute");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body()).getId();
@@ -697,7 +698,7 @@ public class WebDriverServiceTest {
     public void testGetElementProperty() {
         LOG.entering(CLASS, "testGetElementProperty");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body()).getId();
@@ -717,7 +718,7 @@ public class WebDriverServiceTest {
     public void testGetElementCss() {
         LOG.entering(CLASS, "testGetElementCss");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body()).getId();
@@ -737,7 +738,7 @@ public class WebDriverServiceTest {
     public void testGetElementText() {
         LOG.entering(CLASS, "testGetElementText");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body()).getId();
@@ -757,7 +758,7 @@ public class WebDriverServiceTest {
     public void testGetElementTagName() {
         LOG.entering(CLASS, "testGetElementTagName");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body()).getId();
@@ -777,7 +778,7 @@ public class WebDriverServiceTest {
     public void testGetElementRect() {
         LOG.entering(CLASS, "testGetElementRect");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId  = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body()).getId();
@@ -797,7 +798,7 @@ public class WebDriverServiceTest {
     public void testIsElementEnabled() {
         LOG.entering(CLASS, "testIsElementEnabled");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId  = new WebElement().fromJson(POST(getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
             ).body()).getId();
@@ -817,7 +818,7 @@ public class WebDriverServiceTest {
     public void testClickElement() {
         LOG.entering(CLASS, "testClickElement");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId  = MarionetteUtil.parseJsonArray(POST(
                 getUri("findElements", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.ID.name()).add("value", "menu_myaccount").build().toString()
@@ -838,7 +839,7 @@ public class WebDriverServiceTest {
     public void testClearElement() {
         LOG.entering(CLASS, "testClearElement");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId  = new WebElement().fromJson(POST(
                 getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "input[name='username']").build().toString()
@@ -859,7 +860,7 @@ public class WebDriverServiceTest {
     public void testSendKeysToElement() {
         LOG.entering(CLASS, "testSendKeysToElement");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String elementId  =new WebElement().fromJson(POST(
                 getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "input[name='username']").build().toString()
@@ -883,7 +884,7 @@ public class WebDriverServiceTest {
     public void testGetPageSource() {
         LOG.entering(CLASS, "testGetPageSource");
         try{
-            setUrl("https://myaccountdev.swgas.com/maintenance/");
+            setUrl(String.format("%smaintenance/", URL));
             String result = MarionetteUtil.parseJsonObject(GET(getUri("getPageSource", sessionId)).body()).getString("source");
             Assertions.assertTrue(!result.isEmpty());
             LOG.exiting(CLASS, "testGetPageSource", result);
@@ -900,7 +901,7 @@ public class WebDriverServiceTest {
     public void testExecuteScript() {
         LOG.entering(CLASS, "testExecuteScript");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(POST(
                 getUri("executeScript", sessionId)
                 , Json.createObjectBuilder().add("script", "return document.querySelector('#menu_myaccount')").add("args", JsonValue.EMPTY_JSON_ARRAY).build().toString()
@@ -920,7 +921,7 @@ public class WebDriverServiceTest {
     public void testExecuteScriptAsync() {
         LOG.entering(CLASS, "testExecuteScriptAsync");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(POST(
                 getUri("executeScriptAsync", sessionId)
                 , Json.createObjectBuilder().add("script", "setTimeout(function(){return 1;}, 500);").add("args", "[]").build().toString()
@@ -941,7 +942,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testGetCookies");
         try{
             Cookie cookie = new Cookie("cookieName1", "cookieValue", "/", ".swgas.com", true, true, LocalDateTime.now().plusDays(5));
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             POST(getUri("addCookie", sessionId), cookie.toJson());
             cookie.setName("cookieName2");
             POST(getUri("addCookie", sessionId), cookie.toJson());            
@@ -965,7 +966,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testGetCookie");
         try{
             Cookie cookie = new Cookie("cookieName", "cookieValue", "/", ".swgas.com", false, false, LocalDateTime.now().plusDays(5));
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             POST(getUri("addCookie", sessionId), cookie.toJson());
             Cookie result = new Cookie().fromJson(GET(getUri("getCookie", sessionId, "cookieName")).body());
             Assertions.assertTrue("cookieName".equals(result.getName()));
@@ -988,7 +989,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testAddCookie");
         try{
             Cookie cookie = new Cookie("cookieName", "cookieValue", "/", ".swgas.com", false, false, LocalDateTime.now().plusDays(5));
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("addCookie", sessionId), cookie.toJson()).body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testAddCookie", result);
@@ -1005,7 +1006,7 @@ public class WebDriverServiceTest {
     public void testDeleteCookie() {
         LOG.entering(CLASS, "testDeleteCookie");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(DELETE(getUri("deleteCookie", sessionId, "cookieName"), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testDeleteCookie", result);
@@ -1022,7 +1023,7 @@ public class WebDriverServiceTest {
     public void testDeleteAllCookies() {
         LOG.entering(CLASS, "testDeleteAllCookies");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(DELETE(getUri("deleteAllCookies", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testDeleteAllCookies", result);
@@ -1040,7 +1041,7 @@ public class WebDriverServiceTest {
     public void testPerformActions() {
         LOG.entering(CLASS, "testPerformActions");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("performActions", sessionId), "").body());
             LOG.exiting(CLASS, "testPerformActions", result);
         } catch(Exception e){            
@@ -1057,7 +1058,7 @@ public class WebDriverServiceTest {
     public void testReleaseActions() {
         LOG.entering(CLASS, "testReleaseActions");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("releaseActions", sessionId), "").body());
             Assertions.assertTrue(null != result);
             LOG.exiting(CLASS, "testReleaseActions", result);
@@ -1074,7 +1075,7 @@ public class WebDriverServiceTest {
     public void testDismissAlert() {
         LOG.entering(CLASS, "testDismissAlert");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             POST(getUri("executeScript", sessionId)
                 , Json.createObjectBuilder()
                 .add("script", "window.alert('alert');")
@@ -1097,7 +1098,7 @@ public class WebDriverServiceTest {
     public void testAcceptAlert() {
         LOG.entering(CLASS, "testAcceptAlert");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             POST(getUri("executeScript", sessionId)
                 , Json.createObjectBuilder()
                 .add("script", "window.alert('alert');")
@@ -1121,7 +1122,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testGetAlertText");
         String expected = "alert";
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             POST(getUri("executeScript", sessionId)
                 , Json.createObjectBuilder()
                 .add("script", String.format("window.alert('%s');", expected))
@@ -1145,7 +1146,7 @@ public class WebDriverServiceTest {
         LOG.entering(CLASS, "testSetAlertText");
         String expected = "trela";
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             POST(getUri("executeScript", sessionId)
                 , Json.createObjectBuilder()
                 .add("script", "window.prompt('alert');")
@@ -1168,7 +1169,7 @@ public class WebDriverServiceTest {
     public void testGetScreenshot() {
         LOG.entering(CLASS, "testGetScreenshot");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(GET(getUri("getScreenshot", sessionId)).body());
             Assertions.assertTrue(!result.getString("screenshot","").isEmpty());
             LOG.exiting(CLASS, "testGetScreenshot", result);
@@ -1185,7 +1186,7 @@ public class WebDriverServiceTest {
     public void testGetElementScreenshot() {
         LOG.entering(CLASS, "testGetElementScreenshot");
         try{
-            setUrl("https://myaccountdev.swgas.com/");
+            setUrl(URL);
             String element = MarionetteUtil.parseJsonObject(POST(
                 getUri("findElement", sessionId)
                 , Json.createObjectBuilder().add("using", Marionette.SearchMethod.CSS_SELECTOR.name()).add("value", "#sticky-menu #menu_myaccount").build().toString()

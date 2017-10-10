@@ -439,7 +439,7 @@ public class MarionetteImplTest {
     public void testGetPageSource() throws Exception {
         LOG.entering(CLASS, "testGetPageSource");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/maintenance/")
+            session.getClient().get(String.format("%smaintenance/", URL))
             .thenCompose(s -> session.getClient().getPageSource())
             .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
@@ -451,7 +451,7 @@ public class MarionetteImplTest {
     public void testGetTitle() throws Exception {
         LOG.entering(CLASS, "testGetTitle");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getTitle())
             .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
@@ -463,7 +463,7 @@ public class MarionetteImplTest {
     public void testGetWindowHandles() throws Exception {
         LOG.entering(CLASS, "testGetWindowHandles");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getWindowHandles())
             .thenApply(MarionetteUtil::toArray)
             .thenApply(Objects::toString)
@@ -476,7 +476,7 @@ public class MarionetteImplTest {
     public void testGetChromeWindowHandles() throws Exception {
         LOG.entering(CLASS, "testGetChromeWindowHandles");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getChromeWindowHandles())
             .thenApply(MarionetteUtil::toArray)
             .thenApply(Objects::toString)
@@ -489,7 +489,7 @@ public class MarionetteImplTest {
     public void testClose() throws Exception {
         LOG.entering(CLASS, "testClose");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().close())
             .thenApply(MarionetteUtil::toArray)
             .thenApply(Objects::toString)
@@ -502,7 +502,7 @@ public class MarionetteImplTest {
     public void testCloseChromeWindow() throws Exception {
         LOG.entering(CLASS, "testCloseChromeWindow");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().closeChromeWindow())
             .thenApply(MarionetteUtil::toArray)
             .thenApply(Objects::toString)
@@ -515,7 +515,7 @@ public class MarionetteImplTest {
     public void testSetContext() throws Exception {
         LOG.entering(CLASS, "testSetContext");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().setContext(Marionette.Context.CONTEXT_CONTENT))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -528,7 +528,7 @@ public class MarionetteImplTest {
     public void testGetContext() throws Exception {
         LOG.entering(CLASS, "testGetContext");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getContext())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -541,7 +541,7 @@ public class MarionetteImplTest {
     public void testSwitchToWindow() throws Exception {
         LOG.entering(CLASS, "testSwitchToWindow");
         try{
-            String result = session.getClient().get("https://myaccountdev.swgas.com/")
+            String result = session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getWindowHandles())
             .thenApply(MarionetteUtil::toArray)
             .thenApply(array -> array.getString(0))
@@ -560,7 +560,7 @@ public class MarionetteImplTest {
     public void testGetActiveFrame() throws Exception {
         LOG.entering(CLASS, "testGetActiveFrame");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getActiveFrame())
             .thenApply(MarionetteUtil::toJsonValue)
             .thenApply(Objects::toString)
@@ -573,7 +573,7 @@ public class MarionetteImplTest {
     public void testSwitchToParentFrame() throws Exception {
         LOG.entering(CLASS, "testSwitchToParentFrame");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().switchToParentFrame())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -586,7 +586,7 @@ public class MarionetteImplTest {
     public void testSwitchToFrame() throws Exception {
         LOG.entering(CLASS, "testSwitchToFrame");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().switchToFrame(null))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -599,7 +599,7 @@ public class MarionetteImplTest {
     public void testSwitchToShadowRoot() throws Exception {
         LOG.entering(CLASS, "testSwitchToShadowRoot");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().switchToShadowRoot())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -611,7 +611,7 @@ public class MarionetteImplTest {
     @Test
     public void testGetCurrentUrl() throws Exception {
         LOG.entering(CLASS, "testGetCurrentUrl");
-        String url = "https://myaccountdev.swgas.com/";
+        String url = URL;
         String result;
         Assertions.assertTrue(
             Objects.equals(
@@ -629,7 +629,7 @@ public class MarionetteImplTest {
     public void testGetWindowType() throws Exception {
         LOG.entering(CLASS, "testGetWindowType");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getWindowType())
             .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
@@ -641,7 +641,7 @@ public class MarionetteImplTest {
     public void testGet() throws Exception {
         LOG.entering(CLASS, "testGet");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS)
@@ -653,7 +653,7 @@ public class MarionetteImplTest {
     public void testGetTimeouts() throws Exception {
         LOG.entering(CLASS, "testGetTimeouts");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getTimeouts())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -666,7 +666,7 @@ public class MarionetteImplTest {
     public void testSetTimeouts() throws Exception {
         LOG.entering(CLASS, "testSetTimeouts");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().setTimeouts(new Timeouts(Duration.ZERO, Duration.ZERO, Duration.ZERO)))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -679,7 +679,7 @@ public class MarionetteImplTest {
     public void testGoBack() throws Exception {
         LOG.entering(CLASS, "testGoBack");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().goBack())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -692,7 +692,7 @@ public class MarionetteImplTest {
     public void testGoForward() throws Exception {
         LOG.entering(CLASS, "testGoForward");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().goForward())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -705,7 +705,7 @@ public class MarionetteImplTest {
     public void testRefresh() throws Exception {
         LOG.entering(CLASS, "testRefresh");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().refresh())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -718,7 +718,7 @@ public class MarionetteImplTest {
     public void testExecuteScript() throws Exception {
         LOG.entering(CLASS, "testExecuteScript");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().executeScript("return 'abc';", "[]", null, null))
             .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
@@ -730,7 +730,7 @@ public class MarionetteImplTest {
     public void testExecuteAsyncScript() throws Exception {
         LOG.entering(CLASS, "testExecuteAsyncScript");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().executeAsyncScript("return abc;", "[]", null, Duration.ofSeconds(TIMEOUT), null))
             .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
@@ -742,7 +742,7 @@ public class MarionetteImplTest {
     public void testFindElement() throws Exception {
         LOG.entering(CLASS, "testFindElement");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().findElement(Marionette.SearchMethod.ID, "menu_myaccount"))
             .thenApply(MarionetteUtil::toElement)
             .thenApply(Objects::toString)
@@ -755,7 +755,7 @@ public class MarionetteImplTest {
     public void testGetActiveElement() throws Exception {
         LOG.entering(CLASS, "testGetActiveElement");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getActiveElement())
             .thenApply(MarionetteUtil::toElement)
             .thenApply(Objects::toString)
@@ -768,7 +768,7 @@ public class MarionetteImplTest {
     public void testAddCookie() throws Exception {
         LOG.entering(CLASS, "testAddCookie");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().addCookie(Json.createObjectBuilder()
                 .add("name", "cookieName")
                 .add("value", "cookieValue")
@@ -787,7 +787,7 @@ public class MarionetteImplTest {
     public void testDeleteCookie() throws Exception {
         LOG.entering(CLASS, "testDeleteCookie");
         List<Cookie> cookies = MarionetteUtil.parseJsonArray(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getCookies())
             .thenApply(MarionetteUtil::toArray)
             .thenApply(Objects::toString)        
@@ -796,7 +796,7 @@ public class MarionetteImplTest {
         .map(c -> new Cookie().fromJson(c.toString()))
         .collect(Collectors.toList());
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().deleteCookie(cookies.get(0).getName()))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -809,7 +809,7 @@ public class MarionetteImplTest {
     public void testDeleteAllCookies() throws Exception {
         LOG.entering(CLASS, "testDeleteAllCookies");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().deleteAllCookies())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -822,7 +822,7 @@ public class MarionetteImplTest {
     public void testGetCookies() throws Exception {
         LOG.entering(CLASS, "testGetCookies");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getCookies())
             .thenApply(MarionetteUtil::toArray)
             .thenApply(Objects::toString)
@@ -835,7 +835,7 @@ public class MarionetteImplTest {
     public void testTakeScreenshot() throws Exception {
         LOG.entering(CLASS, "testTakeScreenshot");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().takeScreenshot())
             .thenApply(MarionetteUtil::toStringValue)
             .get(TIMEOUT, TimeUnit.SECONDS)
@@ -847,7 +847,7 @@ public class MarionetteImplTest {
     public void testGetWindowRect() throws Exception {
         LOG.entering(CLASS, "testGetWindowRect");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().getWindowRect())
             .thenApply(MarionetteUtil::toRectangle)
             .thenApply(Objects::toString)
@@ -860,7 +860,7 @@ public class MarionetteImplTest {
     public void testSetWindowRect() throws Exception {
         LOG.entering(CLASS, "testSetWindowRect");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().setWindowRect(new Rectangle2D.Double(1.0d, 1.0d, 500.0d, 500.0d)))
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -873,7 +873,7 @@ public class MarionetteImplTest {
     public void testMaximizeWindow() throws Exception {
         LOG.entering(CLASS, "testMaximizeWindow");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().maximizeWindow())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
@@ -886,7 +886,7 @@ public class MarionetteImplTest {
     public void testFullscreen() throws Exception {
         LOG.entering(CLASS, "testFullscreen");
         LOG.info(
-            session.getClient().get("https://myaccountdev.swgas.com/")
+            session.getClient().get(URL)
             .thenCompose(s -> session.getClient().fullscreen())
             .thenApply(MarionetteUtil::toObject)
             .thenApply(Objects::toString)
