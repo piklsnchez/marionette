@@ -1,13 +1,12 @@
 package com.swgas.marionette;
 
 import com.swgas.exception.MarionetteException;
-import com.swgas.ocs.util.ZipUtils;
 import com.swgas.rest.Session;
+import com.swgas.util.ZipUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;

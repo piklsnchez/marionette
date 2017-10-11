@@ -5,6 +5,6 @@ Java9, using jdk.internal http client and server
 ## Motivation
 WebDriver Java api without too many dependencies
 ## Installation
-You'll need ocs-utils project (opps, that's a dedendency)
+mvn install
 ## Tests
 mvn test
