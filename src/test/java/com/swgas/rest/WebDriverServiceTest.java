@@ -101,7 +101,7 @@ public class WebDriverServiceTest {
         try{
             result = HttpClient.newHttpClient().send(
                 HttpRequest.newBuilder(uri)
-                .version(HttpClient.Version.HTTP_1_1)
+                .version(HttpClient.Version.HTTP_2)
                 .GET().build()
                 , HttpResponse.BodyHandler.asString()
             );
@@ -119,7 +119,7 @@ public class WebDriverServiceTest {
         try{
             result = HttpClient.newHttpClient().send(
                 HttpRequest.newBuilder(uri)
-                .version(HttpClient.Version.HTTP_1_1)
+                .version(HttpClient.Version.HTTP_2)
                 .headers("Accept",      "application/json"
                         ,"Content-Type","application/json")
                 .POST(HttpRequest.BodyProcessor.fromString(body))
@@ -140,7 +140,7 @@ public class WebDriverServiceTest {
         try{
             result = HttpClient.newHttpClient().send(
                 HttpRequest.newBuilder(uri)
-                .version(HttpClient.Version.HTTP_1_1)
+                .version(HttpClient.Version.HTTP_2)
                 .DELETE(HttpRequest.BodyProcessor.fromString(body))
                 .build()
                 , HttpResponse.BodyHandler.asString());

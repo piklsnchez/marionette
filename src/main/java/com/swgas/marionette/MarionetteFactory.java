@@ -5,7 +5,6 @@ import com.swgas.rest.Session;
 import com.swgas.util.ZipUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -16,12 +15,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MarionetteFactory {
@@ -76,7 +71,10 @@ public class MarionetteFactory {
             Process proc = new ProcessBuilder(Arrays.asList("firefox", "-marionette", "-profile", profileDirectory.toString(), "-new-instance")).start();
             session.setProc(proc);
             LOG.info(proc.info().toString());
-            int port = getPort(proc);
+            int port = getPort(session);
+            if(0 > port){
+                throw new MarionetteException("Couldn't get port");
+            }
             AsynchronousSocketChannel channel = AsynchronousSocketChannel.open();
             channel.connect(new InetSocketAddress("localhost", port), ret, new CompletionHandler<Void, CompletableFuture>(){
                 @Override
@@ -90,8 +88,8 @@ public class MarionetteFactory {
                     future.completeExceptionally(new MarionetteException((e.getCause() instanceof ConnectException) ? e.getCause() : e));
                 }
             });
-        } catch(IOException | InterruptedException | ExecutionException | TimeoutException e){
-            if(e instanceof TimeoutException){
+        } catch(IOException | MarionetteException e){
+            if(e instanceof MarionetteException){
                 try{
                     LOG.warning(Files.lines(profileDirectory.resolve("prefs.js")).reduce(String::concat).orElse("?"));
                 } catch(IOException _e){
@@ -105,42 +103,22 @@ public class MarionetteFactory {
         return ret;
     }
     
-    private static int getPort(Process proc) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        LOG.entering(CLASS, "getPort", proc);
-        Executors.newSingleThreadExecutor().submit(()-> {
-            BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            try{
-                String line;
-                while((line = err.readLine()) != null){
-                    LOG.severe(line);
+    private static int getPort(Session session){
+        LOG.entering(CLASS, "getPort", session);
+        int result = -1;
+        do{
+            try(BufferedReader reader = Files.newBufferedReader(session.getProfileDirectory().resolve("prefs.js"))){
+                reader.mark(20000);
+                if(reader.lines().noneMatch(l -> l.startsWith("user_pref(\"marionette.port\","))){
+                    continue;
                 }
-            } catch(IOException e){
-                LOG.severe(e.toString());
+                reader.reset();
+                String line = reader.lines().filter(l -> l.startsWith("user_pref(\"marionette.port\",")).findFirst().orElse("empty, -1);");
+                result = Integer.parseInt(line.split(", ")[1].replace(");", ""), 10);
+            } catch(Exception e){
+                LOG.log(Level.WARNING, e.toString(), e);
             }
-        });
-        InputStreamReader in = new InputStreamReader(proc.getInputStream());
-        StringBuilder output = new StringBuilder();
-        int result = CompletableFuture.supplyAsync(()-> {
-            char[] buff = new char[255];
-            int read;
-            try{
-                while(0 < (read = in.read(buff))){
-                    output.append(buff, 0, read);
-                    Matcher match = PATTERN.matcher(output);
-                    if(match.find()){
-                        String _port = match.group(1);
-                        LOG.info(String.format("port: %s", _port));
-                        if(_port.codePoints().allMatch(Character::isDigit)){
-                            return Integer.parseInt(_port, 10);
-                        }
-                    }
-                }
-            } catch(IOException e){
-                LOG.severe(e.toString());
-            }
-            LOG.warning(output.toString());
-            return -1;
-        }).get(9, TimeUnit.MINUTES);
+        } while(result == -1);
         LOG.exiting(CLASS, "getPort", result);
         return result;
     }

@@ -63,7 +63,7 @@ public class WebDriverService {
             return result;
         } catch(Exception e){
             LOG.throwing(CLASS, "newSession", e);
-            if(null != session.getProc()){
+            if(null != session && null != session.getProc()){
                 try{
                     session.getProc().destroy();
                 } catch(Exception _e){
@@ -120,7 +120,7 @@ public class WebDriverService {
         try{
             boolean ready = true;
             String message = SESSIONS.keySet().stream().reduce("", (a,b ) -> String.format("%s\n%s", a, b));
-            return new Status(ready, message).toString();
+            return new Status(ready, message).toJson();
         } catch(Exception e){
             LOG.throwing(CLASS, "status", e);
             throw new UnknownErrorException(e);

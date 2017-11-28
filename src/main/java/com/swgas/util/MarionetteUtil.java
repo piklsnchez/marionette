@@ -28,7 +28,6 @@ import java.nio.charset.CharsetDecoder;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -46,15 +45,15 @@ public class MarionetteUtil {
     private static final CharsetDecoder CHARSET_DECODER = Charset.defaultCharset().newDecoder();
     
     public static JsonObject parseJsonObject(String s){
-        return Json.createReader(new StringReader(s)).readObject();
+        return s == null ? JsonObject.EMPTY_JSON_OBJECT : Json.createReader(new StringReader(s)).readObject();
     }
     
     public static JsonArray parseJsonArray(String json){
-        return Json.createReader(new StringReader(json)).readArray();
+        return json == null ? JsonArray.EMPTY_JSON_ARRAY : Json.createReader(new StringReader(json)).readArray();
     }
     
-    public static Rectangle2D parseRectangle(String json){
-        JsonObject value = Json.createReader(new StringReader(json)).readObject();
+    public static Rectangle2D parseRectangle(String json){        
+        JsonObject value = Json.createReader(new StringReader(Objects.toString(json, "{}"))).readObject();
         return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("width", 0), value.getInt("height", 0));
     }
     
