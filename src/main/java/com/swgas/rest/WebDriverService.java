@@ -1019,7 +1019,7 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/cookie/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCookie(@PathParam("session_id") String sessionId, @PathParam("name") String name) {
+    public String getCookie(@PathParam("session_id") String sessionId, @PathParam("name") String name) {
         LOG.entering(CLASS, "getCookie", Stream.of(sessionId, name).toArray());
         try{
             String result = SESSIONS.get(sessionId)
@@ -1033,7 +1033,7 @@ public class WebDriverService {
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getCookie", result);
-            return Response.ok(result).build();
+            return result;
         } catch(Exception e){
             WebApplicationException ex = MarionetteUtil.castException(e);
             LOG.throwing(CLASS, "getCookie", ex);
