@@ -3,6 +3,7 @@ package com.swgas.model;
 import com.swgas.rest.Jsonable;
 import java.io.StringReader;
 import java.time.Duration;
+import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -69,10 +70,13 @@ public class Timeouts implements Jsonable<Timeouts>{
     
     @Override
     public Timeouts fromJson(String json){
-        JsonObject _json = Json.createReader(new StringReader(json)).readObject();
-        this.script      = Duration.parse(_json.getString("script"));
-        this.pageLoad    = Duration.parse(_json.getString("pageLoad"));
-        this.implicit    = Duration.parse(_json.getString("implicit"));
+        JsonObject _json = Json.createReader(new StringReader(Objects.toString(json, "").isEmpty() ? "{}" : json)).readObject();
+        String _script = _json.getString("script", null);
+        this.script      = _script == null ? null : Duration.parse(_script);
+        String _pageLoad = _json.getString("pageLoad", null);
+        this.pageLoad    = _pageLoad == null ? null : Duration.parse(_pageLoad);
+        String _implicit = _json.getString("implicit", null);
+        this.implicit    = _implicit == null ? null : Duration.parse(_implicit);
         return this;
     }
     

@@ -3,6 +3,7 @@ package com.swgas.model;
 import javax.json.Json;
 import com.swgas.rest.Jsonable;
 import java.io.StringReader;
+import java.util.Objects;
 import javax.json.JsonObject;
 
 public class Status implements Jsonable<Status> {
@@ -51,9 +52,9 @@ public class Status implements Jsonable<Status> {
     
     @Override
     public Status fromJson(String json){
-        JsonObject _json = Json.createReader(new StringReader(json)).readObject();
-        this.ready       = _json.getBoolean("ready");
-        this.message     = _json.getString("message");
+        JsonObject _json = Json.createReader(new StringReader(Objects.toString(json, "").isEmpty() ?  "{}" : json)).readObject();
+        this.ready       = _json.getBoolean("ready", false);
+        this.message     = _json.getString("message", null);
         return this;
     }
     

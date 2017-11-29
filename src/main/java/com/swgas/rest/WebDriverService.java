@@ -1,6 +1,7 @@
 package com.swgas.rest;
 
 import com.swgas.exception.InvalidSessionIdException;
+import com.swgas.exception.MarionetteException;
 import com.swgas.exception.NoSuchCookieException;
 import com.swgas.exception.SessionNotCreatedException;
 import com.swgas.exception.UnknownErrorException;
@@ -33,6 +34,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Path("/ws")
 public class WebDriverService {
@@ -1017,24 +1019,25 @@ public class WebDriverService {
     @GET
     @Path("/session/{session_id}/cookie/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getCookie(@PathParam("session_id") String sessionId, @PathParam("name") String name) {
-        LOG.entering(CLASS, "getCookie", sessionId);
+    public Response getCookie(@PathParam("session_id") String sessionId, @PathParam("name") String name) {
+        LOG.entering(CLASS, "getCookie", Stream.of(sessionId, name).toArray());
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()
             .getCookies()
             .thenApply(MarionetteUtil::toArray)
-            .thenApply(array -> array.stream()
+            .thenApply(array -> array.stream().peek(c -> LOG.info(Objects.toString(c)))
                 .filter(cookie -> Objects.equals(name, cookie.asJsonObject().getString("name")))
-                .findFirst().orElseThrow(()-> new NoSuchCookieException(new JsonError("no such cookie", String.format("cookie named \"%s\" does not exist", name), "")))
+                .findFirst().orElseThrow(()-> new MarionetteException(new JsonError("no such cookie", String.format("cookie named \"%s\" does not exist", name), "")))
             )
             .thenApply(Objects::toString)
             .get(TIMEOUT, TimeUnit.SECONDS);
             LOG.exiting(CLASS, "getCookie", result);
-            return result;
+            return Response.ok(result).build();
         } catch(Exception e){
-            LOG.throwing(CLASS, "getCookie", e);
-            throw MarionetteUtil.castException(e);
+            WebApplicationException ex = MarionetteUtil.castException(e);
+            LOG.throwing(CLASS, "getCookie", ex);
+            throw ex;
         }
     }
 
@@ -1044,7 +1047,7 @@ public class WebDriverService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String addCookie(@PathParam("session_id") String sessionId, String cookie) {
-        LOG.entering(CLASS, "addCookie", sessionId);
+        LOG.entering(CLASS, "addCookie", Stream.of(sessionId, cookie).toArray());
         try{
             String result = SESSIONS.get(sessionId)
             .getClient()

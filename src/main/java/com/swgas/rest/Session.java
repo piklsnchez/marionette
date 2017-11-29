@@ -1,6 +1,7 @@
 package com.swgas.rest;
 
 import com.swgas.marionette.Marionette;
+import com.swgas.util.MarionetteUtil;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.ref.Cleaner;
@@ -97,7 +98,7 @@ public class Session implements Closeable{
     
     @Override
     public String toString(){
-        return Stream.of(sessionId, proc, client, profileDirectory).map(a -> Objects.toString(a, /*null*/"\u2400")).reduce("", (a,b) -> String.format("%s|%s",a,b));
+        return Stream.of(sessionId, proc, client, profileDirectory).map(a -> Objects.toString(a, MarionetteUtil.NULL)).reduce("", (a,b) -> String.format("%s|%s",a,b));
     }
     
     @Override

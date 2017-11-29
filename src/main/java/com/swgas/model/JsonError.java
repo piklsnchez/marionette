@@ -2,6 +2,7 @@ package com.swgas.model;
 
 import com.swgas.rest.Jsonable;
 import java.io.StringReader;
+import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
 
@@ -67,10 +68,10 @@ public class JsonError implements Jsonable<JsonError>{
     
     @Override
     public JsonError fromJson(String json){
-        JsonObject _json = Json.createReader(new StringReader(json)).readObject();
-        this.error       = _json.getString("error");
-        this.message     = _json.getString("message");
-        this.stacktrace  = _json.getString("stacktrace");
+        JsonObject _json = Json.createReader(new StringReader(Objects.toString(json, "").isEmpty() ? "{}" : json)).readObject();
+        this.error       = _json.getString("error", null);
+        this.message     = _json.getString("message", null);
+        this.stacktrace  = _json.getString("stacktrace", null);
         return this;
     }
     

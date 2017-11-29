@@ -44,8 +44,10 @@ public class MarionetteUtil {
     
     private static final CharsetDecoder CHARSET_DECODER = Charset.defaultCharset().newDecoder();
     
-    public static JsonObject parseJsonObject(String s){
-        return Objects.toString(s, "").isEmpty() ? JsonObject.EMPTY_JSON_OBJECT : Json.createReader(new StringReader(s)).readObject();
+    public static final String NULL = "\u2400";
+    
+    public static JsonObject parseJsonObject(String json){
+        return Objects.toString(json, "").isEmpty() ? JsonObject.EMPTY_JSON_OBJECT : Json.createReader(new StringReader(json)).readObject();
     }
     
     public static JsonArray parseJsonArray(String json){

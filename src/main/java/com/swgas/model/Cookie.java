@@ -143,9 +143,9 @@ public class Cookie implements Jsonable<Cookie>{
     
     @Override
     public Cookie fromJson(String json){
-        JsonObject cookie = Json.createReader(new StringReader(json)).readObject();
-        this.name     = cookie.getString("name");
-        this.value    = cookie.getString("value");
+        JsonObject cookie = Json.createReader(new StringReader(Objects.toString(json, "").isEmpty() ? "{}" : json)).readObject();
+        this.name     = cookie.getString("name", null);
+        this.value    = cookie.getString("value", null);
         this.path     = cookie.getString("path",      "/");
         this.domain   = cookie.getString("domain",    "");
         this.secure   = cookie.getBoolean("secure",   false);

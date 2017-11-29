@@ -941,7 +941,7 @@ public class WebDriverServiceTest {
     public void testGetCookies() {
         LOG.entering(CLASS, "testGetCookies");
         try{
-            Cookie cookie = new Cookie("cookieName1", "cookieValue", "/", ".swgas.com", true, true, LocalDateTime.now().plusDays(5));
+            Cookie cookie = new Cookie("cookieName1", "cookieValue", "/", "swgas.com", true, true, LocalDateTime.now().plusDays(5));
             setUrl(URL);
             POST(getUri("addCookie", sessionId), cookie.toJson());
             cookie.setName("cookieName2");
@@ -965,15 +965,13 @@ public class WebDriverServiceTest {
     public void testGetCookie() {
         LOG.entering(CLASS, "testGetCookie");
         try{
-            Cookie cookie = new Cookie("cookieName", "cookieValue", "/", ".swgas.com", false, false, LocalDateTime.now().plusDays(5));
+            Cookie cookie = new Cookie("cookieName", "cookieValue", "/", "swgas.com", false, false, LocalDateTime.now().plusDays(5));
             setUrl(URL);
             POST(getUri("addCookie", sessionId), cookie.toJson());
             Cookie result = new Cookie().fromJson(GET(getUri("getCookie", sessionId, "cookieName")).body());
             Assertions.assertTrue("cookieName".equals(result.getName()));
             DELETE(getUri("deleteCookie", sessionId, "cookieName"), "");
-            LOG.info(
-                GET(getUri("getCookie", sessionId, "cookieName")).body()
-            );
+            Assertions.assertTrue(404 == GET(getUri("getCookie", sessionId, "cookieName")).statusCode());
             LOG.exiting(CLASS, "testGetCookie", result);
         } catch(Exception e){
             LOG.throwing(CLASS, "testGetCookie", e);
@@ -988,7 +986,7 @@ public class WebDriverServiceTest {
     public void testAddCookie() {
         LOG.entering(CLASS, "testAddCookie");
         try{
-            Cookie cookie = new Cookie("cookieName", "cookieValue", "/", ".swgas.com", false, false, LocalDateTime.now().plusDays(5));
+            Cookie cookie = new Cookie("cookieName", "cookieValue", "/", "swgas.com", false, false, LocalDateTime.now().plusDays(5));
             setUrl(URL);
             JsonObject result = MarionetteUtil.parseJsonObject(POST(getUri("addCookie", sessionId), cookie.toJson()).body());
             Assertions.assertTrue(null != result);

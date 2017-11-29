@@ -2,6 +2,7 @@ package com.swgas.model;
 
 import com.swgas.rest.Jsonable;
 import java.io.StringReader;
+import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
 
@@ -38,7 +39,7 @@ public class WebElement implements Jsonable<WebElement> {
     
     @Override
     public WebElement fromJson(String json){
-        JsonObject _json = Json.createReader(new StringReader(json)).readObject();
+        JsonObject _json = Json.createReader(new StringReader(Objects.toString(json, "").isEmpty() ? "{}" : json)).readObject();
         this.id = _json.getString(KEY, null);
         if(null == id){
             id = _json.getString("element", null);
