@@ -45,15 +45,15 @@ public class MarionetteUtil {
     private static final CharsetDecoder CHARSET_DECODER = Charset.defaultCharset().newDecoder();
     
     public static JsonObject parseJsonObject(String s){
-        return s == null ? JsonObject.EMPTY_JSON_OBJECT : Json.createReader(new StringReader(s)).readObject();
+        return Objects.toString(s, "").isEmpty() ? JsonObject.EMPTY_JSON_OBJECT : Json.createReader(new StringReader(s)).readObject();
     }
     
     public static JsonArray parseJsonArray(String json){
-        return json == null ? JsonArray.EMPTY_JSON_ARRAY : Json.createReader(new StringReader(json)).readArray();
+        return Objects.toString(json, "").isEmpty() ? JsonArray.EMPTY_JSON_ARRAY : Json.createReader(new StringReader(json)).readArray();
     }
     
     public static Rectangle2D parseRectangle(String json){        
-        JsonObject value = Json.createReader(new StringReader(Objects.toString(json, "{}"))).readObject();
+        JsonObject value = Json.createReader(new StringReader(Objects.toString(json, "").isEmpty() ? "{}" : json)).readObject();
         return new Rectangle2D.Double(value.getInt("x", 0), value.getInt("y", 0), value.getInt("width", 0), value.getInt("height", 0));
     }
     

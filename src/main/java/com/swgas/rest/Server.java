@@ -12,6 +12,7 @@ import org.glassfish.grizzly.http2.Http2AddOn;
 import org.glassfish.grizzly.http2.Http2Configuration;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 public class Server implements AutoCloseable {
     private static final String CLASS = Server.class.getName();
@@ -26,6 +27,7 @@ public class Server implements AutoCloseable {
     public Server(String uri) {
         // create a resource config that scans for JAX-RS resources
         final ResourceConfig rc = new ResourceConfig().packages("com.swgas.rest");
+        rc.register(JacksonFeature.class);
         server = GrizzlyHttpServerFactory.createHttpServer(URI.create(uri), rc, false);
         server.getListener("grizzly").registerAddOn(new Http2AddOn(Http2Configuration.builder().build()));
         server.getServerConfiguration().setDefaultErrorPageGenerator(
